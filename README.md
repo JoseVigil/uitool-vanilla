@@ -12,3 +12,12 @@ npm i -D @firebase/testing
 
 firebase setup:emulators:firestore
 ```
+
+Debugging 
+=========
+
+https://medium.com/firebase-developers/debugging-firebase-functions-in-vs-code-a1caf22db0b2
+
+```sh
+firebase emulators:start --inspect-functions
+```
