@@ -5,9 +5,20 @@
   "hosting": {
     "public": "public",
     "ignore": [
-      "firebase.json",
-      "**/.*",
+      "firebase.json",      
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      { 
+        "source": "/contenido/**", 
+        "function": "buildHtmlWithContent" 
+      }, {
+        "source": "/version",
+        "function": "version"
+      }, {
+        "source": "/screenshot",
+        "function": "screenshot"
+      }
     ]
   },
   "storage": {
