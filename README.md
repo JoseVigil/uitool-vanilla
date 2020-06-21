@@ -8,7 +8,9 @@ Firebase
 Buscar las tres versiones mas actuales de firebase-tools firebase-admin y firebase-functions y modificarlas en functions/packages.json
 
 https://www.npmjs.com/package/firebase-admin
+
 https://www.npmjs.com/package/firebase-tools
+
 https://www.npmjs.com/package/firebase-functions
 
 ```sh
