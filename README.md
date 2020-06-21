@@ -5,18 +5,27 @@ https://medium.com/@david_shortman/build-and-debug-firebase-functions-in-vscode-
 Firebase 
 =========
 
-https://medium.com/@david_shortman/build-and-debug-firebase-functions-in-vscode-73efb76166cf
+Buscar las tres versiones mas actuales de firebase-tools firebase-admin y firebase-functions y modificarlas en functions/packages.json
+
+https://www.npmjs.com/package/firebase-admin
+https://www.npmjs.com/package/firebase-tools
+https://www.npmjs.com/package/firebase-functions
 
 ```sh
+npm install 
+```
+
+Si tira error y pide audit command correrlo, despues
+
+```sh
+npm install -g firebase-tools
+
 npm i -D @firebase/testing
 
 firebase setup:emulators:firestore
 ```
 
-Debugging 
-=========
-
-https://medium.com/firebase-developers/debugging-firebase-functions-in-vs-code-a1caf22db0b2
+Debug
 
 ```sh
 firebase emulators:start --inspect-functions
