@@ -4,6 +4,7 @@
     const firebase = require('firebase');
     var admin = require('firebase-admin');
     const puppeteer = require('puppeteer');
+    const request = require('request');
 
     const app = express();
 
@@ -71,7 +72,7 @@
           '--proxy-bypass-list=*',
           '--deterministic-fetch',
         ],
-      };      */
+      };*/    
 
       /*const openConnection = async () => {
 
@@ -94,44 +95,150 @@
         page && (await page.close());
         browser && (await browser.close());
       };*/
-      
-      /*exports.gatewayClick = functions.https.onRequest((request, response) => {
+
+
+      exports.saveSMS = functions.https.onRequest((req, res) => {
         
-        const browser = await puppeteer.launch(PUPPETEER_OPTIONS);
+        //const _phone = req.data.phone;
+        //const _name = req.data.name;
+        //const _code = req.data.code;  
 
-        const data = request.body;
-        const hola = data.hola;
+        const _phone = req.body.data.phone;
+        const _name = req.body.data.name;
+        const _code = req.body.data.code;  
+        
+        //const _phone = req.body.data.phone;
+        //const _name = req.body.data.name;
+        //const _code = req.body.data.code;  
 
-        //let { browser, page } = await openConnection();
+          db.collection("sipef").add({
+            phone: _phone,
+            name: _name,
+            code: _code
+          })
+          .then(function(docRef) {           
+             
+            postSMS(req, docRef, function(result){          
+
+              res.send(result); 
+
+            });  
+            
+          })        
+          .catch(function(error) {
+              console.error("Error adding document: ", error);
+          });   
+  
+          //res.status(200).send(hola);
+      });
+
+      function postSMS(req, docRef, callback) {
+
+        let _id = docRef.id; 
+
+        const _phone = req.body.data.phone;
+        const _name = req.body.data.name;
+        const _code = req.body.data.code;
+
+        const _payload = "http://noti.ms/" + _id;       
+
+        var headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',     
+            'Authorization': 'Bearer 7FA7ED241142E7BE36671CE0FEC9E84F'       
+        };
+
+        //var dataString = '{"phone":' + _phone + ',"name":"' + _name + ',"code":"' + _code + '"}';  
+        var dataString = '{"recipient":' + _phone + ',"message":"' + _payload + '","service_id":"123"}';  
+
+        console.log(dataString);
+
+        var options = {
+            url: 'https://api.notimation.com/api/v1/sms',
+            method: 'POST',
+            headers: headers,
+            body: dataString
+        };  
+
+        request(options, function (error, response, body) {
+
+            console.log("error: " + error); 
+            console.log("response: " + response); 
+            console.log("body: " + body); 
+
+            console.log("_______________________________");
+
+            if (!error) {
+
+                let _body = JSON.parse(body);
                 
-        try {
+                console.log("body: " + JSON.stringify(_body));              
+                
+                console.log("_______________________________");
+
+                var _data = _body["data"];
+
+                console.log("data: " + JSON.stringify(_data));              
+
+                var smsid = _data["sms_id"];                         
+                console.log("smsid: " + smsid);            
+
+                return docRef.update({
+                  sms_id: smsid
+                })
+                .then(function() {
+                    //res.send(body); 
+                    callback(smsid);
+                })
+                .catch(function(e) {                
+                    console.error("Error updating document: ", e);
+                    //res.send(e);
+                    callback(e);
+                });           
+                
+            } else {
+                
+                var _error = JSON.parse(error); 
+
+                console.log(_error);
+
+                callback(_error);
+                
+                //res.send(_error);
+
+            }
+            
+        });       
+      }
+
+      app.get('/sipef', async function screenshotHandler(req, res) {
           
-          //await page.goto('http://s1.notimation.com//en/5-9SIM.php', { waitUntil: 'load' });
-
-          //await page.evaluate(() => {
-          //  SimSwitch(0,1);
-          //});
-
-          //await page.waitFor(1000);
-          //await page.reload(appUrl);                
-
-          //const firstArticleTitle = await page.evaluate(() =>
-          //  document.querySelector('.extremeHero-titleClamp').innerText
-          //);
+          const _id = req.query.id;
+        
+          if (!_id) {
+            return res.status(400).send('No se encontro el Id');
+          }
+          
 
 
-          response.status(200).send(true);
+      });
+     
+      
+    /*exports.gatewayClick = functions.https.onRequest((req, res) => {
+        
+      const browser = await puppeteer.launch({headless: false});
+      const page = await browser.newPage();
+      await page.setViewport({width: 1200, height: 720})
+      await page.goto('https://www.daum.net', { waitUntil: 'networkidle0' }); // wait until page load
+      await page.type('#id', CREDS.username);
+      await page.type('#loginPw', CREDS.password);
+      // click and wait for navigation
+      await Promise.all([
+                page.click('#loginSubmit'),
+                page.waitForNavigation({ waitUntil: 'networkidle0' }),
+      ]);      
 
-        } catch (err) {
-
-            response.status(500).send(err.message);
-
-        } finally {            
-            //await browser.close();
-            //await closeConnection(page, browser);
-        }
-
-      });*/
+    });*/
 
 
       // Handler to take screenshots of a URL.
