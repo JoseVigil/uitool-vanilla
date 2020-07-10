@@ -4,9 +4,14 @@
     const firebase = require('firebase');
     var admin = require('firebase-admin');
     const puppeteer = require('puppeteer');
-    const request = require('request');
+    const nodeHtmlToImage = require('node-html-to-image');
+    const request = require('request');    
+
+    const htmlFunctions = require('./html_functions.js');
 
     const app = express();
+
+    var _payloadUrl = "http://noti.ms/";
 
     // Runs before every route. Launches headless Chrome.
     app.all('*', async (req, res, next) => {
@@ -28,7 +33,9 @@
         databaseURL: db_url,
         //credential: admin.credential.applicationDefault()
     });
+    
     const db = admin.firestore();
+    //const storage = admin.storage();
 
     const firebaseConfig = {
         apiKey: "AIzaSyBtxWKuwsGfMoDZ_0yDvC7w0SEbEno418U",
@@ -42,206 +49,149 @@
     };
     firebase.initializeApp(firebaseConfig);
     firebase.functions().useFunctionsEmulator('http://localhost:5000'); 
-
-
     
     // // Create and Deploy Your First Cloud Functions
     // // https://firebase.google.com/docs/functions/write-firebase-functions
-    //
 
-    exports.helloWorld = functions.https.onRequest((request, response) => {
+    exports.helloWorld = functions.https.onRequest((request, response) => {        
+      response.send("Hello from Firebaseeeee!");
+    }); 
+
+
+    exports.saveSMS = functions.https.onRequest( async  (req, res) => {        
+
+      const _phone = req.body.data.phone;
+      const _name = req.body.data.name;
+      const _code = req.body.data.code; 
+      const _client_id = req.body.data.client_id;  
+      const _message = req.body.data.message;
+      const _contact = req.body.data.contact;              
+      
+      db.collection("cobranzas").add({
+        phone: _phone,
+        name: _name,
+        code: _code,
+        client_id:_client_id,
+        message: _message,
+        contact: _contact        
+      })
+      .then(function(docRef) {           
+          
+        /*postSMS(req, docRef, function(result){          
+
+          res.send(JSON.stringify(result)); 
+
+        });*/         
         
-        response.send("Hello from Firebaseeeee!");    
+        res.send(docRef.id); 
 
+      })        
+      .catch(function(error) {
+          console.error("Error adding document: ", error);
+      });   
+
+      //res.status(200).send(hola);
+      
     });
 
+    function postSMS(req, docRef, callback) {
 
-    /*const PUPPETEER_OPTIONS = {
-        headless: false,
-        args: [
-          '--start-maximized',
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-setuid-sandbox',
-          '--timeout=30000',
-          '--no-first-run',
-          '--no-sandbox',
-          '--no-zygote',
-          '--single-process',
-          "--proxy-server='direct://'",
-          '--proxy-bypass-list=*',
-          '--deterministic-fetch',
-        ],
-      };*/    
+      let _id = docRef.id; 
+      const _phone = req.body.data.phone;        
+      const _payload = _payloadUrl + _id;       
 
-      /*const openConnection = async () => {
+      var headers = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',     
+          'Authorization': 'Bearer 7FA7ED241142E7BE36671CE0FEC9E84F'       
+      };
 
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-        
-        await page.setUserAgent(
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
-        );
-        
-        await page.authenticate({'username':'admin', 'password': 'Notimation2020'});
-        //await page.setViewport({ width: 1680, height: 1050 });
-        
-        //return { browser, page };
-        return page;
+      var dataString = '{"recipient":' + _phone + ',"message":"' + _payload + '","service_id":"5"}';  
+      console.log(dataString);
 
-      };*/
+      var options = {
+          url: 'https://api.notimation.com/api/v1/sms',
+          method: 'POST',
+          headers: headers,
+          body: dataString
+      };  
+
+      request(options, function (error, response, body) {
+          if (!error) {
+              let _body = JSON.parse(body);                
+              var _data = _body["data"];
+              var smsid = _data["sms_id"];                         
+              return docRef.update({
+                sms_id: smsid
+              })
+              .then(function() {
+                  callback(smsid);
+              })
+              .catch(function(e) {                
+                  callback(e);
+              });                     
+          } else {                
+              var _error = JSON.parse(error); 
+              callback(_error);                
+          }            
+      });       
+    } 
+
+    exports.convertHtmlToImage = functions.firestore
+      .document('cobranzas/{cobranzasId}')
+      .onWrite( async (change, context) => {    
+
+      const newValue = change.after.data();       
+      let name = newValue.name;
+      let message = newValue.message;
+      let cobranzasId = context.params.cobranzasId;   
+
+      let image64 = await nodeHtmlToImage({
+        html: htmlFunctions.buildHTMLForImage(name, message),
+        //content: [{ name : name, message : message }],
+        encoding: "base64" 
+      }); 
       
-      /*const closeConnection = async (page, browser) => {
-        page && (await page.close());
-        browser && (await browser.close());
-      };*/
+      await db.collection("cobranzas").doc(cobranzasId).update(
+        {image: image64}
+      );
+
+    }); 
 
 
-      exports.saveSMS = functions.https.onRequest((req, res) => {
-        
-        //const _phone = req.data.phone;
-        //const _name = req.data.name;
-        //const _code = req.data.code;  
+    exports.buildHtmlForNoti = functions.https.onRequest((req, res) => {
+      
+      console.log("req.path:", req.path); 
 
-        const _phone = req.body.data.phone;
-        const _name = req.body.data.name;
-        const _code = req.body.data.code;  
-        
-        //const _phone = req.body.data.phone;
-        //const _name = req.body.data.name;
-        //const _code = req.body.data.code;  
+      const path = req.path.split('/');
+      const postId = path[1];        
+      
+      if (!postId) {
+        return res.status(400).send('No se encontro el Id');
+      } 
 
-          db.collection("sipef").add({
-            phone: _phone,
-            name: _name,
-            code: _code
-          })
-          .then(function(docRef) {           
-             
-            postSMS(req, docRef, function(result){          
+      console.log("postId:", postId);
 
-              res.send(result); 
-
-            });  
-            
-          })        
-          .catch(function(error) {
-              console.error("Error adding document: ", error);
-          });   
-  
-          //res.status(200).send(hola);
-      });
-
-      function postSMS(req, docRef, callback) {
-
-        let _id = docRef.id; 
-
-        const _phone = req.body.data.phone;
-        const _name = req.body.data.name;
-        const _code = req.body.data.code;
-
-        const _payload = "http://noti.ms/" + _id;       
-
-        var headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',     
-            'Authorization': 'Bearer 7FA7ED241142E7BE36671CE0FEC9E84F'       
-        };
-
-        //var dataString = '{"phone":' + _phone + ',"name":"' + _name + ',"code":"' + _code + '"}';  
-        var dataString = '{"recipient":' + _phone + ',"message":"' + _payload + '","service_id":"123"}';  
-
-        console.log(dataString);
-
-        var options = {
-            url: 'https://api.notimation.com/api/v1/sms',
-            method: 'POST',
-            headers: headers,
-            body: dataString
-        };  
-
-        request(options, function (error, response, body) {
-
-            console.log("error: " + error); 
-            console.log("response: " + response); 
-            console.log("body: " + body); 
-
-            console.log("_______________________________");
-
-            if (!error) {
-
-                let _body = JSON.parse(body);
-                
-                console.log("body: " + JSON.stringify(_body));              
-                
-                console.log("_______________________________");
-
-                var _data = _body["data"];
-
-                console.log("data: " + JSON.stringify(_data));              
-
-                var smsid = _data["sms_id"];                         
-                console.log("smsid: " + smsid);            
-
-                return docRef.update({
-                  sms_id: smsid
-                })
-                .then(function() {
-                    //res.send(body); 
-                    callback(smsid);
-                })
-                .catch(function(e) {                
-                    console.error("Error updating document: ", e);
-                    //res.send(e);
-                    callback(e);
-                });           
-                
-            } else {
-                
-                var _error = JSON.parse(error); 
-
-                console.log(_error);
-
-                callback(_error);
-                
-                //res.send(_error);
-
-            }
-            
-        });       
-      }
-
-      app.get('/sipef', async function screenshotHandler(req, res) {
+      db.collection('cobranzas').doc(postId).get().then(function (document) {
           
-          const _id = req.query.id;
-        
-          if (!_id) {
-            return res.status(400).send('No se encontro el Id');
-          }
-          
+        if (document.exists) {          
+          let docId = document.id;
+          let name = document.data().name;
+          let mensaje = document.data().message;
+          let contact = document.data().contact;
+          let image = document.data().image;
+          let title = "Mensaje para " + name;
+          const htmlString = htmlFunctions.buildHTMLForPage(title, name, mensaje, contact, image);
+          return res.status(200).end(htmlString);
+        }
 
-
-      });
+      }).catch(function (error) {
+          console.log("Error getting document:", error);
+      });       
+    
+    });
      
-      
-    /*exports.gatewayClick = functions.https.onRequest((req, res) => {
-        
-      const browser = await puppeteer.launch({headless: false});
-      const page = await browser.newPage();
-      await page.setViewport({width: 1200, height: 720})
-      await page.goto('https://www.daum.net', { waitUntil: 'networkidle0' }); // wait until page load
-      await page.type('#id', CREDS.username);
-      await page.type('#loginPw', CREDS.password);
-      // click and wait for navigation
-      await Promise.all([
-                page.click('#loginSubmit'),
-                page.waitForNavigation({ waitUntil: 'networkidle0' }),
-      ]);      
-
-    });*/
-
-
-      // Handler to take screenshots of a URL.
+  
     app.get('/screenshot', async function screenshotHandler(req, res) {
         const url = req.query.url;
         if (!url) {
@@ -266,11 +216,11 @@
         await browser.close();
     });
     const opts = {memory: '2GB', timeoutSeconds: 60};
+    
     exports.screenshot = functions.runWith(opts).https.onRequest(app);
     exports.version = functions.https.onRequest(app);
-      
-
-     exports.buildHtmlWithContent = functions.https.onRequest((req, res) => {
+    
+    exports.buildHtmlWithContent = functions.https.onRequest((req, res) => {
         
         const path = req.path.split('/');
         const postId = path[2];                
@@ -312,9 +262,12 @@
       }
 
 
-
-    /*
-    / Puppetter
-    */
-
-   
+      app.get("/render", async function(req, res) {
+        console.log("entra render:");
+        const image = await nodeHtmlToImage({
+          html: '<html><body><div>Check out what I just did! #cool</div></body></html>'
+        });
+        res.writeHead(200, { 'Content-Type': 'image/png' });
+        res.end(image, 'binary');
+      });
+      exports.render = functions.https.onRequest(app);
