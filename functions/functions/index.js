@@ -137,16 +137,19 @@
 
     exports.convertHtmlToImage = functions.firestore
       .document('cobranzas/{cobranzasId}')
-      .onCreate( async (change, context) => {          
+      .onCreate( async (snap, context) => {
+      //.onCreate( async (change, context) => {          
       
       //const newValue = change.after.data();       
       //let name = newValue.name;
       //let message = newValue.message;
       //let cobranzasId = context.params.cobranzasId;   
  
-      const newValue = change.after.data();       
+      //const newValue = change.after.data();       
+      const newValue = snap.data();
       let name = newValue.name;
       let message = newValue.message;
+      let sms_id = newValue.sms_id;
       let cobranzasId = context.params.cobranzasId;   
 
       //console.log('name:', name);
