@@ -14,9 +14,6 @@
         "source": "/**", 
         "function": "buildHtmlForNoti" 
       }, {
-        "source": "/version",
-        "function": "version"
-      }, {
         "source": "/screenshot",
         "function": "screenshot"
       }
@@ -52,6 +49,7 @@
   "functions": {
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint"
-    ]
+    ],
+    "source": "functions"
   }
 }
