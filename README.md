@@ -32,3 +32,24 @@ Debug
 ```sh
 firebase emulators:start --inspect-functions
 ```
+
+Imagen de HTML
+==============
+
+Para poder crear un preview de imagen normalmente se utiliza una libreria de node llamada puppeter. Despues de algunas pruebas locales donde logre crear una imagen pude darme cuenta que cuando hacia el deploy en el servidor no andaba. 
+
+Concluyendo que es necesario crear una function con mayor capacidad de proceso tuve que crear una nueva funcion en Cloud Function con una cuota. Sin embargo no linkeaba con el proyecto firebase. 
+
+https://console.cloud.google.com/functions/list?authuser=6&folder=&organizationId=&project=notims
+
+Encontre que hay que crear el proyecto de firebase basado en el de cloud con la misma cuenta. 
+
+https://medium.com/google-developers/whats-the-relationship-between-firebase-and-google-cloud-57e268a7ff6f
+
+
+
+
+
+
+
+
