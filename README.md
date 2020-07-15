@@ -47,6 +47,11 @@ Encontre que hay que crear el proyecto de firebase basado en el de cloud con la 
 https://medium.com/google-developers/whats-the-relationship-between-firebase-and-google-cloud-57e268a7ff6f
 
 
+Push notification to WebApp
+===========================
+
+https://www.freecodecamp.org/news/how-to-add-push-notifications-to-a-web-app-with-firebase-528a702e13e1/#:~:text=Notifications%20with%20Firebase,any%20device%20using%20HTTP%20requests.
+
 
 
 
