@@ -13,10 +13,17 @@
     "node": "10"
   },
   "dependencies": {
+    "blob-util": "^2.0.2",
+    "create-object-url": "^1.0.2",
+    "filereader": "^0.10.3",
     "firebase": "^7.16.0",
     "firebase-admin": "^8.10.0",
     "firebase-functions": "^3.6.1",
-    "request": "^2.88.2"
+    "firestore-export-import": "^0.6.1",
+    "node-blob": "0.0.2",
+    "path": "^0.12.7",
+    "request": "^2.88.2",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "eslint": "^5.12.0",

@@ -3,12 +3,20 @@
     const functions = require('firebase-functions');
     const firebase = require('firebase');
     var admin = require('firebase-admin');
-    const request = require('request');    
-
+    const request = require('request');  
+    var firestoreService = require('firestore-export-import');  
+    
+    //var path = require('path');
+    //var Blob = require('node-blob');
+    //var blobUtil = require('blob-util');    
+    //var createObjectURL = require('create-object-url');
+    
+   
     //var _payloadUrl = "http://noti.ms/";
     var _payloadUrl = "http://notimation-ms.firebaseapp.com/";   
 
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
+    const { parse } = require('path');
     var db_url = "https://notims.firebaseio.com";
 
     //var _payloadUrl = "http://noti.ms/";
@@ -18,8 +26,13 @@
         credential: admin.credential.cert(serviceAccount),
         databaseURL: db_url,        
     });
+
+    firestoreService.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: db_url,        
+    });
     
-    const db = admin.firestore();    
+    const firestore = admin.firestore();    
     const storage = admin.storage();
 
     const firebaseConfig = {
@@ -36,7 +49,23 @@
     firebase.functions().useFunctionsEmulator('http://localhost:5000');    
 
     const app = express();
-  
+    exports.app = functions.https.onRequest(app);
+
+    /**
+     * WebApp Notification
+     * https://www.freecodecamp.org/news/how-to-add-push-notifications-to-a-web-app-with-firebase-528a702e13e1/#:~:text=Notifications%20with%20Firebase,any%20device%20using%20HTTP%20requests.
+     */
+
+     /**
+      * Backup and restore
+      * https://levelup.gitconnected.com/firebase-import-json-to-firestore-ed6a4adc2b57
+      */
+
+    /**
+     * Download Image 
+     * https://firebase.google.com/docs/storage/web/download-files
+     */
+      
     /**
      * Post SMS
      */
@@ -52,7 +81,7 @@
       
       let _time = admin.firestore.FieldValue.serverTimestamp(); 
       
-      db.collection("cobranzas").add({
+      firestore.collection("cobranzas").add({
         phone: _phone,
         name: _name,
         code: _code,
@@ -170,7 +199,7 @@
                 
                 let image_path = data.image_path;               
 
-                let userRef = db.collection("cobranzas").doc(cobranzasId);
+                let userRef = firestore.collection("cobranzas").doc(cobranzasId);
 
                 let _time = admin.firestore.FieldValue.serverTimestamp(); 
                 
@@ -200,59 +229,163 @@
       }  
         
     }); 
-
-
-     /**
-     * Build Html For Noti
-     */
-
-    exports.buildNoti = functions.https.onRequest((req, res) => {
-      
-      console.log("req.path:", req.path); 
-      const path = req.path.split('/');
-      const postId = path[1];        
-      
-      if (!postId) {
-        return res.status(400).send('No se encontro el Id');
-      }       
-
-      return db.collection('cobranzas').doc(postId).get().then( (document) => {
-          
-        if (document.exists) {
-
-          let docId = document.id;
-          let name = document.data().name;
-          let mensaje = document.data().message;
-          let contact = document.data().contact;
-          let image = document.data().image;          
-          let title = "Mensaje para " + name;
-          const htmlString = htmlFunctions.buildHTMLForPage(title, name, mensaje, contact, image);
-          
-          return res.status(200).send(htmlString);
-        
-        } else {
-          return res.status(404);
-        }        
-
-      }).catch((error) => {    
-          console.log("Error getting document:", error);
-      });       
     
+    //app.get('/', (req, res) => {
+
+    exports.buildHtml = functions.https.onRequest((req, res) => {
+
+      console.log("req.path:", req.path); 
+      const pathParams = req.path.split('/');
+      
+      if (pathParams[1] === "export") {
+
+          //http://localhost:5000/export/cobranzas
+          //https://noti.ms/export/cobranzas
+
+          let collection = pathParams[2];         
+      
+          try {
+
+            firestoreService
+            .backup(collection)
+            .then(data => {  
+              res.status(200).send(data);
+              //downloadJson(collection, data);   
+              return data;           
+            }).catch((error) => {                
+              console.log('Error getting sertvice backup');
+              return error;
+            });  
+            
+          } catch (e) {
+              console.error(e);
+              return e;
+          }  
+
+      } else if (pathParams[1] === "import") {
+
+          //http://localhost:5000/import/cobranzas
+          //https://noti.ms/import/cobranzas
+
+          try {
+
+            let _collection = pathParams[2];   
+            let _json_file = _collection + ".json";            
+            let data = require("./imports/"  + _json_file );         
+
+            const settings = {timestampsInSnapshots: true};          
+            firestore.settings(settings);
+
+            var collName, docName;
+            var collObj, docObj;
+            var level = 0;
+
+            const iterate = (obj, level) => {
+              Object.keys(obj).forEach(key => {        
+                //console.log('key: '+ key + ', value: '+ obj[key]);
+                if (level===0) {              
+                  collName = key;
+                  collObj = obj[key];
+                } else if (level===1) { 
+                  docName = key;
+                  docObj = obj[key];
+                }                      
+                if (typeof obj[key] === 'object') {
+                    level++;
+                    iterate(obj[key], level);
+                }
+              });
+           }
+
+            iterate(data, 0);         
+          
+            //console.log(collName);
+            //console.log(JSON.stringify(collObj));
+            //console.log(docName);
+            //console.log(JSON.stringify(docObj)); 
+
+            firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
+                return res.status(200).send(res);                
+            }).catch((error) => {        
+              return res.status(400).send(error);
+            });
+
+        } catch (e) {
+          console.error(e);
+          return e;
+        }  
+        
+     
+      } else {
+      
+        const postId = path[1];   
+              
+        if (!postId) {
+          return res.status(400).send('No se encontro el Id');
+        }       
+
+        return firestore.collection('cobranzas').doc(postId).get().then( (document) => {
+            
+          if (document.exists) {
+
+            let docId = document.id;
+            let name = document.data().name;
+            let mensaje = document.data().message;
+            let contact = document.data().contact;
+            let image = document.data().image;          
+            let title = "Mensaje para " + name;
+            const htmlString = buildHTMLForPage(title, name, mensaje, contact, image);
+            
+            return res.status(200).send(htmlString);
+          
+          } else {
+            return res.status(404);
+          }        
+
+        }).catch((error) => {    
+            console.log("Error getting document:", error);
+        });
+
+      }        
     });
 
-    function buildHTMLForPage (title, nombre, mensaje, contacto, image) {
-        let _style = buildStyle();
-        let _body = buildBody(nombre, mensaje, contacto);
-        const string = '<!DOCTYPE html><head>' +          
-        '<meta property="og:title" content="' + nombre + '">' +                    
-        '<meta property="og:image" content="data:image/jpeg;base64,' + image + '"/>' +
-        '<title>' + title + '</title>' +
-        //'<link rel="icon" href="https://noti.ms/favicon.png">' +
-        '<style>' + _style  + '</style>' +
-        '</head><body>' + _body + '</body></html>';
-        return string;
-    }   
+    /*function downloadJson(filename, json) {      
+      let file = JSON.stringify(json);      
+      let blob = new Blob([file], {type: "application/json"});      
+      
+      //let url  = blobUtil.createObjectURL(blob);
+      //let _url = URL.createObjectURL(blob);
 
-  
-  
+      let _url = createObjectURL(blob);
+      
+      //let _array = fileReader.readAsArrayBuffer(blob);      
+      //fileReader.setNodeChunkedEncoding(true || false);
+
+      //let url = fileReader.readAsDataURL(blob);
+      let element = document.createElement('a');      
+      element.setAttribute('href', url);      
+      element.setAttribute('download', filename + ".json");  
+      element.style.display = 'none';
+      document.body.appendChild(element);  
+      element.click();  
+      document.body.removeChild(element);
+
+    }*/
+
+    function buildHTMLForPage (title, nombre, mensaje, contacto, image) {
+      let _style = buildStyle();
+      let _body = buildBody(nombre, mensaje, contacto);
+      const string = '<!DOCTYPE html><head>' +          
+      '<meta property="og:title" content="' + nombre + '">' +                    
+      '<meta property="og:image" content="data:image/jpeg;base64,' + image + '"/>' +
+      '<title>' + title + '</title>' +
+      //'<link rel="icon" href="https://noti.ms/favicon.png">' +
+      '<style>' + _style  + '</style>' +
+      '</head><body>' + _body + '</body></html>';
+      return string;
+  }  
+
+
+
+
    

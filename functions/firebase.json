@@ -9,14 +9,14 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
+    "rewrites": [ { 
+      "source": "/**", 
+      "function": "buildHtml" 
+      },
       { 
-        "source": "/**", 
-        "function": "buildHtmlForNoti" 
-      }, {
-        "source": "/screenshot",
-        "function": "screenshot"
-      }
+        "source": "/class/**", 
+        "function": "getClassBuckup" 
+      }      
     ]
   },
   "storage": {
