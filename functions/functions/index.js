@@ -4,23 +4,20 @@
     const firebase = require('firebase');
     var admin = require('firebase-admin');
     const request = require('request');  
-    var firestoreService = require('firestore-export-import');  
-    
-    //var path = require('path');
+    var firestoreService = require('firestore-export-import');      
+    var path = require('path');
+
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
-    //var createObjectURL = require('create-object-url');
-    
+    //var createObjectURL = require('create-object-url');   
    
-    //var _payloadUrl = "http://noti.ms/";
-    var _payloadUrl = "http://notimation-ms.firebaseapp.com/";   
-
+    
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
     const { parse } = require('path');
     var db_url = "https://notims.firebaseio.com";
 
-    //var _payloadUrl = "http://noti.ms/";
-    _payloadUrl = db_url;    
+    var _payloadUrl = "http://noti.ms/";
+    //_payloadUrl = db_url;    
     
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
@@ -48,6 +45,9 @@
     firebase.initializeApp(firebaseConfig);
     firebase.functions().useFunctionsEmulator('http://localhost:5000');    
 
+    const settings = {timestampsInSnapshots: true};          
+    firestore.settings(settings);
+
     const app = express();
     exports.app = functions.https.onRequest(app);
 
@@ -66,6 +66,12 @@
      * https://firebase.google.com/docs/storage/web/download-files
      */
       
+
+    /**
+     * Indexa tus datos
+     * https://firebase.google.com/docs/database/security/indexing-data?hl=es
+     */ 
+
     /**
      * Post SMS
      */
@@ -80,8 +86,21 @@
       const _contact = req.body.data.contact;   
       
       let _time = admin.firestore.FieldValue.serverTimestamp(); 
+
+      var docId = makeid(6);
+      var isExisted = true;   
+
+      let docRefExist = await firestore.collection("cobranzas").doc(docId).get();        
+      let exist = docRefExist.exist;        
+      if (exist) {
+          docId = makeid(6);
+      }           
+
+      console.log("docId: " + docId);
+
+      let docRef = firestore.collection("cobranzas").doc(docId);
       
-      firestore.collection("cobranzas").add({
+      return docRef.set({
         phone: _phone,
         name: _name,
         code: _code,
@@ -89,24 +108,35 @@
         message: _message,
         contact: _contact,
         time_created: _time  
-      }).then(docRef => {      
+      }).then(docRefSet => {      
           
-        postRequestSMS(req, docRef, (result) => {
-          res.send(JSON.stringify(result));
-        });                 
-        return docRef;
-
+        postRequestSMS(req, docRef, docId, (result) => {
+          res.send(JSON.stringify(result));         
+        });       
+        return docRefSet;
+        
       }).catch((error) => {     
         console.error("Error adding document: ", error);           
       });   
 
     });
 
-    function postRequestSMS(req, docRef, callback) {
+  
 
-      let _id = docRef.id; 
-      const _phone = req.body.data.phone;        
-      const _payload = _payloadUrl + _id;       
+    function makeid(length) {
+      var result           = '';
+      var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      var charactersLength = characters.length;
+      for ( var i = 0; i < length; i++ ) {
+         result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+      return result;
+   }
+
+    function postRequestSMS(req, docRef, docId, callback) {
+
+      const _phone = req.body.data.phone;     
+      const _payload = _payloadUrl + docId;
 
       var headers = {
           'Accept': 'application/json',
@@ -114,8 +144,7 @@
           'Authorization': 'Bearer 7FA7ED241142E7BE36671CE0FEC9E84F'       
       };
 
-      var dataString = '{"recipient":' + _phone + ',"message":"' + _payload + '","service_id":"5"}';  
-      console.log(dataString);
+      var dataString = '{"recipient":' + _phone + ',"message":"' + _payload + '","service_id":"5"}';        
 
       var options = {
           url: 'https://api.notimation.com/api/v1/sms',
@@ -134,7 +163,7 @@
               
               return docRef.update({
                 sms_id: smsid,
-                update:true
+                update: true                
               }).then(() => {          
                   callback(smsid);
                   return smsid;
@@ -146,8 +175,10 @@
               var _error = JSON.parse(error); 
               callback(_error);   
               return _error;             
-          }            
-      });       
+          }    
+
+      }); 
+
     }          
 
     exports.tiggerUpdate = functions.firestore
@@ -236,6 +267,10 @@
 
       console.log("req.path:", req.path); 
       const pathParams = req.path.split('/');
+
+      /**
+       * EXPORT
+       */
       
       if (pathParams[1] === "export") {
 
@@ -260,7 +295,11 @@
           } catch (e) {
               console.error(e);
               return e;
-          }  
+          }
+          
+      /**
+       * IMPORT
+       */    
 
       } else if (pathParams[1] === "import") {
 
@@ -271,10 +310,7 @@
 
             let _collection = pathParams[2];   
             let _json_file = _collection + ".json";            
-            let data = require("./imports/"  + _json_file );         
-
-            const settings = {timestampsInSnapshots: true};          
-            firestore.settings(settings);
+            let data = require("./imports/"  + _json_file );                    
 
             var collName, docName;
             var collObj, docObj;
@@ -317,50 +353,54 @@
         
      
       } else {
+
+      /**
+       * SHOW CARD
+       */
       
-        const postId = path[1];   
+        const postId = pathParams[1];   
               
         if (!postId) {
           return res.status(400).send('No se encontro el Id');
-        }       
+        }             
 
-        return firestore.collection('cobranzas').doc(postId).get().then( (document) => {
+        return firestore.collection("cobranzas").doc(postId)
+                        .get()
+                        .then( (document) => {        
             
           if (document.exists) {
 
             let docId = document.id;
             let name = document.data().name;
-            let mensaje = document.data().message;
-            let contact = document.data().contact;
-            let image = document.data().image;          
+            //let mensaje = document.data().message;
+            //let contact = document.data().contact;
+            let preview_image = document.data().preview_image;          
             let title = "Mensaje para " + name;
-            const htmlString = buildHTMLForPage(title, name, mensaje, contact, image);
+            const htmlString = buildHTMLForPage(title, name, preview_image);
             
             return res.status(200).send(htmlString);
           
           } else {
-            return res.status(404);
+            return res.status(404).send("Document do not exit");
           }        
 
         }).catch((error) => {    
             console.log("Error getting document:", error);
+            return res.status(404).send(error);
         });
 
-      }        
+      }     
+
     });
 
     /*function downloadJson(filename, json) {      
       let file = JSON.stringify(json);      
       let blob = new Blob([file], {type: "application/json"});      
-      
       //let url  = blobUtil.createObjectURL(blob);
       //let _url = URL.createObjectURL(blob);
-
-      let _url = createObjectURL(blob);
-      
+      let _url = createObjectURL(blob);      
       //let _array = fileReader.readAsArrayBuffer(blob);      
       //fileReader.setNodeChunkedEncoding(true || false);
-
       //let url = fileReader.readAsDataURL(blob);
       let element = document.createElement('a');      
       element.setAttribute('href', url);      
@@ -369,21 +409,20 @@
       document.body.appendChild(element);  
       element.click();  
       document.body.removeChild(element);
-
     }*/
 
-    function buildHTMLForPage (title, nombre, mensaje, contacto, image) {
-      let _style = buildStyle();
-      let _body = buildBody(nombre, mensaje, contacto);
-      const string = '<!DOCTYPE html><head>' +          
+    function buildHTMLForPage (title, nombre, image) {
+      //let _style = buildStyle();
+      //let _body = buildBody(nombre, mensaje, contacto);
+      const html = '<!DOCTYPE html><head>' +          
       '<meta property="og:title" content="' + nombre + '">' +                    
-      '<meta property="og:image" content="data:image/jpeg;base64,' + image + '"/>' +
-      '<title>' + title + '</title>' +
+      '<meta property="og:image" content="' + image + '"/>' +
+      '<title>' + title + '</title>';
       //'<link rel="icon" href="https://noti.ms/favicon.png">' +
-      '<style>' + _style  + '</style>' +
-      '</head><body>' + _body + '</body></html>';
-      return string;
-  }  
+      //'<style>' + _style  + '</style>' +
+      //'</head><body>' + _body + '</body></html>';
+      return html;
+   }  
 
 
 
