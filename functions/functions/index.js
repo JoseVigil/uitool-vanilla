@@ -121,8 +121,6 @@
 
     });
 
-  
-
     function makeid(length) {
       var result           = '';
       var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -376,12 +374,15 @@
             //let contact = document.data().contact;
             let preview_image = document.data().preview_image;          
             let title = "Mensaje para " + name;
-            const htmlString = buildHTMLForPage(title, name, preview_image);
+            const htmlString = buildHTMLForPage(docId, title, name, preview_image);
+
+            console.log("_________________________");
+            console.log(htmlString);
             
             return res.status(200).send(htmlString);
           
           } else {
-            return res.status(404).send("Document do not exit");
+            return res.status(403).send("Document do not exit");
           }        
 
         }).catch((error) => {    
@@ -390,6 +391,35 @@
         });
 
       }     
+
+      function buildHTMLForPage (docId, title, nombre, image) {
+      
+        //let _style = buildStyle();
+        //let _body = buildBody(nombre, mensaje, contacto);        
+        
+        var _html = '<!DOCTYPE html><head>' +          
+        '<meta property="og:title" content="' + nombre + '">' +                    
+        '<meta property="og:image" content="' + image + '"/>' +
+        '<title>' + title + '</title>';        
+        
+        //'<link rel="icon" href="https://noti.ms/favicon.png">' +
+        //'<style>' + _style  + '</style>' +
+        //'</head><body>' + _body + '</body></html>';
+
+        /**
+         * INTENTO DE GUARDADO DE CANTIDAD DE PREVISUALIZACIONES CON FIREBASE
+         */
+        let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
+        var _script;                
+        _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
+        _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
+        _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
+        _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
+        _script += `<script>${_javascript}</script>`;
+        _html = _html + _script + '</head>';
+        
+        return _html;
+     }  
 
     });
 
@@ -411,18 +441,7 @@
       document.body.removeChild(element);
     }*/
 
-    function buildHTMLForPage (title, nombre, image) {
-      //let _style = buildStyle();
-      //let _body = buildBody(nombre, mensaje, contacto);
-      const html = '<!DOCTYPE html><head>' +          
-      '<meta property="og:title" content="' + nombre + '">' +                    
-      '<meta property="og:image" content="' + image + '"/>' +
-      '<title>' + title + '</title>';
-      //'<link rel="icon" href="https://noti.ms/favicon.png">' +
-      //'<style>' + _style  + '</style>' +
-      //'</head><body>' + _body + '</body></html>';
-      return html;
-   }  
+   
 
 
 
