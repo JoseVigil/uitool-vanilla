@@ -1,4 +1,13 @@
 	
+	const {Logging} = require('@google-cloud/logging');
+
+
+	exports.logImages = async (req, res) => {	
+
+		res.status(200).send('logImages called');
+
+	};
+
 	
 	//https://swizec.com/blog/serverless-chrome-on-aws-lambda-the-guide-works-in-2019-beyond/swizec/9024
 	//https://stackoverflow.com/questions/53305784/signingerror-with-firebase-getsignedurl
@@ -7,9 +16,10 @@
 	const {Storage} = require('@google-cloud/storage');		
 	const chromium = require("chrome-aws-lambda");	
 	
+	
 	const storage = new Storage();
+	const PROJECTID = 'notims';	
 
-	const PROJECTID = 'notims';
 	const firestore = new Firestore({
 	  projectId: PROJECTID,
 	  timestampsInSnapshots: true,

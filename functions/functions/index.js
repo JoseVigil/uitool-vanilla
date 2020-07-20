@@ -10,14 +10,12 @@
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
     //var createObjectURL = require('create-object-url');   
-   
     
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
     const { parse } = require('path');
-    var db_url = "https://notims.firebaseio.com";
 
-    var _payloadUrl = "http://noti.ms/";
-    //_payloadUrl = db_url;    
+    var db_url = "https://notims.firebaseio.com";
+    var _payloadUrl = "http://noti.ms/";    
     
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
@@ -52,7 +50,7 @@
     exports.app = functions.https.onRequest(app);
 
     /**
-     * WebApp Notification
+     * WebApp Push Notification
      * https://www.freecodecamp.org/news/how-to-add-push-notifications-to-a-web-app-with-firebase-528a702e13e1/#:~:text=Notifications%20with%20Firebase,any%20device%20using%20HTTP%20requests.
      */
 
@@ -64,13 +62,44 @@
     /**
      * Download Image 
      * https://firebase.google.com/docs/storage/web/download-files
-     */
-      
+     */      
 
     /**
      * Indexa tus datos
      * https://firebase.google.com/docs/database/security/indexing-data?hl=es
      */ 
+
+     /**
+      * Storage API AUDIT LOG
+      * https://cloud.google.com/storage/docs/json_api/v1/buckets/get?authuser=6&apix_params=%7B%22bucket%22%3A%22notims.appspot.com%22%2C%22projection%22%3A%22full%22%2C%22userProject%22%3A%22notims%22%2C%22alt%22%3A%22json%22%2C%22fields%22%3A%22sipef%22%2C%22prettyPrint%22%3Atrue%7D      
+      *
+      * LOGGING LIBRARY
+      * https://cloud.google.com/logging/docs/reference/libraries#client-libraries-install-nodejs
+      * 
+      * CONFIGURAR LOGGIN PARA API
+      * https://cloud.google.com/logging/docs/setup/nodejs?hl=es-419
+      */
+
+      /**
+       * Logging 
+       * https://www.npmjs.com/package/@google-cloud/logging-winston#samples
+       */
+
+       /**
+        * HTML OPEN GRAPH
+        * https://gist.github.com/alnguyenngoc/7635341
+        */
+
+        /**
+         * 
+         * EDITOR
+         * https://www.tiny.cloud/
+         * 
+         * CUSTOM FORM
+         * https://www.martyfriedel.com/blog/tinymce-5-creating-a-plugin-with-a-dialog-and-custom-icons
+         * https://tinymce.martyfriedel.com/
+         * 
+         */
 
     /**
      * Post SMS
