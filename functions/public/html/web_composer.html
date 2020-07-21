@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Noti.ms</title>
+
+    <!--<script src="https://cdn.tiny.cloud/1/lr9wasio09vwo6la4k91gs8hybva1vp7oxw5k9cfpm2g5pm6/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>-->
+    <script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc" referrerpolicy="origin"></script>
+    <script src="vendor/tinymce/tinymce.min.js"></script>
+    <script src="vendor/tinymce/langs/es.js"></script>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/7.16.0/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/7.16.0/firebase-auth.js"></script>
+    <script defer src="/__/firebase/7.16.0/firebase-database.js"></script>
+    <script defer src="/__/firebase/7.16.0/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/7.16.0/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <style>
+      .column {
+        float: left;
+        width: 40%;
+        padding: 5%;
+      }
+
+      /* Clear floats after the columns */
+      .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+
+      .button {
+        background-color: #4CAF50; /* Green */
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+      }
+
+      .button1 {background-color: #4CAF50;} 
+    </style>
+
+  </head>
+  <body>   
+
+
+    <div class="row">
+      <div class="column">
+        <textarea>
+          <button class="button button1">Green</button>
+          <p style="text-align: center; font-size: 15px;"><img title="TinyMCE Logo" src="//www.tinymce.com/images/glyph-tinymce@2x.png" alt="TinyMCE Logo" width="110" height="97" />
+          </p>
+          <h2 style="text-align: center;">Welcome to the TinyMCE Cloud demo!</h2>
+          <h5 style="text-align: center;">Note, this includes some "enterprise/premium" features.<br>Visit the <a href="https://www.tinymce.com/pricing/#demo-enterprise">pricing page</a> to learn more about our premium plugins.</h5>
+          <p>Please try out the features provided in this full featured example.</p>
+        
+          <h2>Got questions or need help?</h2>
+          <ul>
+            <li>Our <a href="//www.tinymce.com/docs/">documentation</a> is a great resource for learning how to configure TinyMCE.</li>
+            <li>Have a specific question? Visit the <a href="https://community.tinymce.com/forum/">Community Forum</a>.</li>
+            <li>We also offer enterprise grade support as part of <a href="https://tinymce.com/pricing">TinyMCE premium subscriptions</a>.</li>
+          </ul>       
+        
+        </textarea>
+      </div>
+      <div class="column">
+        <div id="preview"></div>
+      </div>
+    </div>    
+
+    <script>
+      tinymce.init({
+        language: 'es',
+        selector: 'textarea',
+        height: 500,
+        theme: 'modern',
+        plugins: 'print preview fullpage powerpaste searchreplace autolink directionality advcode visualblocks visualchars fullscreen image link template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists textcolor wordcount a11ychecker imagetools contextmenu colorpicker textpattern wordcount contextmenu help',
+        toolbar1: 'formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat',
+        contextmenu: "link image inserttable | cell row column deletetable",
+        image_advtab: true,
+        templates: [
+          { title: 'Test template 1', content: 'Test 1' },
+          { title: 'Test template 2', content: 'Test 2' }
+        ],
+        content_css: [
+          '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+          '//www.tinymce.com/css/codepen.min.css'
+        ],
+        setup:function(ed) {
+          ed.on('change', function(e) {              
+              $('#preview').html(ed.getContent());
+          });
+        },
+        mobile: {
+          menubar: true
+        },
+
+      });
+
+      /**
+       * 
+       * Custom Menu Item
+       * //https://www.tiny.cloud/docs/demo/custom-menu-item/
+       * 
+       * Local Upload
+       * https://www.tiny.cloud/docs-4x/demo/local-upload/
+       * 
+       * Image Upload
+       * https://www.tiny.cloud/docs-4x/general-configuration-guide/upload-images/
+       * 
+       * */
+      
+    </script>
+
+   
+   
+  </body>
+</html>

@@ -12,11 +12,7 @@
     "rewrites": [ { 
       "source": "/**", 
       "function": "buildHtml" 
-      },
-      { 
-        "source": "/class/**", 
-        "function": "getClassBuckup" 
-      }      
+      }    
     ]
   },
   "storage": {

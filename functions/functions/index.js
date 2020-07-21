@@ -5,7 +5,7 @@
     var admin = require('firebase-admin');
     const request = require('request');  
     var firestoreService = require('firestore-export-import');      
-    var path = require('path');
+    var path = require('path');   
 
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
@@ -286,9 +286,7 @@
 
       }  
         
-    }); 
-    
-    //app.get('/', (req, res) => {
+    });    
 
     exports.buildHtml = functions.https.onRequest((req, res) => {
 
@@ -368,7 +366,7 @@
             //console.log(JSON.stringify(docObj)); 
 
             firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
-                return res.status(200).send(res);                
+              return res.status(200).send(res);                
             }).catch((error) => {        
               return res.status(400).send(error);
             });
@@ -378,6 +376,21 @@
           return e;
         }  
         
+      } else if (pathParams[1] === "composer") {         
+
+          if (pathParams[2] === "preview") {
+
+            return res.status(200).sendFile( path.join(__dirname + '/../public/html/preview_composer.html' ));
+
+          } else if (pathParams[2] === "web") {
+
+            return res.status(200).sendFile( path.join(__dirname + '/../public/html/web_composer.html' ));
+
+          } else {
+          
+            return res.status(200).sendFile( path.join(__dirname + '/../public/html/composer.html'));            
+
+          }        
      
       } else {
 
