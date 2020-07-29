@@ -97,7 +97,7 @@
 
                   <form role="form">
 
-                    <div id="hola" class="form-group draggable">
+                    <div id="saludo" class="form-group draggable">
                       <label for="saludo" ><b>Saludo</b></label>
                       <input type="text" class="form-control" id="insaludo" placeholder="Compone saludo">
                       <p class="help-block">Saludo de cortecia</p>
@@ -220,6 +220,9 @@
       var active_cuerpo = false;
       var active_from_button = false;
 
+      var data;
+      var count_drop = 0;
+
       const firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
         authDomain: "notims.firebaseapp.com",
@@ -277,7 +280,7 @@
               var code =  doc.data().code;
               var contact =  doc.data().contact;                
               
-              let data = { 
+              data = { 
                 "nombre" :  { 
                   "datos" : name, 
                   "boton" : "btn-primary" 
@@ -358,6 +361,8 @@
               
               if(!$(ui.draggable).hasClass("dropped")) {
 
+                count_drop++;
+
                 var name = $orig.find("label").attr("for");           
                 
                 console.log("name: " + name);
@@ -405,6 +410,10 @@
                       }
                     });
 
+                    $("#insaludo").change(function(){
+                      getHTML();
+                    });
+
                     clearTimeout(timer);
 
                   }, 500);
@@ -426,22 +435,66 @@
 
           function getHTML() {
 
+            var count = 0;
+            var _html = "";
+
             $('.draggable').each(function(index, value) { 
-              
-              console.log(`div${index}: ${this.id}`);
 
+              
+              
+              console.log(`div${index}: ${this.id}`);              
+
+              if (this.id == "saludo") {
+                count++;
+                _html += $("#insaludo").val();
+              } 
+              
               if (this.id=="cuerpo") {                              
+                count++;
+                _html += tinymce.activeEditor.getContent();
+              }                 
 
-                var myContent = tinymce.activeEditor.getContent();
+              if (count_drop == count) {
+                $("#preview").html(replaceVariables(_html)); 
+                return false;
+              }
 
-                $("#preview").html(myContent);       
-
-
-              }     
-              
             });
         
           };
+
+          function replaceVariables(_html) {
+
+           //let _h = _html.replace(_html, "W3Schools");
+
+           /*data = { 
+                "nombre" :  { 
+                  "datos" : name, 
+                  "boton" : "btn-primary" 
+                }, 
+                "codigo" :  { 
+                  "datos" : code, 
+                  "boton" : "btn-secondary" 
+                }, 
+                "contacto" :  { 
+                  "datos" : contact, 
+                  "boton" : "btn-success" 
+                }               
+              };*/
+
+              for (var key of Object.keys(data)) {
+                
+                let nombre = "{" + key + "}";                
+
+                let datos = data[key]["datos"];
+
+                _html = _html.replace(nombre, datos);
+             
+              }
+
+              return _html;
+
+          }
 
           var get_modal = function(content) {
           var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
@@ -492,6 +545,7 @@
         
         $(document).on("click", ".remove-link", function(ev) {
           $(this).parent().parent().remove();
+          count_drop--;
         });
         
 
@@ -529,7 +583,8 @@
               setup: function(editor) {
 
                 editor.on('change', function(ed) {              
-                  let _content = editor.getContent();        
+                  let _content = editor.getContent();      
+                  getHTML();  
                 });
                 
                 /** Campos **/              
@@ -576,10 +631,10 @@
                 console.log("--------------------------------------"+id);
             });
 
+
           }
 
         } else  {
-
 
 
         }
