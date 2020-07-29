@@ -358,12 +358,7 @@
               });
            }
 
-            iterate(data, 0);         
-          
-            //console.log(collName);
-            //console.log(JSON.stringify(collObj));
-            //console.log(docName);
-            //console.log(JSON.stringify(docObj)); 
+            iterate(data, 0);              
 
             firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
               return res.status(200).send(res);                
@@ -377,6 +372,12 @@
         }  
         
       } else if (pathParams[1] === "composer") {         
+
+          /**
+         * COMPOSER
+         * PREVIEW
+         * WEB
+         */
 
           if (pathParams[2] === "preview") {
 

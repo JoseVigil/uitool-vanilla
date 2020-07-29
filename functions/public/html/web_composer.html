@@ -1,85 +1,594 @@
 <!DOCTYPE html>
 <html>
   <head>
+    
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Noti.ms</title>
 
-    <!--<script src="https://cdn.tiny.cloud/1/lr9wasio09vwo6la4k91gs8hybva1vp7oxw5k9cfpm2g5pm6/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>-->
-    <script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc" referrerpolicy="origin"></script>
-    <script src="vendor/tinymce/tinymce.min.js"></script>
-    <script src="vendor/tinymce/langs/es.js"></script>
+     <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">     
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+     
+     
+     <title>Noti.ms</title>
+    
+      <!--<link rel="stylesheet" href="./vendor/jquery/jquery.ui.theme.css"/>           
+      <link rel="stylesheet" href="./vendor/bootstrap/css/bootstrap.css"/> -->
+  
+      <style>  
+    
+        .column-background {
+          background-color: #fff; border-radius: 5px; padding: 20px; 
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+        }
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/7.16.0/firebase-app.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/7.16.0/firebase-auth.js"></script>
-    <script defer src="/__/firebase/7.16.0/firebase-database.js"></script>
-    <script defer src="/__/firebase/7.16.0/firebase-messaging.js"></script>
-    <script defer src="/__/firebase/7.16.0/firebase-storage.js"></script>
-    <!-- initialize the SDK after all desired features are loaded -->
-    <script defer src="/__/firebase/init.js"></script>
+        .droppable-active { background-color: #ffe !important; }
+        .tools a { cursor: pointer; font-size: 80%; }
+        .form-body .col-md-6, .form-body .col-md-12 { min-height: 600px; }
+        .draggable { cursor: move; }
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <style>
-      .column {
-        float: left;
-        width: 40%;
-        padding: 5%;
-      }
-
-      /* Clear floats after the columns */
-      .row:after {
-        content: "";
-        display: table;
-        clear: both;
-      }
-
-      .button {
-        background-color: #4CAF50; /* Green */
-        border: none;
-        color: white;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-      }
-
-      .button1 {background-color: #4CAF50;} 
-    </style>
+        hr {
+          margin-top: 1rem;
+          margin-bottom: 1rem;
+          border: 0;
+          border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+      
+     </style>
 
   </head>
-  <body>   
+
+  <body>    
+    
+    <!--<script src="./vendor/jquery/jquery.ui.min.js"></script>    
+    <script src="./vendor/beautifyhtml/beautifyhtml.js"></script>
+    <script src="./vendor/jquery/jquery-3.5.1.min.js"></script>  
+    <script src="./vendor/bootstrap/js/bootstrap.js"></script>-->
+    <!--<script src="vendor/jquery/jquery.min.js"></script>-->            
+   
+    <!--<script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc" referrerpolicy="origin"></script>-->
+    <!--<script src="vendor/tinymce/tinymce.min.js"></script>-->
+    <!--<script src="vendor/tinymce/langs/es.js"></script>-->
+
+    <!-- update the version number as needed -->
+    <!--<script defer src="/__/firebase/7.16.0/firebase-app.js"></script>-->
+    <!-- include only the Firebase features as you need -->
+    <!--<script defer src="/__/firebase/7.16.0/firebase-auth.js"></script>-->
+    <!--<script defer src="/__/firebase/7.16.0/firebase-database.js"></script>-->
+    <!--<script defer src="/__/firebase/7.16.0/firebase-messaging.js"></script>-->
+    <!--<script defer src="/__/firebase/7.16.0/firebase-storage.js"></script>-->
+    <!-- initialize the SDK after all desired features are loaded -->
+    <!--<script defer src="/__/firebase/init.js"></script>-->
+    
+    <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>    
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>        
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" defer></script>
+    <script src="https://cdn.tiny.cloud/1/lr9wasio09vwo6la4k91gs8hybva1vp7oxw5k9cfpm2g5pm6/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
+    <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
+
+    <div id="login">
+      Not Logged
+    </div>  
+    
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="column-background">
+            <div class="tabbable" id="tabs-381741">
+              <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a class="nav-link active" href="#tab1" data-toggle="tab">Section 1</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#tab2" data-toggle="tab">Section 2</a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane active">
+
+                  <form role="form">
+
+                    <div id="hola" class="form-group draggable">
+                      <label for="saludo" ><b>Saludo</b></label>
+                      <input type="text" class="form-control" id="insaludo" placeholder="Compone saludo">
+                      <p class="help-block">Saludo de cortecia</p>
+                    </div>
+                   
+                    <div id="cuerpo" class="form-group draggable">
+                      <label for="cuerpo" ><b>Cuerpo</b></label>                      
+                      <p>Crea el cuerpo del mensaje</p>
+                    </div> 
+                    
+                    <div class="form-group draggable">
+                      <label for="imagen" ><b>Imagen</b></label>
+                      <input type="file" id="input-file-1">
+                      <p class="help-block">Agregar imagen</p>
+                    </div>
+
+                    <div class="form-group draggable">
+                      <label for="pagos" ><b>Medios de pago</b></label>
+                      <select class="form-control" id="select-1">
+                        <option value="Option 1">Rapipago</option>
+                        <option value="Option 2">Mercadopago</option>
+                        <option value="Option 3">Tarjeta</option>
+                      </select>
+                      <p class="help-block">Agrega medio de pago</p>
+                    </div>
+
+                    <div class="form-group draggable">
+                      <label for="pagos" ><b>Modos de contacto</b></label>
+                      <div class="control-group">                        
+                        <div class="controls span2">
+                            <label class="checkbox">
+                                <input type="checkbox" value="option1" id="inlineCheckbox1"> Llamame
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" value="option2" id="inlineCheckbox2"> Whatsapp
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" value="option3" id="inlineCheckbox3"> Email
+                            </label>                            
+                        </div>                        
+                    </div>
+                  </div>
 
 
-    <div class="row">
-      <div class="column">
-        <textarea>
-          <button class="button button1">Green</button>
-          <p style="text-align: center; font-size: 15px;"><img title="TinyMCE Logo" src="//www.tinymce.com/images/glyph-tinymce@2x.png" alt="TinyMCE Logo" width="110" height="97" />
-          </p>
-          <h2 style="text-align: center;">Welcome to the TinyMCE Cloud demo!</h2>
-          <h5 style="text-align: center;">Note, this includes some "enterprise/premium" features.<br>Visit the <a href="https://www.tinymce.com/pricing/#demo-enterprise">pricing page</a> to learn more about our premium plugins.</h5>
-          <p>Please try out the features provided in this full featured example.</p>
-        
-          <h2>Got questions or need help?</h2>
-          <ul>
-            <li>Our <a href="//www.tinymce.com/docs/">documentation</a> is a great resource for learning how to configure TinyMCE.</li>
-            <li>Have a specific question? Visit the <a href="https://community.tinymce.com/forum/">Community Forum</a>.</li>
-            <li>We also offer enterprise grade support as part of <a href="https://tinymce.com/pricing">TinyMCE premium subscriptions</a>.</li>
-          </ul>       
-        
-        </textarea>
+                    <div class="form-group draggable">
+                      <label for="color" ><b>Color de fondo</b></label>
+                      <input type="color" id="input-file-1">
+                      <p class="help-block">Cambiar color de fondo</p>
+                    </div>
+                    
+                  </form>
+
+                </div>
+                <div class="tab-pane" id="tab2">
+                  <p>
+                    Howdy, I'm in Section 2.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>          
+        </div>
+        <div class="col-md-5">
+
+          <div class="column-background" style="font-size: 15px;">
+            <label>Arrastrar y soltar elementos.</label>
+            <div class="row" id="composer"></div>
+            <hr/>
+            <div class="row form-body">
+              <div class="col-md-12 droppable sortable">
+              </div>              
+            </div>
+
+        </div>
+          
+        </div>       
+        <div class="col-md-4">
+          <div class="column-background">
+            <div class="form-group draggable">
+              <div id="preview"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="column">
-        <div id="preview"></div>
-      </div>
-    </div>    
+     
+    </div>
 
     <script>
-      tinymce.init({
+    //<![CDATA[
+
+
+    /**
+     * PDF TO HTML
+     * 
+     * https://www.idrsolutions.com/online-pdf-to-html5-converter
+     * 
+     * */
+
+    /**
+     * Drag and drop
+     * http://jsfiddle.net/vacidesign/uskx816g/
+     * */
+
+    /**
+     * jquery Uncaught SyntaxError: "Unexpected token '<'"
+     * https://idiallo.com/javascript/uncaught-syntaxerror-unexpected-token#n
+     * 
+     * */
+
+    /**
+     * Stepper into modal
+     * 
+     * https://bbbootstrap.com/snippets/modal-dialog-multi-step-form-wizard-29726524
+     * */
+
+    $(document).ready(function () {  
+
+      var active_saludo = false;
+      var active_cuerpo = false;
+      var active_from_button = false;
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
+        authDomain: "notims.firebaseapp.com",
+        databaseURL: "https://notims.firebaseio.com",
+        projectId: "notims",
+        storageBucket: "notims.appspot.com",
+        messagingSenderId: "79471870593",
+        appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
+        measurementId: "G-8T5N81L78J"
+      };
+      firebase.initializeApp(firebaseConfig);
+
+      const db = firebase.firestore();
+      const storage = firebase.storage();
+      const database = firebase.database();
+      const functions = firebase.functions();
+
+      var getUrlParameter = function getUrlParameter(sParam) {
+          var sPageURL = window.location.search.substring(1),
+              sURLVariables = sPageURL.split('&'),
+              sParameterName,
+              i;
+
+          for (i = 0; i < sURLVariables.length; i++) {
+              sParameterName = sURLVariables[i].split('=');
+
+              if (sParameterName[0] === sParam) {
+                  return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+              }
+          }
+      };     
+
+      $( "#login" ).click(function() {       
+
+        firebase.auth().signInWithEmailAndPassword("josemanuelvigil@gmail.com", "temporary").then(function(user) {                      
+          window.location.reload();            
+        }).catch( function(error) {                         
+            var errorMessage = error.message;  
+            console.log(errorMessage);
+        });
+
+      });  
+
+      firebase.auth().onAuthStateChanged(function (user) {
+
+        if (user) { 
+
+          var documentId = getUrlParameter('id'); 
+
+          db.collection("cobranzas").doc(documentId)
+            .get()
+            .then(function(doc) {
+
+              var name =  doc.data().name;                
+              var code =  doc.data().code;
+              var contact =  doc.data().contact;                
+              
+              let data = { 
+                "nombre" :  { 
+                  "datos" : name, 
+                  "boton" : "btn-primary" 
+                }, 
+                "codigo" :  { 
+                  "datos" : code, 
+                  "boton" : "btn-secondary" 
+                }, 
+                "contacto" :  { 
+                  "datos" : contact, 
+                  "boton" : "btn-success" 
+                }               
+              };
+
+              for (var key of Object.keys(data)) {
+                
+                let nombre = key;
+                let datos = data[key]["datos"];
+                let boton = data[key]["boton"];
+
+                let _html = `&nbsp;&nbsp<button data-field="${datos}" style="color:white" class="botones btn ${boton}" type="button" id="${nombre}">${nombre}</button>&nbsp;&nbsp`;
+           
+                $("#composer").append(_html);
+
+                $("#" + nombre).on('click', function (e) {                     
+                  e.preventDefault();
+
+                  active_from_button = true;
+
+                  var timer_click = setTimeout(function() {                                                           
+                  
+                    var id = $(e.target).attr('id'); 
+                    var variable;
+
+                    if (id=="nombre") {
+                      variable = "{nombre}";                     
+                    } else if (id=="codigo") {
+                      variable = "{codigo}";  
+                    } else if (id=="contacto") {
+                      variable = "{contacto}";
+                    }
+
+                    if (active_saludo) {
+
+                      var cursorPos = $('#insaludo').prop('selectionStart');
+                      var v = $('#insaludo').val();
+                      var textBefore = v.substring(0,  cursorPos );
+                      var textAfter  = v.substring( cursorPos, v.length );
+                      $('#insaludo').val( textBefore + variable + textAfter ); 
+
+                    } else if (active_cuerpo) {                  
+                                    
+                        tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
+                    }  
+
+                    clearTimeout(timer_click);
+
+                  }, 1000);
+
+                          
+
+                });
+              }
+          });            
+       
+          $( ".draggable" ).draggable({
+            appendTo: "body",
+            helper: "clone"
+          });
+          $( ".droppable" ).droppable({
+            accept: ".draggable",
+            helper: "clone",
+            hoverClass: "droppable-active",
+            drop: function( event, ui ) {
+              
+              $(".empty-form").remove();
+              var $orig = $(ui.draggable);
+              
+              if(!$(ui.draggable).hasClass("dropped")) {
+
+                var name = $orig.find("label").attr("for");           
+                
+                console.log("name: " + name);
+                
+                var $el = $orig
+                  .clone()
+                  .addClass("dropped")
+                  .css({"position": "static", "left": null, "right": null})
+                  .appendTo(this);
+
+                if (name=="cuerpo") {
+                  
+                  $el.find("p").replaceWith(`<textarea id="basic"></textarea>`);
+                  initTinyEMC();                 
+ 
+                }
+                  
+                // update id
+                var id = $orig.find(":input").attr("id");
+                
+                if(id) {
+                  id = id.split("-").slice(0,-1).join("-") + "-" 
+                    + (parseInt(id.split("-").slice(-1)[0]) + 1);                
+                  $orig.find(":input").attr("id", id);
+                  $orig.find("label").attr("for", id);
+                }            
+
+                // tools
+                $('<p class="tools">\
+                  <a class="text-primary edit-link">Visualizar<a> | \
+                  <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
+
+                  var timer = setTimeout(function() {                                        
+
+                    $("#insaludo").focus(function(){
+                      $(this).css("background-color", "#EFF0F1");
+                      active_saludo = true;                      
+                      active_cuerpo = false;
+                      active_from_button = false;
+                    });
+                    $("#insaludo").blur(function(){
+                      $(this).css("background-color", "white");
+                      if (active_from_button) {
+                        active_saludo = false;
+                      }
+                    });
+
+                    clearTimeout(timer);
+
+                  }, 500);
+               
+              } else {
+               
+                if($(this)[0]!=$orig.parent()[0]) {
+                
+                  var $el = $orig
+                    .clone()
+                    .css({"position": "static", "left": null, "right": null})
+                    .appendTo(this);
+                  $orig.remove();
+
+                }
+              }
+            }
+          }).sortable();
+
+          function getHTML() {
+
+            $('.draggable').each(function(index, value) { 
+              
+              console.log(`div${index}: ${this.id}`);
+
+              if (this.id=="cuerpo") {                              
+
+                var myContent = tinymce.activeEditor.getContent();
+
+                $("#preview").html(myContent);       
+
+
+              }     
+              
+            });
+        
+          };
+
+          var get_modal = function(content) {
+          var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
+            <div class="modal-dialog">\
+              <div class="modal-content">\
+                <div class="modal-header">\
+                  <a type="button" class="close"\
+                    data-dismiss="modal" aria-hidden="true">&times;</a>\
+                  <h4 class="modal-title">Edit HTML</h4>\
+                </div>\
+                <div class="modal-body ui-front">\
+                  <textarea class="form-control" \
+                    style="min-height: 200px; margin-bottom: 10px;\
+                    font-family: Monaco, Fixed">'+content+'</textarea>\
+                  <button class="btn btn-success">Update</button>\
+                </div>\
+              </div>\
+            </div>\
+            </div>').appendTo(document.body);
+            
+          return modal;
+        };
+        
+        $(document).on("click", ".edit-link", function(ev) {
+
+          getHTML();
+          
+          /*var $el = $(this).parent().parent();
+          var $el_copy = $el.clone();
+          
+          var $edit_btn = $el_copy.find(".edit-link").parent().remove();
+
+          var $modal = get_modal(html_beautify($el_copy.html())).modal("show");
+          $modal.find(":input:first").focus();
+          $modal.find(".btn-success").click(function(ev2) {
+            var html = $modal.find("textarea").val();
+            if(!html) {
+              $el.remove();
+            } else {
+              $el.html(html);
+              $edit_btn.appendTo($el);
+            }
+            $modal.modal("hide");
+            return false;
+          });*/
+
+        });
+        
+        $(document).on("click", ".remove-link", function(ev) {
+          $(this).parent().parent().remove();
+        });
+        
+
+          $("#login").text("Logged");
+
+          function initTinyEMC() {  
+
+            var camposFields = {
+              one: "first",
+              two: "second",
+              three: "third"
+            };         
+            
+            /**
+             * SAMPLE
+             * https://www.tiny.cloud/docs/demo/basic/
+             * */
+
+            tinymce.init({
+              selector: 'textarea#basic',
+              menubar: false,
+              height: 300,
+              //toolbar: 'campos medios acciones',                     
+              plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table paste code wordcount'
+              ],
+              toolbar: 'undo redo | formatselect | ' +
+              'bold italic backcolor | alignleft aligncenter ' +
+              'alignright alignjustify | bullist numlist outdent indent | ' +
+              'removeformat',
+              content_css: '//www.tiny.cloud/css/codepen.min.css',
+
+              setup: function(editor) {
+
+                editor.on('change', function(ed) {              
+                  let _content = editor.getContent();        
+                });
+                
+                /** Campos **/              
+                editor.ui.registry.addMenuButton('campos', {
+                  text: 'Campos',
+                  fetch: function(callback) {
+                    var items = [];
+                    for (var fieldName in camposFields) {
+                      var menuItem = {
+                        type: 'menuitem',
+                        text: camposFields[fieldName],
+                        value:fieldName,
+                        onSetup: function(buttonApi) {
+                          var $this = this;
+                          this.onAction = function() {
+                            editor.insertContent($this.data.value);
+                          };
+                        },
+                      };
+                      items.push(menuItem);
+                    }
+                    callback(items);
+                  },
+                });
+              }
+            });
+
+
+            tinymce.activeEditor.on('focus', function(e) {
+                active_cuerpo = true;
+                active_saludo = false;
+                active_from_button = false;
+                id = $(this).prop('id');
+                $(this).css("basic", "#EFF0F1");
+                console.log("*************************************"+id);
+            });
+
+            tinymce.activeEditor.on('blur', function(e) {           
+                id = $(this).prop('id');
+                $(this).css("basic", "white");
+                if (active_from_button) {
+                  active_cuerpo = false;
+                }
+                console.log("--------------------------------------"+id);
+            });
+
+          }
+
+        } else  {
+
+
+
+        }
+
+      });   
+
+    });  
+
+    /*  tinymce.init({
         language: 'es',
         selector: 'textarea',
         height: 500,
@@ -105,7 +614,7 @@
           menubar: true
         },
 
-      });
+      });*/
 
       /**
        * 
@@ -120,6 +629,8 @@
        * 
        * */
       
+    
+    //]]>
     </script>
 
    
