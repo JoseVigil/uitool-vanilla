@@ -8,7 +8,7 @@
      <!-- Bootstrap CSS -->
      <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">     
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-     
+     <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
      
      <title>Noti.ms</title>
     
@@ -24,7 +24,7 @@
 
         .droppable-active { background-color: #ffe !important; }
         .tools a { cursor: pointer; font-size: 80%; }
-        .form-body .col-md-6, .form-body .col-md-12 { min-height: 600px; }
+        .form-body .col-md-6, .form-body .col-md-12 { min-height: 800px; }
         .draggable { cursor: move; }
 
         hr {
@@ -75,6 +75,11 @@
     <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
 
+
+    <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
+
+    
+
     <div id="login">
       Not Logged
     </div>  
@@ -99,33 +104,47 @@
 
                     <div id="saludo" class="form-group draggable">
                       <label for="saludo" ><b>Saludo</b></label>
-                      <input type="text" class="form-control" id="insaludo" placeholder="Compone saludo">
+                      <input type="text" class="form-control" id="insaludo">
                       <p class="help-block">Saludo de cortecia</p>
                     </div>
                    
                     <div id="cuerpo" class="form-group draggable">
-                      <label for="cuerpo" ><b>Cuerpo</b></label>                      
-                      <p>Crea el cuerpo del mensaje</p>
-                    </div> 
+                      <label for="cuerpo" ><b>Cuerpo</b></label>  
+                      <input type="text" class="form-control">
+                      <p>Crea el cuerpo del mensaje</p>   
+                      <!--<div id="row">
+                        <textarea type="text" style="height:38px"></textarea>    
+                        <p>Crea el cuerpo del mensaje</p>
+                      </div>-->
+                    </div>  
                     
                     <div class="form-group draggable">
                       <label for="imagen" ><b>Imagen</b></label>
-                      <input type="file" id="input-file-1">
+                      <input type="file" name="files[]">
                       <p class="help-block">Agregar imagen</p>
                     </div>
 
                     <div class="form-group draggable">
-                      <label for="pagos" ><b>Medios de pago</b></label>
-                      <select class="form-control" id="select-1">
-                        <option value="Option 1">Rapipago</option>
-                        <option value="Option 2">Mercadopago</option>
-                        <option value="Option 3">Tarjeta</option>
-                      </select>
-                      <p class="help-block">Agrega medio de pago</p>
+                      <label for="pagos" ><b>Pagos</b></label>
+                      <input type="text" class="form-control" id="inpagos">
+                      <div class="control-group">                        
+                        <div class="controls span2">
+                            <label class="checkbox">
+                                <input type="checkbox" value="option1" id="inlineCheckbox1"> Mercadopago
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" value="option2" id="inlineCheckbox2"> Rapipago
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" value="option3" id="inlineCheckbox3"> Pago Facil
+                            </label>                            
+                        </div>                        
+                    </div>                                                          
+                      <p class="help-block">Medio de pago</p>
                     </div>
 
                     <div class="form-group draggable">
-                      <label for="pagos" ><b>Modos de contacto</b></label>
+                      <label for="contacto" ><b>Contacto</b></label>
                       <div class="control-group">                        
                         <div class="controls span2">
                             <label class="checkbox">
@@ -139,15 +158,15 @@
                             </label>                            
                         </div>                        
                     </div>
+                    <p class="help-block">Modo de contacto</p>
                   </div>
 
-
-                    <div class="form-group draggable">
-                      <label for="color" ><b>Color de fondo</b></label>
-                      <input type="color" id="input-file-1">
-                      <p class="help-block">Cambiar color de fondo</p>
-                    </div>
-                    
+                  <div class="form-group draggable">
+                    <label for="color" ><b>Color de fondo</b></label>                   
+                    <input type="text" value="rgb(255, 128, 0)" />
+                    <p class="help-block">Cambiar color de fondo</p>                    
+                  </div>
+                  
                   </form>
 
                 </div>
@@ -178,7 +197,9 @@
         <div class="col-md-4">
           <div class="column-background">
             <div class="form-group draggable">
-              <div id="preview"></div>
+              <div id="preview">             
+                
+              </div>
             </div>
           </div>
         </div>
@@ -253,8 +274,8 @@
                   return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
               }
           }
-      };     
-
+      };           
+    
       $( "#login" ).click(function() {       
 
         firebase.auth().signInWithEmailAndPassword("josemanuelvigil@gmail.com", "temporary").then(function(user) {                      
@@ -264,8 +285,8 @@
             console.log(errorMessage);
         });
 
-      });  
-
+      });        
+    
       firebase.auth().onAuthStateChanged(function (user) {
 
         if (user) { 
@@ -334,13 +355,12 @@
                     } else if (active_cuerpo) {                  
                                     
                         tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
+
                     }  
 
                     clearTimeout(timer_click);
 
                   }, 1000);
-
-                          
 
                 });
               }
@@ -350,6 +370,7 @@
             appendTo: "body",
             helper: "clone"
           });
+          
           $( ".droppable" ).droppable({
             accept: ".draggable",
             helper: "clone",
@@ -363,9 +384,7 @@
 
                 count_drop++;
 
-                var name = $orig.find("label").attr("for");           
-                
-                console.log("name: " + name);
+                var name = $orig.find("label").attr("for");                      
                 
                 var $el = $orig
                   .clone()
@@ -373,13 +392,45 @@
                   .css({"position": "static", "left": null, "right": null})
                   .appendTo(this);
 
-                if (name=="cuerpo") {
-                  
-                  $el.find("p").replaceWith(`<textarea id="basic"></textarea>`);
-                  initTinyEMC();                 
- 
+                if (name=="saludo") {                  
+                  $el.find("p").remove();                                     
                 }
+
+                if (name=="cuerpo") {                  
+                  $el.find("p").remove();                   
+                  $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
+                  $el.find("textarea").removeAttr('placeholder');
+                  initTinyEMC();
+                }                
+
+                if (name=="imagen") { 
+                  $el.find("p").remove(); 
+                  $el.find("input").attr('id', 'inimage');  
                   
+                  $el.find("input").change(function(){
+                      //Levantar todo el html y meter la imagen donde va
+                      readURL(this);
+                  });
+
+                }
+
+                if (name=="pagos") {
+                 $el.find("p").remove();           
+                }
+
+                if (name=="contacto") {
+                 $el.find("p").remove();           
+                }
+               
+                if (name=="color") {                              
+                 $el.find("p").remove();
+                 $el.find("input").attr('id', 'incolor');                 
+                 $('#incolor').colorpicker();                        
+                 $('#incolor').on('colorpickerChange', function(event) {
+                   $('#preview').css('background-color', event.color.toString());
+                 });
+               }
+
                 // update id
                 var id = $orig.find(":input").attr("id");
                 
@@ -439,8 +490,6 @@
             var _html = "";
 
             $('.draggable').each(function(index, value) { 
-
-              
               
               console.log(`div${index}: ${this.id}`);              
 
@@ -454,46 +503,41 @@
                 _html += tinymce.activeEditor.getContent();
               }                 
 
-              if (count_drop == count) {
+              if (count_drop == count) {               
+
+                let comupulsory = `<button type="button" class="btn btn-primary">Primary</button>
+                <button type="button" class="btn btn-secondary">Secondary</button>`;
+
+                _html += comupulsory;
+
                 $("#preview").html(replaceVariables(_html)); 
+
                 return false;
               }
 
             });
+
+            
         
           };
 
-          function replaceVariables(_html) {
-
-           //let _h = _html.replace(_html, "W3Schools");
-
-           /*data = { 
-                "nombre" :  { 
-                  "datos" : name, 
-                  "boton" : "btn-primary" 
-                }, 
-                "codigo" :  { 
-                  "datos" : code, 
-                  "boton" : "btn-secondary" 
-                }, 
-                "contacto" :  { 
-                  "datos" : contact, 
-                  "boton" : "btn-success" 
-                }               
-              };*/
-
-              for (var key of Object.keys(data)) {
-                
-                let nombre = "{" + key + "}";                
-
-                let datos = data[key]["datos"];
-
-                _html = _html.replace(nombre, datos);
-             
+          function readURL(input) {
+              if (input.files && input.files[0]) {
+                  var reader = new FileReader();            
+                  reader.onload = function (e) {
+                      $('#preview').attr('src', e.target.result);
+                  }            
+                  reader.readAsDataURL(input.files[0]);
               }
+          } 
 
-              return _html;
-
+          function replaceVariables(_html) {
+            for (var key of Object.keys(data)) {                
+              let nombre = "{" + key + "}";
+              let datos = data[key]["datos"];
+              _html = _html.replace(nombre, datos);             
+            }
+            return _html;
           }
 
           var get_modal = function(content) {
@@ -518,8 +562,8 @@
           return modal;
         };
         
-        $(document).on("click", ".edit-link", function(ev) {
-
+        $(document).on("click", ".edit-link", function(ev) {   
+          
           getHTML();
           
           /*var $el = $(this).parent().parent();
@@ -565,10 +609,9 @@
              * */
 
             tinymce.init({
-              selector: 'textarea#basic',
+              selector: 'textarea#incuerpo',
               menubar: false,
-              height: 300,
-              //toolbar: 'campos medios acciones',                     
+              height: 300,             
               plugins: [
                 'advlist autolink lists link image charmap print preview anchor',
                 'searchreplace visualblocks code fullscreen',
@@ -612,30 +655,21 @@
               }
             });
 
-
             tinymce.activeEditor.on('focus', function(e) {
-                active_cuerpo = true;
-                active_saludo = false;
-                active_from_button = false;
-                id = $(this).prop('id');
-                $(this).css("basic", "#EFF0F1");
-                console.log("*************************************"+id);
+              active_cuerpo = true;
+              active_saludo = false;
+              active_from_button = false;               
             });
 
-            tinymce.activeEditor.on('blur', function(e) {           
-                id = $(this).prop('id');
-                $(this).css("basic", "white");
-                if (active_from_button) {
-                  active_cuerpo = false;
-                }
-                console.log("--------------------------------------"+id);
+            tinymce.activeEditor.on('blur', function(e) {                       
+              if (active_from_button) {
+                active_cuerpo = false;
+              }                
             });
-
 
           }
 
         } else  {
-
 
         }
 
