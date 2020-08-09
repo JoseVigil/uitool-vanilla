@@ -11,6 +11,8 @@
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
     var htmlToPdfmake = require("html-to-pdfmake");
 
+    const readXlsxFile = require('read-excel-file/node');
+
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
     //var createObjectURL = require('create-object-url');   
@@ -409,6 +411,10 @@
           if (pathParams[2] === "preview") {
 
             return res.status(200).sendFile( path.join(__dirname + '/../public/html/preview_composer.html' ));
+
+          } else if (pathParams[2] === "campaign") {
+
+            return res.status(200).sendFile( path.join(__dirname + '/../public/html/campaign_composer.html' ));
 
           } else if (pathParams[2] === "web") {
 
