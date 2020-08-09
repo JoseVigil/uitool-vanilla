@@ -5,7 +5,11 @@
     var admin = require('firebase-admin');
     const request = require('request');  
     var firestoreService = require('firestore-export-import');      
-    var path = require('path');   
+    var path = require('path');       
+    var pdfMake = require("pdfmake/build/pdfmake");
+    var pdfFonts = require("pdfmake/build/vfs_fonts");
+    pdfMake.vfs = pdfFonts.pdfMake.vfs;
+    var htmlToPdfmake = require("html-to-pdfmake");
 
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
@@ -28,7 +32,7 @@
     });
     
     const firestore = admin.firestore();    
-    const storage = admin.storage();
+    //const storage = admin.storage();
 
     const firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
@@ -85,6 +89,11 @@
        * https://www.npmjs.com/package/@google-cloud/logging-winston#samples
        */
 
+      /** 
+      * Log Node
+      * https://cloud.google.com/functions/docs/monitoring/logging#viewing_logs 
+      * /
+
        /**
         * HTML OPEN GRAPH
         * https://gist.github.com/alnguyenngoc/7635341
@@ -101,6 +110,11 @@
          * 
          */
 
+         /**
+          * HTML TO PDF
+          * https://www.npmjs.com/package/html-to-pdfmake
+          */
+
     /**
      * Post SMS
      */
@@ -112,7 +126,8 @@
       const _code = req.body.data.code; 
       const _client_id = req.body.data.client_id;  
       const _message = req.body.data.message;
-      const _contact = req.body.data.contact;   
+      const _contact = req.body.data.contact;
+      const _invoices = req.body.data.invoices;   
       
       let _time = admin.firestore.FieldValue.serverTimestamp(); 
 
@@ -202,10 +217,8 @@
               var _error = JSON.parse(error); 
               callback(_error);   
               return _error;             
-          }    
-
+          } 
       }); 
-
     }          
 
     exports.tiggerUpdate = functions.firestore
@@ -260,7 +273,21 @@
                 let userRef = firestore.collection("cobranzas").doc(cobranzasId);
 
                 let _time = admin.firestore.FieldValue.serverTimestamp(); 
-                
+
+                var html = htmlToPdfMake(`<div>the html code</div>`, {window:window});
+
+                var docDefinition = {
+                  content: [
+                    html
+                  ]
+                };
+
+                var pdfDocGenerator = pdfMake.createPdf(docDefinition);
+                pdfDocGenerator.getBuffer(function(buffer) {
+                  fs.writeFileSync('example.pdf', buffer);
+                });
+
+                                
                 return userRef.update({
                   image_path: image_path,
                   update: false,
@@ -466,24 +493,7 @@
 
     });
 
-    /*function downloadJson(filename, json) {      
-      let file = JSON.stringify(json);      
-      let blob = new Blob([file], {type: "application/json"});      
-      //let url  = blobUtil.createObjectURL(blob);
-      //let _url = URL.createObjectURL(blob);
-      let _url = createObjectURL(blob);      
-      //let _array = fileReader.readAsArrayBuffer(blob);      
-      //fileReader.setNodeChunkedEncoding(true || false);
-      //let url = fileReader.readAsDataURL(blob);
-      let element = document.createElement('a');      
-      element.setAttribute('href', url);      
-      element.setAttribute('download', filename + ".json");  
-      element.style.display = 'none';
-      document.body.appendChild(element);  
-      element.click();  
-      document.body.removeChild(element);
-    }*/
-
+    
    
 
 
