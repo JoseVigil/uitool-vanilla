@@ -124,7 +124,7 @@
                            <span class="badge badge-default float-right"><h5>Nombre campaña:</h5></span>
                         </div>
                         <div class="col-md-6">
-                          <input type="text" class="form-control">
+                          <input id="campaign-name" type="text" class="form-control">
                           <p>Crea el cuerpo del mensaje</p>                                    
                         </div>
                       </div>
@@ -368,6 +368,8 @@
 
     $(document).ready(function () {  
 
+      var client = "sipef";
+
       var active_saludo = false;
       var active_cuerpo = false;
       var active_from_button = false;
@@ -423,40 +425,75 @@
       $("#excel-file").on('change', function(){
 
 
-        var input = document.getElementById("proImage");
-            var j=0, k=0;
+        let campaign_name = $("#campaign-name").val().split(' ').join('_');
+
+        var _time =  new Date();   
+        
+        var path = `clients/${client}`; 
+
+        db.collection(path).doc(campaign_name).set({
+            name: campaign_name,
+            last_update: _time,      
+            time_created: _time 
+          }).then(docRefSet => {      
+            
+            var id = docRefSet.id;
+            
+            var storageRef = storage.ref(path);       
+              
+            var filePath =  "jose.xls";        
+            var thisRef = storageRef.child(filePath);    
+
+            var file = document.getElementById("excel-file").files[0]; 
+            var input = this;
             var length = input.files.length;
-            for (var i = 0; i < length; ++i) {            
-                var _file = input.files.item(i);                                                  
-                var filePathMuseum = title + "_" + i + "_original.png";        
-                const museumRef = storageRef.child(filePathMuseum);
-                const putRef = museumRef.put(_file, metadataFiles);  
-                prefArray.push(putRef);  
-                putRef.on('state_changed', function(snapshot) {
-                    var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload is ' + progress + '% done');
-                    switch (snapshot.state) {
-                      case firebase.storage.TaskState.PAUSED: // or 'paused'
-                        console.log('Upload is paused');
-                        break;
-                      case firebase.storage.TaskState.RUNNING: // or 'running'
-                        console.log('Upload is running');
-                        break;
+            var _file = input.files.item(0); 
+            
+            var metadataFiles = {
+              customMetadata: {                
+                  'type': 'xls',
+                  'documentId' : id,
+                  "path" : path                        
+              }
+            };
+
+            var file = document.getElementById("excel-file").files[0];   
+            var filePathMuseum = "jose.xlsx";        
+            const museumRef = storageRef.child(filePathMuseum);
+            var putRef = museumRef.put(_file, metadataFiles);          
+            putRef.on('state_changed', function(snapshot) {
+                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+                switch (snapshot.state) {
+                  case firebase.storage.TaskState.PAUSED: // or 'paused'
+                    console.log('Upload is paused');
+                    break;
+                  case firebase.storage.TaskState.RUNNING: // or 'running'
+                    console.log('Upload is running');
+                    break;
+                }
+              }, function(error) {
+                // Handle unsuccessful uploads
+              }, function() {                                        
+
+                putRef.ref.getDownloadURL().then(function(downloadURL) {                      
+                    db.collection("museums").doc(museumId).collection("images").add({downloadURL});
+                    if (k==(length-1)){
+                        $('#addMuseumModal').modal('hide');
                     }
-                  }, function(error) {
-                    // Handle unsuccessful uploads
-                  }, function() {                                        
-                    var putRefFromArray = prefArray[j];
-                    putRefFromArray.snapshot.ref.getDownloadURL().then(function(downloadURL) {                      
-                        db.collection("museums").doc(museumId).collection("images").add({downloadURL});
-                        if (k==(length-1)){
-                            $('#addMuseumModal').modal('hide');
-                        }
-                        k++;
-                    });
-                    j++;
-                });   
-            }
+                    k++;
+                });
+                j++;
+            });
+            
+          }).catch((error) => {     
+            console.error("Error adding document: ", error);           
+          });   
+        });  
+
+
+           
+            
 
       });
     
@@ -466,529 +503,11 @@
 
           var documentId = getUrlParameter('id'); 
 
-          db.collection("cobranzas").doc(documentId)
-            .get()
-            .then(function(doc) {
-
-              var name =  doc.data().name;                
-              var code =  doc.data().code;
-              var contact =  doc.data().contact;                
-              
-              data = { 
-                "nombre" :  { 
-                  "datos" : name, 
-                  "boton" : "btn-primary" 
-                }, 
-                "codigo" :  { 
-                  "datos" : code, 
-                  "boton" : "btn-secondary" 
-                }, 
-                "contacto" :  { 
-                  "datos" : contact, 
-                  "boton" : "btn-success" 
-                }               
-              };
-
-              for (var key of Object.keys(data)) {
-                
-                let nombre = key;
-                let datos = data[key]["datos"];
-                let boton = data[key]["boton"];
-
-                let _html = `&nbsp;&nbsp<button data-field="${datos}" style="color:white" class="botones btn ${boton}" type="button" id="${nombre}">${nombre}</button>&nbsp;&nbsp`;
-           
-                $("#composer").append(_html);
-
-                $("#" + nombre).on('click', function (e) {                     
-                  e.preventDefault();
-
-                  active_from_button = true;
-
-                  var timer_click = setTimeout(function() {                                                           
-                  
-                    var id = $(e.target).attr('id'); 
-                    var variable;
-
-                    if (id=="nombre") {
-                      variable = "{nombre}";                     
-                    } else if (id=="codigo") {
-                      variable = "{codigo}";  
-                    } else if (id=="contacto") {
-                      variable = "{contacto}";
-                    }
-
-                    if (active_saludo) {
-
-                      var cursorPos = $('#insaludo').prop('selectionStart');
-                      var v = $('#insaludo').val();
-                      var textBefore = v.substring(0,  cursorPos );
-                      var textAfter  = v.substring( cursorPos, v.length );
-                      $('#insaludo').val( textBefore + variable + textAfter ); 
-
-                    } else if (active_cuerpo) {                                                      
-                      tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
-                    }  
-
-                    clearTimeout(timer_click);
-
-                  }, 1000);
-
-                });
-              }
-          });            
-       
-          $( ".draggable" ).draggable({
-            appendTo: "body",
-            helper: "clone"
-          });
-          
-          $( ".droppable" ).droppable({
-            accept: ".draggable",
-            helper: "clone",
-            hoverClass: "droppable-active",
-            drop: function( event, ui ) {
-              
-              $(".empty-form").remove();
-              var $orig = $(ui.draggable);
-              
-              if(!$(ui.draggable).hasClass("dropped")) {
-
-                count_drop++;
-
-                var name = $orig.find("label").attr("for");                      
-                
-                var $el = $orig
-                  .clone()
-                  .addClass("dropped")
-                  .css({"position": "static", "left": null, "right": null})
-                  .appendTo(this);
-
-                if (name=="saludo") {                  
-                  $el.find("p").remove();                                     
-                }
-
-                if (name=="cuerpo") {                  
-                  $el.find("p").remove();                   
-                  $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
-                  $el.find("textarea").removeAttr('placeholder');
-                  initTinyEMC();
-                }                
-
-                /*if (name=="imagen") { 
-                  $el.find("p").remove(); 
-                  $el.find("input").attr('id', 'inimage');  
-                  
-                  $el.find("input").change(function() {                      
-                      if (this.files && this.files[0]) {
-                          var reader = new FileReader();            
-                          reader.onload = function (e) {                              
-                              target_result = e.target.result;
-                              getHTML();
-                          }            
-                          reader.readAsDataURL(this.files[0]);
-                      }
-                  });
-                }*/
-
-                if (name=="contacto") {
-                 $el.find("p").remove();           
-                }
-
-                if (name=="pagos") {
-                  $el.find("p").remove();      
-                  $('#pagos input[type="checkbox"]').click(function(){
-                    getHTML();
-                  });     
-                }
-               
-                if (name=="color") {                              
-                  $el.find("p").remove();
-                  $el.find("input").attr('id', 'incolor');                 
-                  $('#incolor').colorpicker();                        
-                  $('#incolor').on('colorpickerChange', function(event) {
-                    $('#preview').css('background-color', event.color.toString());
-                  });
-                }
-
-                // update id
-                var id = $orig.find(":input").attr("id");
-                
-                if(id) {
-                  id = id.split("-").slice(0,-1).join("-") + "-" 
-                    + (parseInt(id.split("-").slice(-1)[0]) + 1);                
-                  $orig.find(":input").attr("id", id);
-                  $orig.find("label").attr("for", id);
-                }            
-
-                // tools
-                $('<p class="tools">\
-                  <a class="text-primary edit-link">Visualizar<a> | \
-                  <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
-
-                var timer = setTimeout(function() {                                        
-
-                  $("#insaludo").focus(function(){
-                    $(this).css("background-color", "#EFF0F1");
-                    active_saludo = true;                      
-                    active_cuerpo = false;
-                    active_from_button = false;
-                  });
-
-                  $("#insaludo").blur(function(){
-                    $(this).css("background-color", "white");
-                    if (active_from_button) {
-                      active_saludo = false;
-                    }
-                  });
-
-                  $("#insaludo").change(function() {
-                    getHTML();
-                  });
-
-                  clearTimeout(timer);
-
-                }, 500);
-               
-              } else {
-               
-                if($(this)[0]!=$orig.parent()[0]) {
-                
-                  var $el = $orig
-                    .clone()
-                    .css({"position": "static", "left": null, "right": null})
-                    .appendTo(this);
-                  $orig.remove();
-
-                }
-              }
-            }
-          }).sortable();
-
-          function getHTML() {
-
-            var count = 0;
-            var _html = "";
-
-            $("#preview").empty(); 
-
-            $('.draggable').each(function(index, value) { 
-
-
-              try {
-              
-                console.log(`div${index}: ${this.id}`);              
-
-                if (this.id == "saludo") {
-                  count++;
-                  let insaludo = $("#insaludo").val();
-                  let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
-                                ${insaludo}</p></h3>`;
-                  _html += saludo;
-                } 
-                
-                if (this.id=="cuerpo") {                              
-                  count++;
-                  let inscuerpo = tinymce.activeEditor.getContent();
-                  let cuerpo =  `<div style="margin-bottom: 40px;">
-                              ${inscuerpo}</div>`;
-                  _html += cuerpo;
-                } 
-                
-                /*if (this.id=="imagen") {
-                  count++;
-                  if ($("#inimagen").val()!=undefined) {
-                    let inimagen =  `<div style="width:100%; height:100%">
-                                    <img style="margin-left: auto;  margin-right: auto; display: block; width: 50%;"
-                                    src="${target_result}"></div>`;
-                    _html += inimagen;
-                  }
-                }*/ 
-
-                if (this.id=="pagos") {
-                  count++;                
-                  //let inMercado = $('#inMercado').prop('checked');
-                  //let inRapi = $('#inRapi').prop('checked');
-                  //let inFacil = $('#inFacil').prop('checked');
-                  let inpagos = getPagos();
-                  if (inpagos!=undefined) {
-                      _html += inpagos;
-                  }                
-                } 
-
-                if (count_drop == count) {               
-
-                  let comupulsory = `
-                  <footer class="footer">
-                    <div class="container">
-                      <hr>
-                      <div class="row">
-                        <div class="col-sm-2"/>                        
-                        <div class="col-sm-8">
-                          <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
-                        </div>
-                        <div class="col-sm-2"/>
-                      </div>     
-                      <hr>              
-                      <div class="row">
-                        <div class="col-sm-2"/>                        
-                        <div class="col-sm-8">
-                          <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
-                        </div>
-                        <div class="col-sm-2"/>
-                      </div>
-                    </div>
-                  </footer>`;
-
-                  _html += comupulsory;
-
-                  $("#preview").html(replaceVariables(_html));                 
-
-                  return false;
-               }
-
-
-              } catch (e) {
-                  console.error(e);
-                  return e;
-              }
-
-            });
-          };
-
-          function getPagos() {
-
-              var arrayObj = [
-                {"image": "mercadopago.png", "id": "inMercado", "value": $('#inMercado').prop('checked')},
-                {"image": "rapipago.png", "id": "inRapi", "value": $('#inRapi').prop('checked')},
-                {"image": "pagofacil.png", "id": "inFacil", "value": $('#inFacil').prop('checked')},
-                {"image": "otros.png", "id": "inOtros", "value": $('#inOtros').prop('checked')},
-              ];
-
-              var _array = arrayObj.filter(function(s) { 
-                return s.value; 
-              });
-
-              count = _array.length;
-
-              if (count==0) {
-                return;
-              }
-              var inpagos = "";
-
-              switch (count) {
-                case 1:
-                  inpagos = `<div class="row">
-                      <div class="col">                         
-                      </div>
-                      <div class="col-5">
-                        <img src="/images/${_array[0].image}"/>
-                      </div>
-                      <div class="col">                          
-                      </div>
-                    </div>`;
-                  break;
-                case 2:
-                  inpagos = "";
-                  break;
-                case 3:
-                  inpagos = "";
-                  break;
-              }
-
-              return inpagos;
-
-          }
-        
-
-          function replaceVariables(_html) {
-            for (var key of Object.keys(data)) {                
-              let nombre = "{" + key + "}";
-              let datos = data[key]["datos"];
-              _html = _html.replace(nombre, datos);             
-            }
-            return _html;
-          }
-
-          var get_modal = function(content) {
-          var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
-            <div class="modal-dialog">\
-              <div class="modal-content">\
-                <div class="modal-header">\
-                  <a type="button" class="close"\
-                    data-dismiss="modal" aria-hidden="true">&times;</a>\
-                  <h4 class="modal-title">Edit HTML</h4>\
-                </div>\
-                <div class="modal-body ui-front">\
-                  <textarea class="form-control" \
-                    style="min-height: 200px; margin-bottom: 10px;\
-                    font-family: Monaco, Fixed">'+content+'</textarea>\
-                  <button class="btn btn-success">Update</button>\
-                </div>\
-              </div>\
-            </div>\
-            </div>').appendTo(document.body);
-            
-          return modal;
-        };
-        
-        $(document).on("click", ".edit-link", function(ev) {   
-          
-          getHTML();
-          
-          /*var $el = $(this).parent().parent();
-          var $el_copy = $el.clone();
-          
-          var $edit_btn = $el_copy.find(".edit-link").parent().remove();
-
-          var $modal = get_modal(html_beautify($el_copy.html())).modal("show");
-          $modal.find(":input:first").focus();
-          $modal.find(".btn-success").click(function(ev2) {
-            var html = $modal.find("textarea").val();
-            if(!html) {
-              $el.remove();
-            } else {
-              $el.html(html);
-              $edit_btn.appendTo($el);
-            }
-            $modal.modal("hide");
-            return false;
-          });*/
-
-        });
-        
-        $(document).on("click", ".remove-link", function(ev) {
-          $(this).parent().parent().remove();
-          count_drop--;
-        });
-        
-
-          $("#login").text("Logged");
-
-          function initTinyEMC() {  
-
-            var camposFields = {
-              one: "first",
-              two: "second",
-              three: "third"
-            };         
-            
-            /**
-             * SAMPLE
-             * https://www.tiny.cloud/docs/demo/basic/
-             * */
-
-            tinymce.init({
-              selector: 'textarea#incuerpo',
-              menubar: false,
-              height: 200,             
-              plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
-                'searchreplace visualblocks code fullscreen',
-                'insertdatetime media table paste code wordcount'
-              ],
-              toolbar: 'undo redo | formatselect | ' +
-              'bold italic backcolor | alignleft aligncenter ' +
-              'alignright alignjustify | bullist numlist outdent indent | ' +
-              'removeformat',
-              content_css: '//www.tiny.cloud/css/codepen.min.css',
-
-              setup: function(editor) {
-
-                editor.on('change', function(ed) {              
-                  let _content = editor.getContent();      
-                  getHTML();  
-                });
-                
-                /** Campos **/              
-                editor.ui.registry.addMenuButton('campos', {
-                  text: 'Campos',
-                  fetch: function(callback) {
-                    var items = [];
-                    for (var fieldName in camposFields) {
-                      var menuItem = {
-                        type: 'menuitem',
-                        text: camposFields[fieldName],
-                        value:fieldName,
-                        onSetup: function(buttonApi) {
-                          var $this = this;
-                          this.onAction = function() {
-                            editor.insertContent($this.data.value);
-                          };
-                        },
-                      };
-                      items.push(menuItem);
-                    }
-                    callback(items);
-                  },
-                });
-              }
-            });
-
-            tinymce.activeEditor.on('focus', function(e) {
-              active_cuerpo = true;
-              active_saludo = false;
-              active_from_button = false;               
-            });
-
-            tinymce.activeEditor.on('blur', function(e) {                       
-              if (active_from_button) {
-                active_cuerpo = false;
-              }                
-            });
-
-          }
-
-        } else  {
-
         }
 
-      });   
+      });  
 
     });  
-
-    /*  tinymce.init({
-        language: 'es',
-        selector: 'textarea',
-        height: 500,
-        theme: 'modern',
-        plugins: 'print preview fullpage powerpaste searchreplace autolink directionality advcode visualblocks visualchars fullscreen image link template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists textcolor wordcount a11ychecker imagetools contextmenu colorpicker textpattern wordcount contextmenu help',
-        toolbar1: 'formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat',
-        contextmenu: "link image inserttable | cell row column deletetable",
-        image_advtab: true,
-        templates: [
-          { title: 'Test template 1', content: 'Test 1' },
-          { title: 'Test template 2', content: 'Test 2' }
-        ],
-        content_css: [
-          '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
-          '//www.tinymce.com/css/codepen.min.css'
-        ],
-        setup:function(ed) {
-          ed.on('change', function(e) {              
-              $('#preview').html(ed.getContent());
-          });
-        },
-        mobile: {
-          menubar: true
-        },
-
-      });*/
-
-      /**
-       * 
-       * Custom Menu Item
-       * //https://www.tiny.cloud/docs/demo/custom-menu-item/
-       * 
-       * Local Upload
-       * https://www.tiny.cloud/docs-4x/demo/local-upload/
-       * 
-       * Image Upload
-       * https://www.tiny.cloud/docs-4x/general-configuration-guide/upload-images/
-       * 
-       * */
-      
-    
-    //]]>
     </script>
 
    

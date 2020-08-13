@@ -55,6 +55,68 @@
     const app = express();
     exports.app = functions.https.onRequest(app);
 
+    exports.processXml = functions.storage.object().onFinalize(async (object) => {  
+    
+      const filePath = object.name;
+      const customMetadata = object.metadata;      
+
+      if (customMetadata.type === "xls") {
+
+        var _path = customMetadata.path;
+        var _documentId = customMetadata.documentId;
+
+        const bucket = admin.storage().bucket(object.bucket);
+
+        const file = bucket.file(filePath);
+        const contentType = object.contentType; // This is the image MIME type
+        const fileDir = path.dirname(filePath);
+        const fileName = path.basename(filePath);
+
+        const xlsFilePath = path.normalize(path.join(fileDir, `${THUMB_PREFIX}${fileName}`));
+
+        const _file = bucket.file(xlsFilePath);
+
+        var rowNumber=0;
+
+        /*readXlsxFile(_file).then(async (rows) => {                             
+          
+          if (rowNumber===0) { 
+            
+            let l = rows[0].length;
+            var _row = rows[0];
+            var columns = [];
+            
+            for (var i=0; i<l; i++) {
+              let col = _row[i];
+              columns.push(col);
+            }
+
+            let _time = admin.firestore.FieldValue.serverTimestamp();
+
+            let campaignRef = firestore.collection(_path).doc(_documentId);
+
+            await campaignRef.update({
+              columns: columns,              
+              updated_time:_time                  
+            }).catch((error) => {
+              console.log('Error updating document:', error);
+              return error;
+            });             
+
+          }
+
+          return rows; 
+
+
+        }).catch((error) => {
+          console.log('Error reading xml:', error);
+          return error;
+        });*/
+
+      }
+
+    });
+
     /**
      * WebApp Push Notification
      * https://www.freecodecamp.org/news/how-to-add-push-notifications-to-a-web-app-with-firebase-528a702e13e1/#:~:text=Notifications%20with%20Firebase,any%20device%20using%20HTTP%20requests.
@@ -101,21 +163,21 @@
         * https://gist.github.com/alnguyenngoc/7635341
         */
 
-        /**
-         * 
-         * EDITOR
-         * https://www.tiny.cloud/
-         * 
-         * CUSTOM FORM
-         * https://www.martyfriedel.com/blog/tinymce-5-creating-a-plugin-with-a-dialog-and-custom-icons
-         * https://tinymce.martyfriedel.com/
-         * 
-         */
+      /**
+       * 
+       * EDITOR
+       * https://www.tiny.cloud/
+       * 
+       * CUSTOM FORM
+       * https://www.martyfriedel.com/blog/tinymce-5-creating-a-plugin-with-a-dialog-and-custom-icons
+       * https://tinymce.martyfriedel.com/
+       * 
+       */
 
-         /**
-          * HTML TO PDF
-          * https://www.npmjs.com/package/html-to-pdfmake
-          */
+        /**
+        * HTML TO PDF
+        * https://www.npmjs.com/package/html-to-pdfmake
+        */
 
     /**
      * Post SMS
