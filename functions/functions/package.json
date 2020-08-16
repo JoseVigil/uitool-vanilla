@@ -22,6 +22,7 @@
     "firestore-export-import": "^0.6.1",
     "node-blob": "0.0.2",
     "path": "^0.12.7",
+    "puppeteer": "^5.2.1",
     "request": "^2.88.2",
     "url": "^0.11.0"
   },

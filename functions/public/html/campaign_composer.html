@@ -132,7 +132,7 @@
                         <div class="col-md-6">
                           <div class="row float-right">
                             <span class="badge badge-default"><h5>Agregar campo</h5></span>
-                            <button type="button" class="btn btn-success ">
+                            <button id="add-field" type="button" class="btn btn-success ">
                               +
                             </button>
                           </div>
@@ -149,7 +149,7 @@
                       <div class="row">
                         <div class="col-md-12">
 
-                          <table class="table table-bordered table-hover table-sm">
+                          <table id="field-table" class="table table-bordered table-hover table-sm">
                             <thead>
                               <tr>
                                 <th>                                  
@@ -163,20 +163,18 @@
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
+                              <tr id="field1">
                                 <td>
                                   <span class="glyphicon glyphicon-envelope"></span>                                </td>
                                 <td>
-                                  <input type="text" class="form-control">
+                                  <input id="name_1" type="text" class="form-control">
                                 </td>
                                 <td>
-                                  <input type="text" class="form-control">
+                                  <input id="value_1" type="text" class="form-control">
                                 </td>                               
                               </tr>                              
                             </tbody>
                           </table>
-
-
                         </div>
                       </div>
                     </div>
@@ -192,7 +190,7 @@
                         </div>
                         <div class="col-md-6">
                            
-                          <button type="button" class="btn btn-success">
+                          <button id="save-campaign" type="button" class="btn btn-success">
                             Guardar Campaña
                           </button>
                         </div>
@@ -204,94 +202,22 @@
                 
                 <!--TABLE-->
                 <div class="col-md-6">
-                  <table class="table table-bordered table-hover table-sm">
+                  <table id="campaign-table"  class="table table-bordered table-hover table-sm">
                     <thead>
                       <tr>
                         <th>
-                          #
+                            <span class="custom-checkbox">
+                                <input type="checkbox" id="selectAll">
+                                <label for="selectAll"></label>
+                            </span>
                         </th>
-                        <th>
-                          Product
-                        </th>
-                        <th>
-                          Payment Taken
-                        </th>
-                        <th>
-                          Status
-                        </th>
-                      </tr>
+                        <th>Nombre</th>
+                        <th>Actualizada</th>,.                        
+                        <th></th>                        
+                    </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td>
-                          1
-                        </td>
-                        <td>
-                          TB - Monthly
-                        </td>
-                        <td>
-                          01/04/2012
-                        </td>
-                        <td>
-                          Default
-                        </td>
-                      </tr>
-                      <tr class="table-active">
-                        <td>
-                          1
-                        </td>
-                        <td>
-                          TB - Monthly
-                        </td>
-                        <td>
-                          01/04/2012
-                        </td>
-                        <td>
-                          Approved
-                        </td>
-                      </tr>
-                      <tr class="table-success">
-                        <td>
-                          2
-                        </td>
-                        <td>
-                          TB - Monthly
-                        </td>
-                        <td>
-                          02/04/2012
-                        </td>
-                        <td>
-                          Declined
-                        </td>
-                      </tr>
-                      <tr class="table-warning">
-                        <td>
-                          3
-                        </td>
-                        <td>
-                          TB - Monthly
-                        </td>
-                        <td>
-                          03/04/2012
-                        </td>
-                        <td>
-                          Pending
-                        </td>
-                      </tr>
-                      <tr class="table-danger">
-                        <td>
-                          4
-                        </td>
-                        <td>
-                          TB - Monthly
-                        </td>
-                        <td>
-                          04/04/2012
-                        </td>
-                        <td>
-                          Call in to confirm
-                        </td>
-                      </tr>
+                    
                     </tbody>
                   </table>
                 </div>
@@ -334,9 +260,28 @@
               </div>
             </div>
           </div>
+
+          <!-- Add Alert -->  
+          <div id="alertModal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">                                
+                    <div class="modal-body">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <p id="alert-content"></p>
+                    </div>                                
+                    <div data-dismiss="modal" class="modal-footer"><button type="button" class="btn btn-primary">OK</button></div>
+                </div>
+            </div>
+        </div>
+
+
+          
         </div>
       </div>
     </div>
+
+
+    
 
     <script>
     //<![CDATA[
@@ -378,6 +323,8 @@
 
       var data;
       var count_drop = 0;
+
+      var count_field = 1;
 
       const firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
@@ -422,95 +369,176 @@
 
       });
       
-      $("#excel-file").on('change', function(){
-
-
-        let campaign_name = $("#campaign-name").val().split(' ').join('_');
-
-        var _time =  new Date();   
-        
-        var path = `clients/${client}`; 
-
-        db.collection(path).doc(campaign_name).set({
-            name: campaign_name,
-            last_update: _time,      
-            time_created: _time 
-          }).then(docRefSet => {      
-            
-            var id = docRefSet.id;
-            
-            var storageRef = storage.ref(path);       
-              
-            var filePath =  "jose.xls";        
-            var thisRef = storageRef.child(filePath);    
-
-            var file = document.getElementById("excel-file").files[0]; 
-            var input = this;
-            var length = input.files.length;
-            var _file = input.files.item(0); 
-            
-            var metadataFiles = {
-              customMetadata: {                
-                  'type': 'xls',
-                  'documentId' : id,
-                  "path" : path                        
-              }
-            };
-
-            var file = document.getElementById("excel-file").files[0];   
-            var filePathMuseum = "jose.xlsx";        
-            const museumRef = storageRef.child(filePathMuseum);
-            var putRef = museumRef.put(_file, metadataFiles);          
-            putRef.on('state_changed', function(snapshot) {
-                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log('Upload is ' + progress + '% done');
-                switch (snapshot.state) {
-                  case firebase.storage.TaskState.PAUSED: // or 'paused'
-                    console.log('Upload is paused');
-                    break;
-                  case firebase.storage.TaskState.RUNNING: // or 'running'
-                    console.log('Upload is running');
-                    break;
-                }
-              }, function(error) {
-                // Handle unsuccessful uploads
-              }, function() {                                        
-
-                putRef.ref.getDownloadURL().then(function(downloadURL) {                      
-                    db.collection("museums").doc(museumId).collection("images").add({downloadURL});
-                    if (k==(length-1)){
-                        $('#addMuseumModal').modal('hide');
-                    }
-                    k++;
-                });
-                j++;
-            });
-            
-          }).catch((error) => {     
-            console.error("Error adding document: ", error);           
-          });   
-        });  
-
-
-           
-            
-
-      });
-    
+      
       firebase.auth().onAuthStateChanged(function (user) {
 
         if (user) { 
 
           var documentId = getUrlParameter('id'); 
-
+          
+          db.collection('clients')
+          .doc(client)
+          .collection("campaigns")
+          .onSnapshot(snapshot => {
+            
+              let size = snapshot.size;            
+              let changes = snapshot.docChanges();
+              changes.forEach(change => {
+                  
+                  let document = change.doc;
+                  let id = document.id;                  
+                  let last_update = document.data().last_update;                  
+                  
+                  let item = `<tr data-id="${document.id}">
+                  <td>
+                      <span class="custom-checkbox">
+                          <input type="checkbox" id="check_${document.id}" name="options[]" value="${document.id}">
+                          <label for="${document.id}"></label>
+                      </span>
+                  </td>
+                  <td>${document.data().name}</td>
+                  <td>${document.data().last_update}</td>               
+                  <td><a href="#" id="menu_${document.id}"><i class="fal fa-ellipsis-v"></i></a></td>        
+                  </tr>`;
+                  $('#campaign-table').append(item);
+                 
+              });
+          });
         }
 
       });  
 
-    });  
-    </script>
 
-   
+      $("#add-field").on('click', function() {  
+
+          count_field++;
+
+          let item = `<tr id="field${count_field+1}">
+            <td>
+              <span class="glyphicon glyphicon-envelope"></span>                                </td>
+            <td>
+              <input id="name_${count_field}" type="text" class="form-control">
+            </td>
+            <td>
+              <input id="value_${count_field}" type="text" class="form-control">
+            </td>                               
+          </tr>`;   
+          $('#field-table').append(item); 
+
+      });   
+
+      $("#save-campaign").on('click', function() {  
+
+        let _table_size = $("#field-table tr").length - 1;
+
+       var count = 0;
+       var fields_array = [];
+       var _break = false;
+        
+        $("#field-table tr").each(function() {
+          if (_break==false) {
+            count++;
+            let _name = $("#name_"+count).val();
+            let _value = $("#value_"+count).val(); 
+            let _field = {
+              "name":_name,
+              "value":_value
+            };   
+            fields_array.push(_field);
+            if (count == _table_size) {
+              saveCampaig(fields_array);
+              _break = true;
+            } 
+          }
+        });      
+      
+      });
+
+      function saveCampaig(fields_array) {
+
+        var campaign_name = $("#campaign-name").val();
+
+        var cname = campaign_name.split(' ').join('_');
+
+        var _time =  new Date();
+        
+        db.collection('clients')
+          .doc(client)
+          .collection("campaigns")
+          .doc(cname)
+          .set({        
+            name: campaign_name,
+            last_update: _time,      
+            time_created: _time,
+            fields:fields_array            
+          },{ merge:true }).then(docRefSet => {                
+              
+
+              let _files = document.getElementById("excel-file").files;
+
+              if (_files.length>0) {
+                  
+                  var storageRef = storage.ref(path);       
+                    
+                  var filePath =  "jose.xls";        
+                  var thisRef = storageRef.child(filePath);    
+
+                  var file = [0]; 
+                  var input = this;
+                  var length = input.files.length;
+                  var _file = input.files.item(0); 
+                  
+                  var metadataFiles = {
+                    customMetadata: {                
+                        'type': 'xls',
+                        'documentId' : cname,
+                        "path" : path                        
+                    }
+                  };
+
+                  var file = document.getElementById("excel-file").files[0];   
+                  var filePathMuseum = "jose.xlsx";        
+                  const museumRef = storageRef.child(filePathMuseum);
+                  var putRef = museumRef.put(_file, metadataFiles);          
+                  putRef.on('state_changed', function(snapshot) {
+                      var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                      console.log('Upload is ' + progress + '% done');
+                      switch (snapshot.state) {
+                        case firebase.storage.TaskState.PAUSED: // or 'paused'
+                          console.log('Upload is paused');
+                          break;
+                        case firebase.storage.TaskState.RUNNING: // or 'running'
+                          console.log('Upload is running');
+                          break;
+                      }
+                    }, function(error) {
+                      // Handle unsuccessful uploads
+                    }, function() { 
+
+
+                      
+                      $('#alertModal').modal('show');                      
+                   });
+
+              } else {                
+
+                $('#alert-content').text('La campaña ' + campaign_name + ' ha sido creada con exito.');
+                $('#alertModal').modal('show');
+
+              }
+            
+          }).catch((error) => {     
+            console.error("Error adding document: ", error);           
+          });   
+       
+
+      }
+
+      $("#excel-file").on('change', function() {});
+
+    });  
+      
+    </script>  
    
   </body>
 </html>

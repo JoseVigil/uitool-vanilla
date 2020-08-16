@@ -13,6 +13,11 @@
 
     const readXlsxFile = require('read-excel-file/node');
 
+    /**
+     * Remote gateway control
+     */
+    const puppeteer = require('puppeteer');
+
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
     //var createObjectURL = require('create-object-url');   
@@ -507,9 +512,8 @@
           if (document.exists) {
 
             let docId = document.id;
-            let name = document.data().name;
-            //let mensaje = document.data().message;
-            //let contact = document.data().contact;
+            let name = document.data().name;          
+          
             let preview_image = document.data().preview_image;          
             let title = "Mensaje para " + name;
             const htmlString = buildHTMLForPage(docId, title, name, preview_image);
@@ -561,8 +565,114 @@
 
     });
 
+    exports.getGatewayNumbers = functions.https.onRequest((req, res) => {
+
+        /**
+         * 
+         curl --location --request POST 'http://s3.notimation.com/5-9-2SIMSwitch.php' \
+          --header 'contentType: application/x-www-form-urlencoded' \
+          --header 'Authorization: Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=' \
+          --header 'Cookie: PHPSESSID=f13n1vj3l91k4se3p2nhje4rb4' \
+          --form 'action=SIMSwitch' \
+          --form 'info=0:A'
+         */
     
-   
+        var _gateway = parseInt(req.body.data.gateway);           
+        var _ports = parseInt(req.body.data.ports); 
+        var _autorization = req.body.data.autorization; 
+
+        let info = "0:C";
+       
+        var gateway_url = "http://s" + _gateway + ".notimation.com/5-9-2SIMSwitch.php";             
+        
+        /*var options = {
+          'method': 'POST',
+          'url': gateway_url,
+          'headers': {
+            'contentType': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + _autorization,
+            'Cookie': 'PHPSESSID=l6litjcmgdj59imkdn3cqfiuq5'
+          },
+          formData: {
+            'action': 'SIMSwitch',
+            'info': info
+          }
+        };*/
+
+        var options = {
+          'method': 'POST',
+          'url': 'http://s2.notimation.com/5-9-2SIMSwitch.php',
+          'headers': {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+            'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+          },
+          form: {
+            'action': 'SIMSwitch',
+            'info': '1:0'
+          }
+        };
+
+        request(options, function (error, response, body) {       
+  
+            if (!error) {
+
+                var obj = eval('(' + body + ')');
+                var json = JSON.stringify(obj); 
+                
+                console.log("body: " + JSON.stringify(json));
+                
+                res.send(json);                         
+                
+            } else {
+  
+                var _error = JSON.parse(error);
+                res.send(_error);
+                return error;
+            }
+
+        });
+
+
+
+    });
+
+    exports.disableSwitch = functions.https.onRequest(async (req, res) => {
+
+        (async () => {            
+          let launchOptions = { headless: false, args: ['--start-maximized'] };           
+          const browser = await puppeteer.launch(launchOptions);
+          const page = await browser.newPage();
+          
+          await page.setViewport({width: 1366, height: 768});
+          await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
+          
+          await page.authenticate({'username':'admin', 'password': 'Notimation2020'});
+          await page.goto('http://s2.notimation.com/en/5-9-1SIMSet.php');         
+
+          const radios = await page.$$('input[name="SwitchMode"]');
+
+          await new Promise((resolve, reject) => {
+            radios.forEach(async (radio, i) => {
+              console.log(i);            
+              if (i === 5) {
+                radio.click();
+                resolve();
+              }
+            });
+          });
+
+          await page.click('.mr5');            
+          page.on('dialog', async dialog => {
+              await dialog.accept();
+          });
+
+          await page.click('#ok');
+          await browser.close();
+
+        })();
+           
+    });
 
 
 
