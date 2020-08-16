@@ -33,6 +33,13 @@ Debug
 firebase emulators:start --inspect-functions
 ```
 
+
+To run Visual Studio Code with root access command
+
+```sh
+sudo code --user-data-dir="~/.vscode-root"
+```
+
 Imagen de HTML
 ==============
 
