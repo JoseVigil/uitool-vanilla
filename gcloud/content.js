@@ -76,9 +76,7 @@
 						headless: chromium.headless,
 						ignoreHTTPSErrors: true,
 					});	    
-					const page = await browser.newPage();      
-					
-					
+					const page = await browser.newPage();      				
 
 					await page.setViewport({width: 1366, height: 768});
 					await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
@@ -87,35 +85,38 @@
 
 					await page.goto("http://s"+ gateway + url);  
 
-					if (option==1) {       
+					if (option==1) {  
 
+						const portsCount = (await page.$$('.select option')).length;                
+						console.log("ports" + portsCount);     
+
+						//disable
 						const radios = await page.$$('input[name="SwitchMode"]');
-
 						await new Promise((resolve, reject) => {
 							radios.forEach(async (radio, i) => {
 								console.log(i);            
 								if (i === 5) {
-								radio.click();
-								resolve();
+									console.log("ENTRAAAA");
+									radio.click();
+									resolve();
 								}
 							});
 						});
 
-						await page.click('.mr5');            
-						page.on('dialog', async dialog => {
-							await dialog.accept();
-						}); 
-						
-						const portsCount = (await page.$$('.select option')).length;                
+						//all
+						await page.click('.mr5'); 						
 
-						console.log("ports" + portsCount);
+						//submit
+						await page.click('.mr20');            
+						await page.on('dialog', async dialog => {
+							await dialog.accept();							  
+						}); 		
 
 						let resonse =  {
 							"response" : "success",
 							"ports": portsCount
 						};   
-
-						res.status(200).send(resonse);   
+						res.status(200).send(resonse); 			
 
 					} else {
 
@@ -130,7 +131,10 @@
 					let resonse =  {
 						"response" : "error",
 						"error": error
-					};            
+					};   
+
+					console.log("error: " + error);
+
 					res.status(400).send(error);
 					return error;
 				}
