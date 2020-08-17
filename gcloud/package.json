@@ -9,6 +9,7 @@
     "iltorb": "^2.4.5",
     "puppeteer-core": "^5.0.0",  
     "firebase-admin": "^8.13.0",    
+    "@google-cloud/logging": "8.0.3"
   }, 
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
