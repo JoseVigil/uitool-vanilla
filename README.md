@@ -19,6 +19,14 @@ npm install
 
 Si tira error y pide audit command correrlo, despues
 
+Si no puede instalar puppeteer correr 
+
+```sh
+export PUPPETEER_SKIP_DOWNLOAD='true'
+```
+
+Para emuladores locales
+
 ```sh
 npm install -g firebase-tools
 
@@ -27,7 +35,7 @@ npm i -D @firebase/testing
 firebase setup:emulators:firestore
 ```
 
-Debug
+Debug, si es necesario a inspeccionar un puerto especifico
 
 ```sh
 firebase emulators:start --inspect-functions
