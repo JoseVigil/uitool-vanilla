@@ -567,7 +567,53 @@
 
     exports.getGatewayNumbers = functions.https.onRequest((req, res) => {
 
-        /**
+      var autorization = req.body.data.autorization; 
+		
+      var buff = Buffer.from(autorization, 'base64'); 
+      let key = buff.toString('ascii');
+  
+      var keys = key.split(":"); 
+    
+      let user = keys[0];
+      let pass = keys[1];
+  
+      console.log("user: " +user);
+      console.log("pass: " + pass);	
+  
+      if ( (user === "admin") && (pass === "Notimation2020") ) {
+  
+        switch (req.url.split('/')[1]) {			
+          case 'hello': hello(req, res); break;
+          case 'gateway': gateway(req, res); break;
+          case 'convert': convertHtmlToImage(req, res); break;
+          default: getDefault(req, res);
+        }	
+  
+      } else {
+  
+        res.status(401).send("Invalid authorization");  
+      }
+      
+        
+
+        var request = require('request');
+        var options = {
+          'method': 'POST',
+          'url': 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
+          'headers': {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({"data":{"gateway":"2","autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="}})
+        
+        };
+        request(options, function (error, response) {
+          if (error) throw new Error(error);
+          console.log(response.body);
+        });
+        
+    
+         /**
          * 
          curl --location --request POST 'http://s3.notimation.com/5-9-2SIMSwitch.php' \
           --header 'contentType: application/x-www-form-urlencoded' \
@@ -576,7 +622,8 @@
           --form 'action=SIMSwitch' \
           --form 'info=0:A'
          */
-    
+
+
         var gateway = parseInt(req.body.data.gateway);                   
         var _autorization = req.body.data.autorization; 
 
@@ -618,96 +665,7 @@
 
         });
 
-    });
-
-
-
-
-    /*exports.getSimsBy = functions.https.onRequest(async (req, res) => {
-
-        var gateway = parseInt(req.body.data.gateway); 
-        var autorization = req.body.data.autorization;        
-        
-        let buff = new Buffer(autorization, 'base64');
-        let key = buff.toString('ascii');
-
-        var keys = key.split(":"); 
-       
-        let user = keys[0];
-        let pass = keys[1];
-
-        console.log("user: " +user);
-        console.log("pass: " + pass);
-
-        if ( (user === "admin") && (pass === "Notimation2020") ) {
-
-          (async () => { 
-            
-            try {
-
-              console.log("---------EMTRA----------");
-
-                let launchOptions = { headless: false, args: ['--start-maximized'] };           
-                const browser = await puppeteer.launch(launchOptions);
-                const page = await browser.newPage();
-
-                console.log("---------1----------");
-
-                await page.setViewport({width: 1366, height: 768});
-                await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
-                
-                await page.authenticate({'username':'admin', 'password': 'Notimation2020'});
-                await page.goto("http://s"+ gateway + ".notimation.com/en/5-9-1SIMSet.php");         
-
-                const radios = await page.$$('input[name="SwitchMode"]');
-
-                await new Promise((resolve, reject) => {
-                  radios.forEach(async (radio, i) => {
-                    console.log(i);            
-                    if (i === 5) {
-                      radio.click();
-                      resolve();
-                    }
-                  });
-                });
-
-                await page.click('.mr5');            
-                page.on('dialog', async dialog => {
-                    await dialog.accept();
-                }); 
-                
-                const portsCount = (await page.$$('.select option')).length;                
-
-                console.log("ports" + portsCount);
-
-                let resonse =  {
-                  "response" : "success",
-                  "ports": portsCount
-                };          
-
-                await browser.close();
-
-                res.status(200).send(resonse);        
-
-            } catch(error) {  
-              let resonse =  {
-                "response" : "error",
-                "error": error
-              };            
-              res.status(400).send(error);
-              return error;
-            }
-
-          })();
-
-        } else {
-
-          res.status(401).send("Invalid username or password");  
-          
-
-        }
-
-    });*/
+    });   
 
 
 
