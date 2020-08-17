@@ -9,7 +9,14 @@ Proyecto destinado a la interacción con el usuario final de nuestros clientes g
 
 **Tecnologia**
 
-El sistema se basa en la tecnologia de Google Cloud Functions y Firebase. Se puede usar como API o navegado. En la web se puede utilizar un composer de campañas para generar links con paginas web diseñadas en linea. 
+El sistema se basa en la tecnologia de de backend usando Google Cloud Functions con Firebase y para los frontends bootstrap y google screadsheet con google script. Se puede usar como API o navegado. En la web se puede utilizar un composer de campañas para generar links con paginas web diseñadas en linea. 
+
+Assets
+
+- **Campaign Composer** 
+- **Noti Designer** 
+- **Gateway API**
+- **SIM-X-PORT**
 
 Gateway API
 ------------
