@@ -10,8 +10,9 @@
     var pdfFonts = require("pdfmake/build/vfs_fonts");
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
     var htmlToPdfmake = require("html-to-pdfmake");
+    var rp = require('request-promise');
 
-    const readXlsxFile = require('read-excel-file/node');
+    //const readXlsxFile = require('read-excel-file/node');
 
     /**
      * Remote gateway control
@@ -565,7 +566,9 @@
 
     });
 
-    exports.getGatewayNumbers = functions.https.onRequest((req, res) => {
+
+
+    exports.gateways = functions.https.onRequest((req, res) => {
 
       var autorization = req.body.data.autorization; 
 		
@@ -583,7 +586,7 @@
       if ( (user === "admin") && (pass === "Notimation2020") ) {
   
         switch (req.url.split('/')[1]) {			
-          case 'hello': hello(req, res); break;
+          case 'simnumbers': simnumbers(req, res); break;
           case 'gateway': gateway(req, res); break;
           case 'convert': convertHtmlToImage(req, res); break;
           default: getDefault(req, res);
@@ -593,79 +596,81 @@
   
         res.status(401).send("Invalid authorization");  
       }
-      
-        
 
-        var request = require('request');
-        var options = {
-          'method': 'POST',
-          'url': 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
-          'headers': {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({"data":{"gateway":"2","autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="}})
-        
-        };
-        request(options, function (error, response) {
-          if (error) throw new Error(error);
-          console.log(response.body);
-        });
-        
-    
-         /**
-         * 
-         curl --location --request POST 'http://s3.notimation.com/5-9-2SIMSwitch.php' \
-          --header 'contentType: application/x-www-form-urlencoded' \
-          --header 'Authorization: Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=' \
-          --header 'Cookie: PHPSESSID=f13n1vj3l91k4se3p2nhje4rb4' \
-          --form 'action=SIMSwitch' \
-          --form 'info=0:A'
-         */
+    });
 
+    const simnumbers = async function(req, res) {
 
-        var gateway = parseInt(req.body.data.gateway);                   
-        var _autorization = req.body.data.autorization; 
+      //let options = getOptions(2);
+      //console.log(options);
+      //console.log("uri: " + options.uri);
 
-        let info = "0:C";
-       
-        var gateway_url = "http://s" + _gateway + ".notimation.com/5-9-2SIMSwitch.php";                     
-      
-        var options = {
-          'method': 'POST',
-          'url': gateway_url,
-          'headers': {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
-            'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
-          },
-          form: {
-            'action': 'SIMSwitch',
-            'info': '1:0'
+      //var gateway = '"' + req.body.data.gateway + '"';      
+
+      /*var options = {
+        method: 'POST',
+        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
+        body: {
+          data:{
+            "gateway":"2",
+            "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
           }
-        };
+        },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      };*/
 
-        request(options, function (error, response, body) {       
-  
-            if (!error) {
 
-                var obj = eval('(' + body + ')');
-                var json = JSON.stringify(obj); 
-                
-                console.log("body: " + JSON.stringify(json));                        
-                
-                res.status(200).send(json);
-                
-            } else {
-  
-                var _error = JSON.parse(error);
-                res.send(_error);
-                return error;
-            }
+      var options = {
+        method: 'POST',
+        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
+        body: {
+          data:{
+            gateway:2,
+            autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+          }
+        },
+        json: true 
+      };
+     
+      rp(options).then(function (body) {
 
-        });
+        let ports = parseInt(body.ports);
+        res.status(200).send({"ports" :ports});
 
-    });   
+      })
+      .catch(function (err) {
+          // POST failed...
+          res.status(400).send({"error" :err});
+      });    
+
+    };
+
+    const getOptions = async function(gateway) {
+
+      var options = {
+        method: 'POST',
+        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: {
+          "data":{
+            "gateway":gateway,
+            "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+          }
+        }        
+      };
+
+      return options;
+
+    };
+
+
+
 
 
 

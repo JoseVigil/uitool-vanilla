@@ -111,30 +111,23 @@
 						await page.on('dialog', async dialog => {
 							await dialog.accept();							  
 						}); 		
-
-						let resonse =  {
-							"response" : "success",
-							"ports": portsCount
-						};   
-						res.status(200).send(resonse); 			
+						
+						return res.status(200).send({"ports":portsCount}); 			
 
 					} else {
 
-						res.status(402).send("Option not found");
+						return res.status(400).send("Option not found");
 					}
 
-					await browser.close();
+					await browser.close();					     
 
-					     
-
-				} catch(error) {  
+				} catch(error) { 
+					
 					let resonse =  {
 						"response" : "error",
 						"error": error
 					};   
-
 					console.log("error: " + error);
-
 					res.status(400).send(error);
 					return error;
 				}
