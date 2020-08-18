@@ -55,9 +55,11 @@
 		
 		var option = 0;
 		switch (split) {			
-			case 'switchall': 
+			case 'switch': 
 				option = 1; 
-				url = ".notimation.com/en/5-9-1SIMSet.php";
+				let applyto = parseInt(req.body.data.applyto);	
+				let url = req.body.data.url;	
+				url = "http://s" + gateway + url + applyto;
 			break;			
 		}	
 
@@ -65,7 +67,7 @@
 
 			(async () => { 
 				
-				try {	      	
+				try {	 				
 
 					let launchOptions = { headless: false, args: ['--start-maximized'] }; 
 
@@ -81,7 +83,7 @@
 					await page.setViewport({width: 1366, height: 768});
 					await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
 					
-					await page.authenticate({'username':'admin', 'password': 'Notimation2020'});								
+					await page.authenticate({'username':'admin', 'password': 'Notimation2020'});															
 
 					await page.goto("http://s"+ gateway + url);  
 
@@ -95,16 +97,17 @@
 						await new Promise((resolve, reject) => {
 							radios.forEach(async (radio, i) => {
 								console.log(i);            
-								if (i === 5) {
-									console.log("ENTRAAAA");
+								if (i === 5) {									
 									radio.click();
 									resolve();
 								}
 							});
 						});
 
-						//all
-						await page.click('.mr5'); 						
+						var all = JSON.parse(req.body.data.all);	
+						if (all) {							
+							await page.click('.mr5'); 						
+						}
 
 						//submit
 						await page.click('.mr20');            

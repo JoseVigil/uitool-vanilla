@@ -288,6 +288,8 @@
               callback(_error);   
               return _error;             
           } 
+          
+
       }); 
     }          
 
@@ -387,196 +389,177 @@
 
     exports.buildHtml = functions.https.onRequest((req, res) => {
 
-      console.log("req.path:", req.path); 
-      const pathParams = req.path.split('/');
+        console.log("req.path:", req.path); 
+        const pathParams = req.path.split('/');
 
-      /**
-       * EXPORT
-       */
-      
-      if (pathParams[1] === "export") {
+        
+        // EXPORT   
+        
+        if (pathParams[1] === "export") {
 
-          //http://localhost:5000/export/cobranzas
-          //https://noti.ms/export/cobranzas
+            //http://localhost:5000/export/cobranzas
+            //https://noti.ms/export/cobranzas
 
-          let collection = pathParams[2];         
-      
-          try {
+            let collection = pathParams[2];         
+        
+            try {
 
-            firestoreService
-            .backup(collection)
-            .then(data => {  
-              res.status(200).send(data);
-              //downloadJson(collection, data);   
-              return data;           
-            }).catch((error) => {                
-              console.log('Error getting sertvice backup');
-              return error;
-            });  
+              firestoreService
+              .backup(collection)
+              .then(data => {  
+                res.status(200).send(data);
+                //downloadJson(collection, data);   
+                return data;           
+              }).catch((error) => {                
+                console.log('Error getting sertvice backup');
+                return error;
+              });  
+              
+            } catch (e) {
+                console.error(e);
+                return e;
+            }
             
-          } catch (e) {
-              console.error(e);
-              return e;
-          }
-          
-      /**
-       * IMPORT
-       */    
+        
+        // IMPORT        
 
-      } else if (pathParams[1] === "import") {
+        } else if (pathParams[1] === "import") {
 
-          //http://localhost:5000/import/cobranzas
-          //https://noti.ms/import/cobranzas
+            //http://localhost:5000/import/cobranzas
+            //https://noti.ms/import/cobranzas
 
-          try {
+            try {
 
-            let _collection = pathParams[2];   
-            let _json_file = _collection + ".json";            
-            let data = require("./imports/"  + _json_file );                    
+              let _collection = pathParams[2];   
+              let _json_file = _collection + ".json";            
+              let data = require("./imports/"  + _json_file );                    
 
-            var collName, docName;
-            var collObj, docObj;
-            var level = 0;
+              var collName, docName;                               
+              var collObj, docObj;
+              var level = 0;
 
-            const iterate = (obj, level) => {
-              Object.keys(obj).forEach(key => {        
-                //console.log('key: '+ key + ', value: '+ obj[key]);
-                if (level===0) {              
-                  collName = key;
-                  collObj = obj[key];
-                } else if (level===1) { 
-                  docName = key;
-                  docObj = obj[key];
-                }                      
-                if (typeof obj[key] === 'object') {
+              const iterate = (obj, level) => {
+                Object.keys(obj).forEach(key => {        
+                  //console.log('key: '+ key + ', value: '+ obj[key]);
+                  if (level===0) {              
+                    collName = key;
+                    collObj = obj[key];
+                  } else if (level===1) { 
+                    docName = key;
+                    docObj = obj[key];
+                  }                      
+                  if (typeof obj[key] === 'object') {
                     level++;
                     iterate(obj[key], level);
-                }
+                  }
+                });
+              }
+
+              iterate(data, 0);              
+
+              firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
+                return res.status(200).send(res);                
+              }).catch((error) => {        
+                return res.status(400).send(error);
               });
-           }
 
-            iterate(data, 0);              
-
-            firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
-              return res.status(200).send(res);                
-            }).catch((error) => {        
-              return res.status(400).send(error);
-            });
-
-        } catch (e) {
-          console.error(e);
-          return e;
-        }  
-        
-      } else if (pathParams[1] === "composer") {         
-
-          /**
-         * COMPOSER
-         * PREVIEW
-         * WEB
-         */
-
-          if (pathParams[2] === "preview") {
-
-            return res.status(200).sendFile( path.join(__dirname + '/../public/html/preview_composer.html' ));
-
-          } else if (pathParams[2] === "campaign") {
-
-            return res.status(200).sendFile( path.join(__dirname + '/../public/html/campaign_composer.html' ));
-
-          } else if (pathParams[2] === "web") {
-
-            return res.status(200).sendFile( path.join(__dirname + '/../public/html/web_composer.html' ));
-
-          } else {
+          } catch (e) {
+            console.error(e);
+            return e;
+          }  
           
-            return res.status(200).sendFile( path.join(__dirname + '/../public/html/composer.html'));            
+        } else if (pathParams[1] === "composer") {         
 
-          }        
-     
-      } else {
+            
+           // COMPOSER
+           // PREVIEW
+           // WEB           
 
-      /**
-       * SHOW CARD
-       */
+            if (pathParams[2] === "preview") {
+
+              return res.status(200).sendFile( path.join(__dirname + '/../public/html/preview_composer.html' ));
+
+            } else if (pathParams[2] === "campaign") {
+
+              return res.status(200).sendFile( path.join(__dirname + '/../public/html/campaign_composer.html' ));
+
+            } else if (pathParams[2] === "web") {
+
+              return res.status(200).sendFile( path.join(__dirname + '/../public/html/web_composer.html' ));
+
+            } else {
+            
+              return res.status(200).sendFile( path.join(__dirname + '/../public/html/composer.html'));            
+
+            }        
       
-        const postId = pathParams[1];   
+        } else {
+
+        
+         // SHOW CARD        
+        
+          const postId = pathParams[1];   
+                
+          if (!postId) {
+            return res.status(400).send('No se encontro el Id');
+          }             
+
+          return firestore.collection("cobranzas").doc(postId)
+                          .get()
+                          .then( (document) => {        
               
-        if (!postId) {
-          return res.status(400).send('No se encontro el Id');
-        }             
+            if (document.exists) {
 
-        return firestore.collection("cobranzas").doc(postId)
-                        .get()
-                        .then( (document) => {        
+              let docId = document.id;
+              let name = document.data().name;          
             
-          if (document.exists) {
+              let preview_image = document.data().preview_image;          
+              let title = "Mensaje para " + name;
+              const htmlString = buildHTMLForPage(docId, title, name, preview_image);
 
-            let docId = document.id;
-            let name = document.data().name;          
-          
-            let preview_image = document.data().preview_image;          
-            let title = "Mensaje para " + name;
-            const htmlString = buildHTMLForPage(docId, title, name, preview_image);
-
-            console.log("_________________________");
-            console.log(htmlString);
+              console.log("_________________________");
+              console.log(htmlString);
+              
+              return res.status(200).send(htmlString);
             
-            return res.status(200).send(htmlString);
-          
-          } else {
-            return res.status(403).send("Document do not exit");
-          }        
+            } else {
+              return res.status(403).send("Document do not exit");
+            }        
 
-        }).catch((error) => {    
-            console.log("Error getting document:", error);
-            return res.status(404).send(error);
-        });
+          }).catch((error) => {    
+              console.log("Error getting document:", error);
+              return res.status(404).send(error);
+          });
 
-      }     
+        }     
 
-      function buildHTMLForPage (docId, title, nombre, image) {
-      
-        //let _style = buildStyle();
-        //let _body = buildBody(nombre, mensaje, contacto);        
-        
-        var _html = '<!DOCTYPE html><head>' +          
-        '<meta property="og:title" content="' + nombre + '">' +                    
-        '<meta property="og:image" content="' + image + '"/>' +
-        '<title>' + title + '</title>';        
-        
-        //'<link rel="icon" href="https://noti.ms/favicon.png">' +
-        //'<style>' + _style  + '</style>' +
-        //'</head><body>' + _body + '</body></html>';
-
-        /**
-         * INTENTO DE GUARDADO DE CANTIDAD DE PREVISUALIZACIONES CON FIREBASE
-         */
-        let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
-        var _script;                
-        _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
-        _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
-        _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
-        _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
-        _script += `<script>${_javascript}</script>`;
-        _html = _html + _script + '</head>';
-        
-        return _html;
-     }  
+        function buildHTMLForPage (docId, title, nombre, image) {      
+          var _html = '<!DOCTYPE html><head>' +          
+          '<meta property="og:title" content="' + nombre + '">' +                    
+          '<meta property="og:image" content="' + image + '"/>' +
+          '<title>' + title + '</title>';                
+          let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
+          var _script;                
+          _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
+          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
+          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
+          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
+          _script += `<script>${_javascript}</script>`;
+          _html = _html + _script + '</head>';        
+          return _html;
+        }  
 
     });
 
 
 
-    exports.gateways = functions.https.onRequest((req, res) => {
+    exports.gateways = functions.https.onRequest( async (req, res) => {
 
       var autorization = req.body.data.autorization; 
 		
       var buff = Buffer.from(autorization, 'base64'); 
-      let key = buff.toString('ascii');
-  
-      var keys = key.split(":"); 
-    
+      let key = buff.toString('ascii');  
+      var keys = key.split(":");     
       let user = keys[0];
       let pass = keys[1];
   
@@ -598,76 +581,144 @@
       }
 
     });
+    
+    var ACTION_OBTAIN_TELCO = "action_obtain_telco";
 
     const simnumbers = async function(req, res) {
-
-      //let options = getOptions(2);
-      //console.log(options);
-      //console.log("uri: " + options.uri);
-
-      //var gateway = '"' + req.body.data.gateway + '"';      
-
-      /*var options = {
-        method: 'POST',
-        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
-        body: {
-          data:{
-            "gateway":"2",
-            "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-          }
-        },
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      };*/
-
-
+      
+      var _gateway = req.body.data.gateway;
+      
       var options = {
         method: 'POST',
-        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
+        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switch',
         body: {
           data:{
-            gateway:2,
+            all: false,
+            applyto: 0,
+            gateway:_gateway,
+            url : ".notimation.com/en/5-9-1SIMSet.php?id=",
             autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
           }
         },
         json: true 
       };
-     
+
       rp(options).then(function (body) {
+       
+         let ports = parseInt(body.ports);        
+         var _time =  new Date();
 
-        let ports = parseInt(body.ports);
-        res.status(200).send({"ports" :ports});
+         firestore.collection('gateways')
+          .doc(`S${_gateway}`)       
+          .update({ 
+            ports : ports,
+            action: ACTION_OBTAIN_TELCO,            
+            last_update: _time 
+          }).then(function(document) {            
+            res.status(200).send({"result" : "triggered"});            
+            return document;            
+          }).catch((error) => {
+            console.log('Error updating collection:', error);
+            res.status(400).send({"error" :err});
+          });
 
-      })
-      .catch(function (err) {
-          // POST failed...
-          res.status(400).send({"error" :err});
+          return body;
+
+      }).catch(function (err) {          
+        res.status(400).send({"error" :err});
       });    
 
-    };
+  };
 
-    const getOptions = async function(gateway) {
+  exports.processAction = functions.firestore
+    .document('gateways/{number}')
+    .onWrite((change, context) => {    
 
-      var options = {
-        method: 'POST',
-        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switchall',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: {
-          "data":{
-            "gateway":gateway,
-            "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-          }
-        }        
-      };
+      const newValue = change.after.data();       
+      let action = newValue.action;
 
-      return options;
+      switch (action) {
 
-    };
+        case ACTION_OBTAIN_TELCO:
+          console.log("show action");
+          break;
+        
+
+      }
+
+
+      return action;
+  });    
+
+
+
+  /*
+
+  for (var i=0; i<ports;i++) {
+              
+                var options = {
+                    method: 'POST',
+                    uri: 'http://s' + _gateway + '.notimation.com/5-9-2SIMSwitch.php',
+                    headers : {
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                      'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+                      'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+                    },
+                    form: {
+                      'action': 'SIMSwitch',
+                      'info': i + ':0'
+                    }
+                };
+
+                rp(options).then(function (body) {
+
+                  if (i==(_gateway-1)) {
+
+                  }
+
+                }).catch(function (err) {          
+                  res.status(400).send({"error" :err});
+                });
+              
+           }
+
+           */
+   
+
+  /*var options = {
+    'method': 'POST',
+    'url': 'http://s2.notimation.com/5-9-2SIMSwitch.php',
+    'headers': {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+      'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+    },
+    form: {
+      'action': 'SIMSwitch',
+      'info': '1:0'
+    }
+  };
+
+  request(options, function (error, response, body) {       
+
+      if (!error) {
+
+          var obj = eval('(' + body + ')');
+          var json = JSON.stringify(obj); 
+          
+          console.log("body: " + JSON.stringify(json));
+          
+          res.send(json);                         
+          
+      } else { 
+
+          var _error = JSON.parse(error);
+          res.send(_error);
+          return error;
+      }
+
+  });*/
+
 
 
 
