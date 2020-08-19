@@ -46,6 +46,7 @@
 
 	var OPTION_SWITCH_STRATEGY = 'switchstrategy';
 	var OPTION_USING_CARDS = 'using';
+	var OPTION_COMPSUMPTION = 'consumption';
 	
 	const gateway = async function(req, res) {
 
@@ -69,6 +70,12 @@
 				let uurl = "http://s" + gateway + req.body.data.url;
 				let uparams = { "option" : option, "url" : uurl	};
 				return browse(req, res, uparams);
+				break;		
+
+			case OPTION_COMPSUMPTION: 								 
+				let curl = "http://s" + gateway + req.body.data.url;
+				let cparams = { "option" : option, "url" : curl	};
+				return browse(req, res, cparams);
 				break;		
 
 			default: 	
@@ -147,13 +154,13 @@
 						var r = 0;
 						var k = 0;
 
-						const rows = await page.$$('.wid1 > tbody > tr > td i');
-						var total = rows.length;
+						const urows = await page.$$('.wid1 > tbody > tr > td i');
+						var total = urows.length;
 
-						var json = `{"channels":${total/4},"ports":${total},"sims":[`;
+						var ujson = `{"channels":${total/4},"ports":${total},"sims":[`;
 
 						await new Promise((resolve, reject) => {
-							rows.forEach(async (row, i) => {         
+							urows.forEach(async (row, i) => {         
 							  
 							  var parent = (await row.$x('..'))[0];  
 							  var text = await page.evaluate(parent => parent.textContent, parent);                
@@ -163,43 +170,88 @@
 							    case 0:
 							      k = r + 1;
 							      let aj = `{"port":"${k}","channel":[{"card":"A","status":"${t}"}`;
-							      json += aj;
+							      ujson += aj;
 							    break;
 							    case 1:      
 							      let bj = `{"card":"B","status":"${t}"}`;
-							      json += bj;
+							      ujson += bj;
 							    break;
 							    case 2:              
 							      let cj = `{"card":"C","status":"${t}"}`;
-							      json += cj;
+							      ujson += cj;
 							    break;
 							    case 3:
 							      var dj = `{"card":"D","status":"${t}"}]}`;              
 							      if (i<(total-1)) {     
 							        dj += ",";
 							      }
-							      json += dj;
+							      ujson += dj;
 							    break;
 							  }         
 
 							  if (c==3) {                        
 							    c=0;          
 							    r++;
-							    if (i==(rows.length-1)) { 
+							    if (i==(urows.length-1)) { 
 							      let tj = "]}";
-							      json += tj;              
+							      ujson += tj;              
 							      resolve();         
 							    }         
 							  } else {                   
 							    let ej = "," ;
-							    json += ej;                
+							    ujson += ej;                
 							    c++;
 							  } 
 
 							});
 						});      
 
-						return res.status(200).send(json);
+						return res.status(200).send(ujson);
+
+					break;
+
+					case OPTION_COMPSUMPTION: 
+
+						const crows = await page.$$('.wid1 > tbody > tr');
+						var total = crows.length;
+
+						console.log("total: " + total);
+
+						var ujson = `{"ports":${total},"consumption":[`;
+
+						await new Promise((resolve, reject) => {
+							crows.forEach(async (row, i) => {  
+
+							  var td = (await row.$x('td'))[4];
+							  var text = await page.evaluate(td => td.textContent, td);  
+							  
+							  let spl = text.split("[");        
+							  let a = parseInt(spl[1].split("]")[0]);
+							  let b = parseInt(spl[2].split("]")[0]);
+							  let c = parseInt(spl[3].split("]")[0]);
+							  let d = parseInt(spl[4].split("]")[0]); 
+
+							  ujson += `{"port":"${i+1}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           
+
+							  console.log("text: " + text);
+							  console.log("a: " + a);
+							  console.log("b: " + b);
+							  console.log("c: " + c);
+							  console.log("d: " + d);    
+							  
+							  if (i==(crows.length-1)) { 
+							    ujson += "]}";
+							    console.log("ujson: " + ujson);
+							    resolve();
+							  } else {
+							    ujson += ",";
+							  }
+
+							});       
+
+						});						
+
+						return res.status(200).send(ujson);
 
 					break;
 

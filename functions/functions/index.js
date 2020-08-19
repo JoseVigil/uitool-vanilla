@@ -781,10 +781,56 @@
           args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
 
-      let page = await browser.newPage();   
-      
+      let page = await browser.newPage();     
 
       await page.authenticate({'username':'admin', 'password': 'Notimation2020'});      
+
+      await page.goto('http://s2.notimation.com/en/10-6SMSManagement.php');            
+      
+      const crows = await page.$$('.wid1 > tbody > tr');
+      var total = crows.length;
+
+      console.log("total: " + total);
+
+      var json = `{"ports":${total},"consumption":[`;
+
+      await new Promise((resolve, reject) => {
+        crows.forEach(async (row, i) => {  
+
+          var td = (await row.$x('td'))[4];
+          var text = await page.evaluate(td => td.textContent, td);  
+          
+          let spl = text.split("[");        
+          let a = parseInt(spl[1].split("]")[0]);
+          let b = parseInt(spl[2].split("]")[0]);
+          let c = parseInt(spl[3].split("]")[0]);
+          let d = parseInt(spl[4].split("]")[0]); 
+
+          json += `{"port":"${i+1}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           
+
+          console.log("text: " + text);
+          console.log("a: " + a);
+          console.log("b: " + b);
+          console.log("c: " + c);
+          console.log("d: " + d);    
+          
+          if (i==(crows.length-1)) { 
+            json += "]}";
+            console.log("json: " + json);
+            resolve();
+          } else {
+            json += ",";
+          }
+        });       
+
+      });
+
+
+      console.log("-------------");
+
+      res.status(200).send(json);
+
+      /*
       await page.goto('http://s8.notimation.com/en/5-9SIM.php');       
 
       var c = 0;
@@ -840,7 +886,7 @@
             c++;
           }             
         });
-      });      
+      });*/      
 
       res.status(200).send(json);
 
