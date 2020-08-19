@@ -10,7 +10,9 @@
 	const firestore = new Firestore({
 	  projectId: PROJECTID,
 	  timestampsInSnapshots: true,
-	});			
+	});		
+
+	const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }	
 
  	exports.backend = async (req, res) => {	
 
@@ -42,68 +44,88 @@
 		}
 	};
 
-	const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }
-
+	var OPTION_SWITCH_STRATEGY = 'switchstrategy';
+	var OPTION_USING_CARDS = 'using';
+	
 	const gateway = async function(req, res) {
 
 		var url;
 		var gateway = parseInt(req.body.data.gateway);			
-		let split = req.url.split('/')[2];
+		let option = req.url.split('/')[2];
 
 		console.log("gateway: " + gateway);  
-		console.log("split: " + split);  
+		console.log("split: " + option);  		
 		
-		var option = 0;
-		switch (split) {			
-			case 'switch': 
-				option = 1; 
-				let applyto = parseInt(req.body.data.applyto);	
-				let url = req.body.data.url;	
-				url = "http://s" + gateway + url + applyto;
-			break;			
+		switch (option) {			
+			
+			case OPTION_SWITCH_STRATEGY: 	
+				let applyto = parseInt(req.body.data.applyto);
+				let swurl = "http://s" + gateway + req.body.data.url + applyto;			
+				let sparams = { "option" : option, "applyto" : applyto,	"url" : swurl	};					
+				return browse(req, res, sparams);
+				break;	
+
+			case OPTION_USING_CARDS: 								 
+				let uurl = "http://s" + gateway + req.body.data.url;
+				let uparams = { "option" : option, "url" : uurl	};
+				return browse(req, res, uparams);
+				break;		
+
+			default: 	
+				res.status(402).send("Option not found");
+				break;
 		}	
+	
 
-		if (option>0) {
+	};
 
-			(async () => { 
+	const browse = async function(req, res, params) {	
+
+		var option = params.option;	
+		var url = params.url;		
+
+		(async () => { 
+			
+			try {	 				
+
+				let launchOptions = { headless: false, args: ['--start-maximized'] }; 
+
+				const browser = await chromium.puppeteer.launch({
+					args: chromium.args,
+					defaultViewport: chromium.defaultViewport,
+					executablePath: await chromium.executablePath,
+					headless: chromium.headless,
+					ignoreHTTPSErrors: true,
+				});	    
+				const page = await browser.newPage();      				
+
+				await page.setViewport({width: 1366, height: 768});
+				await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
 				
-				try {	 				
+				await page.authenticate({'username':'admin', 'password': 'Notimation2020'});															
+				await page.goto(url);  
 
-					let launchOptions = { headless: false, args: ['--start-maximized'] }; 
-
-					const browser = await chromium.puppeteer.launch({
-						args: chromium.args,
-						defaultViewport: chromium.defaultViewport,
-						executablePath: await chromium.executablePath,
-						headless: chromium.headless,
-						ignoreHTTPSErrors: true,
-					});	    
-					const page = await browser.newPage();      				
-
-					await page.setViewport({width: 1366, height: 768});
-					await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
-					
-					await page.authenticate({'username':'admin', 'password': 'Notimation2020'});															
-
-					await page.goto("http://s"+ gateway + url);  
-
-					if (option==1) {  
+				switch (option) {			
+			
+					case OPTION_SWITCH_STRATEGY: 
 
 						const portsCount = (await page.$$('.select option')).length;                
-						console.log("ports" + portsCount);     
+						console.log("ports" + portsCount);    
+
+						var switch_strategy = parseInt(req.body.data.switch_strategy); 
 
 						//disable
 						const radios = await page.$$('input[name="SwitchMode"]');
 						await new Promise((resolve, reject) => {
-							radios.forEach(async (radio, i) => {
-								console.log(i);            
-								if (i === 5) {									
+							radios.forEach(async (radio, i) => {								
+								if (i === switch_strategy) {									
 									radio.click();
 									resolve();
 								}
 							});
 						});
 
+						//select all ports
 						var all = JSON.parse(req.body.data.all);	
 						if (all) {							
 							await page.click('.mr5'); 						
@@ -114,34 +136,96 @@
 						await page.on('dialog', async dialog => {
 							await dialog.accept();							  
 						}); 		
-						
-						return res.status(200).send({"ports":portsCount}); 			
-
-					} else {
-
-						return res.status(400).send("Option not found");
-					}
-
-					await browser.close();					     
-
-				} catch(error) { 
 					
-					let resonse =  {
-						"response" : "error",
-						"error": error
-					};   
-					console.log("error: " + error);
-					res.status(400).send(error);
-					return error;
-				}
+						return res.status(200).send({"ports":portsCount}); 		
 
-			})();		
+					break;
 
-		} else {
-			res.status(402).send("Option not found");
-		}	
+					case OPTION_USING_CARDS: 
+
+						var c = 0;
+						var r = 0;
+						var k = 0;
+
+						const rows = await page.$$('.wid1 > tbody > tr > td i');
+						var total = rows.length;
+
+						var json = `{"channels":${total/4},"ports":${total},"sims":[`;
+
+						await new Promise((resolve, reject) => {
+							rows.forEach(async (row, i) => {         
+							  
+							  var parent = (await row.$x('..'))[0];  
+							  var text = await page.evaluate(parent => parent.textContent, parent);                
+							  var t = text.replace(/\s+/g, '');
+							  
+							  switch (c) {
+							    case 0:
+							      k = r + 1;
+							      let aj = `{"port":"${k}","channel":[{"card":"A","status":"${t}"}`;
+							      json += aj;
+							    break;
+							    case 1:      
+							      let bj = `{"card":"B","status":"${t}"}`;
+							      json += bj;
+							    break;
+							    case 2:              
+							      let cj = `{"card":"C","status":"${t}"}`;
+							      json += cj;
+							    break;
+							    case 3:
+							      var dj = `{"card":"D","status":"${t}"}]}`;              
+							      if (i<(total-1)) {     
+							        dj += ",";
+							      }
+							      json += dj;
+							    break;
+							  }         
+
+							  if (c==3) {                        
+							    c=0;          
+							    r++;
+							    if (i==(rows.length-1)) { 
+							      let tj = "]}";
+							      json += tj;              
+							      resolve();         
+							    }         
+							  } else {                   
+							    let ej = "," ;
+							    json += ej;                
+							    c++;
+							  } 
+
+							});
+						});      
+
+						return res.status(200).send(json);
+
+					break;
+
+					default: 	
+						res.status(402).send("Try other place");
+					break;
+
+				};
+
+				await browser.close();					     
+
+			} catch(error) { 
+				
+				let resonse =  {
+					"response" : "error",
+					"error": error
+				};   
+				console.log("error: " + error);
+				res.status(400).send(error);
+				return error;
+			}
+
+		})();
 
 	};
+
 
 	const convertHtmlToImage = async function(req, res) {
 

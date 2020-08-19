@@ -570,7 +570,7 @@
   
         switch (req.url.split('/')[1]) {			
           case 'simnumbers': simnumbers(req, res); break;
-          case 'gateway': gateway(req, res); break;
+          case 'send': send(req, res); break;
           case 'convert': convertHtmlToImage(req, res); break;
           default: getDefault(req, res);
         }	
@@ -581,6 +581,43 @@
       }
 
     });
+
+
+    const send = async function(req, res) {  
+      
+      var _gateway = req.body.data.gateway;        
+
+    };
+
+
+    const switchannel = async function(req, res, slot) {
+
+      var options = {
+        method: 'POST',
+        uri: "http://s" + _gateway + ".notimation.com/5-9-2SIMSwitch.php",
+        headers : {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+          'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+        },
+        form: {
+          action: 'SIMSwitch',
+          info: '1:0'
+        }   
+
+      };
+
+      rp(options).then(function (body) {
+
+        let ports = parseInt(body.response);        
+        var _time =  new Date();
+      
+      }).catch(function (err) {          
+        res.status(400).send({"error" :err});
+      });    
+
+    };
+
     
     var ACTION_OBTAIN_TELCO = "action_obtain_telco";
 
@@ -592,10 +629,11 @@
         method: 'POST',
         uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switch',
         body: {
-          data:{
+          data: {
             all: false,
             applyto: 0,
             gateway:_gateway,
+            switch_strategy: 5,
             url : ".notimation.com/en/5-9-1SIMSet.php?id=",
             autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
           }
@@ -615,8 +653,7 @@
             action: ACTION_OBTAIN_TELCO,            
             last_update: _time 
           }).then(function(document) {            
-            res.status(200).send({"result" : "triggered"});            
-            return document;            
+            return actions(req, res, ACTION_OBTAIN_TELCO);
           }).catch((error) => {
             console.log('Error updating collection:', error);
             res.status(400).send({"error" :err});
@@ -630,25 +667,38 @@
 
   };
 
-  exports.processAction = functions.firestore
+
+  const actions = async function(req, res, action) {
+
+    switch (action) {
+
+      case ACTION_OBTAIN_TELCO:
+        console.log("show action");
+         return switchByChannel("A");
+        break;
+      
+
+    }
+
+  };
+
+
+
+  
+
+
+  /*exports.processAction = functions.firestore
     .document('gateways/{number}')
     .onWrite((change, context) => {    
 
       const newValue = change.after.data();       
       let action = newValue.action;
 
-      switch (action) {
-
-        case ACTION_OBTAIN_TELCO:
-          console.log("show action");
-          break;
-        
-
-      }
+      
 
 
       return action;
-  });    
+  }); */   
 
 
 
@@ -720,8 +770,87 @@
   });*/
 
 
+  exports.parseTable = functions.https.onRequest( async (req, res) => {
 
+    (async () => {     
 
+      console.log("_______1_______");
+  
+      let browser = await puppeteer.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+
+      let page = await browser.newPage();   
+      
+
+      await page.authenticate({'username':'admin', 'password': 'Notimation2020'});      
+      await page.goto('http://s8.notimation.com/en/5-9SIM.php');       
+
+      var c = 0;
+      var r = 0;
+      var k = 0;
+      
+      const rows = await page.$$('.wid1 > tbody > tr > td i');
+      var total = rows.length;
+
+      var json = `{"channels":${total/4},"ports":${total},"sims":[`;
+
+      await new Promise((resolve, reject) => {
+        rows.forEach(async (row, i) => {         
+          
+          var parent = (await row.$x('..'))[0];  
+          var text = await page.evaluate(parent => parent.textContent, parent);                
+          var t = text.replace(/\s+/g, '');
+          
+          switch (c) {
+            case 0:
+              k = r + 1;
+              let aj = `{"port":"${k}","channel":[{"card":"A","status":"${t}"}`;
+              json += aj;
+            break;
+            case 1:      
+              let bj = `{"card":"B","status":"${t}"}`;
+              json += bj;
+            break;
+            case 2:              
+              let cj = `{"card":"C","status":"${t}"}`;
+              json += cj;
+            break;
+            case 3:
+              var dj = `{"card":"D","status":"${t}"}]}`;              
+              if (i<(total-1)) {     
+                dj += ",";
+              }
+              json += dj;
+            break;
+          }         
+
+          if (c==3) {                        
+            c=0;          
+            r++;
+            if (i==(rows.length-1)) { 
+              let tj = "]}";
+              json += tj;              
+              resolve();         
+            }         
+          } else {                   
+            let ej = "," ;
+            json += ej;                
+            c++;
+          }             
+        });
+      });      
+
+      res.status(200).send(json);
+
+      await browser.close();
+
+      return json;
+
+    })();
+      
+  });
 
 
 
