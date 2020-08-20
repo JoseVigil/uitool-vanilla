@@ -12,6 +12,8 @@
     var htmlToPdfmake = require("html-to-pdfmake");
     var rp = require('request-promise');
 
+    const delay = require('delay');
+
     //const readXlsxFile = require('read-excel-file/node');
 
     /**
@@ -183,7 +185,13 @@
         /**
         * HTML TO PDF
         * https://www.npmjs.com/package/html-to-pdfmake
+        * 
         */
+
+        /**
+         * RESPONSE ERRRORS API
+         * https://developer.amazon.com/docs/amazon-drive/ad-restful-api-response-codes.html
+         */
 
     /**
      * Post SMS
@@ -775,6 +783,10 @@
     (async () => {     
 
       console.log("_______1_______");
+
+      var autorization = req.body.data.autorization; 
+
+      console.log("autorization: " + autorization);
   
       let browser = await puppeteer.launch({
           headless: true,
@@ -783,9 +795,153 @@
 
       let page = await browser.newPage();     
 
-      await page.authenticate({'username':'admin', 'password': 'Notimation2020'});      
+      await page.authenticate({'username':'admin', 'password': 'Notimation2020'});            
 
-      await page.goto('http://s2.notimation.com/en/1-2chstatus.php');            
+      await page.goto('http://s5.notimation.com/en/5-3-1SMSinfo.php?ch=0&type=r&card=T&page=1#');            
+
+      await page.waitForSelector('.wid1', {
+        visible: true,
+      });   
+      
+      const aresponses = await page.evaluate(
+        () => Array.from(
+          document.querySelectorAll('.wid1 tbody tr td a[href]'),
+          a => a.getAttribute('onclick')
+        )
+      );  
+
+      await new Promise((resolve, reject) => {
+        aresponses.forEach(async (link, i) => {                   
+
+          let lars = link.split("load_messageinfo");
+          var outputstr = lars[1].replace(/'/g,'');
+          var raw = outputstr.replace("(", "").replace(");", "");   
+          
+          //var tdport = (await link.$x('..'))[0];  
+          //var textport = await tdport.evaluate(tdport => tdport.textContent, tdport);  
+
+          if (raw.includes("Bienvenido a Personal")) {
+
+            //console.log("textport: " + textport);
+
+            console.log("raw: " + raw);
+
+            var phonenumber = raw.substring (
+              raw.lastIndexOf("linea es ") + 9, 
+              raw.lastIndexOf(". Para mas")
+            );
+            console.log("----------------");
+            console.log("phonenumber: " + phonenumber);
+
+            //json += `{"port":"${port}","phonenumber":"${phonenumber}","channel":"${i+1}"}`;           
+
+          }
+
+          /*for (var j=0; i<lars.length; j++) {
+            let t = lars[j];  
+            console.log(t);          
+          }*/
+
+          /*var phonenumber = content.substring (
+            content.lastIndexOf("linea es ") + 1, 
+            content.lastIndexOf(". Para mas")
+          );*/
+
+          resolve();
+
+        });        
+
+      });
+      
+      //console.log("acontent: " + acontent.length);
+      
+      /*const nrows = await page.$$('.wid1 > tbody > tr');
+      var total = nrows.length;
+
+      console.log("total: " + total);
+
+      var json = `{"ports":${total},"numbers":[`;
+
+      await new Promise((resolve, reject) => {
+        nrows.forEach(async (row, i) => {  
+
+          console.log("_______i_______> " + i);
+
+          var tdport = (await row.$x('td'))[2];
+          var port = await page.evaluate(tdport => tdport.textContent, tdport);                                                 
+
+          console.log("port: " + port);
+
+         
+
+          //console.log("acontent: " + acontent);
+
+          let content = acontent.jsonValue();
+
+          var phonenumber = content.substring(
+            content.lastIndexOf("linea es ") + 1, 
+            content.lastIndexOf(". Para mas")
+          );
+          
+          
+          console.log("phonenumber: " + phonenumber);
+
+          console.log("______________");
+          
+          json += `{"port":"${port}","phonenumber":"${phonenumber}","channel":"${i+1}"}`;           
+
+          if (i==(nrows.length-1)) { 
+            json += "]}";
+            console.log("json: " + json);
+            resolve();
+          } else {
+            json += ",";
+          }
+
+        });       
+
+      });*/
+
+      //res.status(200).send(json);
+
+      /*await page.goto('http://s5.notimation.com/en/5-3-2SMSsend.php?ch=0');                 
+      
+      try {           
+                                  
+        const phoneInput = 'textarea[name=sendtoPhoneNumber]';
+        const phoneNumber = req.body.data.phone;
+        await page.waitForSelector( phoneInput, { timeout: 0 });
+        await page.focus(phoneInput);
+        await page.keyboard.type(phoneNumber);
+
+        const msgInput = 'textarea[name=MessageInfo]';
+        const msg = req.body.data.message;
+        await page.waitForSelector( msgInput, { timeout: 0 });
+        await page.focus(msgInput);
+        await page.keyboard.type(msg);
+
+        await page.on('dialog', async dialog => {                               
+          await dialog.accept();	                  
+        });
+                     	              
+        //submit
+        await page.click('#send');     
+      
+        await page.waitForFunction('document.getElementById("SMSResult").value != ""');
+        var el = await page.$("#SMSResult");
+        var resutl = await page.evaluate(el => el.value, el); 
+
+        await browser.close();
+
+        return res.status(200).send({"restult":resutl}); 		        
+
+      } catch (e) {
+        console.error(e);
+        res.status(400).send(e);
+        return e;
+      }*/
+
+      /*await page.goto('http://s2.notimation.com/en/1-2chstatus.php');            
       
       const srows = await page.$$('.wid1 > tbody > tr');
       var total = srows.length;
@@ -825,7 +981,7 @@
 
       console.log("-------------");
 
-      res.status(200).send(json);
+      res.status(200).send(json);*/
 
       /*await page.goto('http://s2.notimation.com/en/10-6SMSManagement.php');            
       
@@ -932,9 +1088,9 @@
 
       //res.status(200).send(json);
 
-      await browser.close();
+     
 
-      return json;
+      //return json;
 
     })();
       
