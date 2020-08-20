@@ -785,7 +785,49 @@
 
       await page.authenticate({'username':'admin', 'password': 'Notimation2020'});      
 
-      await page.goto('http://s2.notimation.com/en/10-6SMSManagement.php');            
+      await page.goto('http://s2.notimation.com/en/1-2chstatus.php');            
+      
+      const srows = await page.$$('.wid1 > tbody > tr');
+      var total = srows.length;
+
+      console.log("total: " + total);
+
+      var json = `{"ports":${total},"consumption":[`;
+
+      await new Promise((resolve, reject) => {
+        srows.forEach(async (row, i) => {  
+
+          var tdstatus = (await row.$x('td'))[7];          
+          const stat = await (await tdstatus.getProperty('title')).jsonValue();                   
+         
+          let spl = stat.split("[");   
+          let a = spl[1].split("]")[0];
+          let b = spl[2].split("]")[0];
+          let c = spl[3].split("]")[0];
+          let d = spl[4].split("]")[0];                    
+         
+          var tdop = (await row.$x('td'))[13];
+          var operator = await page.evaluate(tdop => tdop.textContent, tdop);                             
+          
+          json += `{"port":"${i+1}","operator":"${operator}","channel":{"A":"${a}","B":"${b}","C":"${c}","D":"${d}"}}`;           
+          
+          if (i==(srows.length-1)) { 
+            json += "]}";
+            console.log("json: " + json);
+            resolve();
+          } else {
+            json += ",";
+          }
+
+        });       
+
+      });
+
+      console.log("-------------");
+
+      res.status(200).send(json);
+
+      /*await page.goto('http://s2.notimation.com/en/10-6SMSManagement.php');            
       
       const crows = await page.$$('.wid1 > tbody > tr');
       var total = crows.length;
@@ -828,7 +870,7 @@
 
       console.log("-------------");
 
-      res.status(200).send(json);
+      res.status(200).send(json);*/
 
       /*
       await page.goto('http://s8.notimation.com/en/5-9SIM.php');       
@@ -888,7 +930,7 @@
         });
       });*/      
 
-      res.status(200).send(json);
+      //res.status(200).send(json);
 
       await browser.close();
 

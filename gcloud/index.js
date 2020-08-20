@@ -47,6 +47,8 @@
 	var OPTION_SWITCH_STRATEGY = 'switchstrategy';
 	var OPTION_USING_CARDS = 'using';
 	var OPTION_COMPSUMPTION = 'consumption';
+	var OPTION_STATUS = 'status';
+	var OPTION_SEND = 'send';
 	
 	const gateway = async function(req, res) {
 
@@ -55,7 +57,7 @@
 		let option = req.url.split('/')[2];
 
 		console.log("gateway: " + gateway);  
-		console.log("split: " + option);  		
+		console.log("option: " + option);  		
 		
 		switch (option) {			
 			
@@ -66,30 +68,34 @@
 				return browse(req, res, sparams);
 				break;	
 
-			case OPTION_USING_CARDS: 								 
-				let uurl = "http://s" + gateway + req.body.data.url;
-				let uparams = { "option" : option, "url" : uurl	};
-				return browse(req, res, uparams);
+			case OPTION_USING_CARDS: 											 
+			case OPTION_COMPSUMPTION: 
+			case OPTION_STATUS: 								 
+				let url = "http://s" + gateway + req.body.data.url;
+				let params = { "option" : option, "url" : url	};
+				return browse(req, res, params);
 				break;		
 
-			case OPTION_COMPSUMPTION: 								 
-				let curl = "http://s" + gateway + req.body.data.url;
-				let cparams = { "option" : option, "url" : curl	};
-				return browse(req, res, cparams);
+			case OPTION_SEND: 								 
+				let seurl = "http://s" + gateway + req.body.data.url + "?ch=" + req.body.data.channel;
+				let separams = { "option" : option, "url" : seurl };
+				return browse(req, res, separams);
 				break;		
 
 			default: 	
 				res.status(402).send("Option not found");
 				break;
 		}	
-	
 
 	};
 
 	const browse = async function(req, res, params) {	
 
 		var option = params.option;	
-		var url = params.url;		
+		var url = params.url;	
+
+		console.log("option: " + option);  
+		console.log("url: " + url); 
 
 		(async () => { 
 			
@@ -116,147 +122,246 @@
 			
 					case OPTION_SWITCH_STRATEGY: 
 
-						const portsCount = (await page.$$('.select option')).length;                
-						console.log("ports" + portsCount);    
+						try { 
 
-						var switch_strategy = parseInt(req.body.data.switch_strategy); 
+							const portsCount = (await page.$$('.select option')).length;                						
 
-						//disable
-						const radios = await page.$$('input[name="SwitchMode"]');
-						await new Promise((resolve, reject) => {
-							radios.forEach(async (radio, i) => {								
-								if (i === switch_strategy) {									
-									radio.click();
-									resolve();
-								}
+							var switch_strategy = parseInt(req.body.data.switch_strategy); 
+
+							//disable
+							const radios = await page.$$('input[name="SwitchMode"]');
+							await new Promise((resolve, reject) => {
+								radios.forEach(async (radio, i) => {								
+									if (i === switch_strategy) {									
+										radio.click();
+										resolve();
+									}
+								});
 							});
-						});
 
-						//select all ports
-						var all = JSON.parse(req.body.data.all);	
-						if (all) {							
-							await page.click('.mr5'); 						
-						}
+							//select all ports
+							var all = JSON.parse(req.body.data.all);	
+							if (all) {							
+								await page.click('.mr5'); 						
+							}
 
-						//submit
-						await page.click('.mr20');            
-						await page.on('dialog', async dialog => {
-							await dialog.accept();							  
-						}); 		
-					
-						return res.status(200).send({"ports":portsCount}); 		
+							//submit
+							await page.click('.mr20');            
+							await page.on('dialog', async dialog => {
+								await dialog.accept();							  
+							}); 		
+						
+							return res.status(200).send({"ports":portsCount}); 	
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}	
 
 					break;
 
 					case OPTION_USING_CARDS: 
 
-						var c = 0;
-						var r = 0;
-						var k = 0;
+						try { 
 
-						const urows = await page.$$('.wid1 > tbody > tr > td i');
-						var total = urows.length;
+							var c = 0;
+							var r = 0;
+							var k = 0;
 
-						var ujson = `{"channels":${total/4},"ports":${total},"sims":[`;
+							const urows = await page.$$('.wid1 > tbody > tr > td i');
+							var total = urows.length;
 
-						await new Promise((resolve, reject) => {
-							urows.forEach(async (row, i) => {         
-							  
-							  var parent = (await row.$x('..'))[0];  
-							  var text = await page.evaluate(parent => parent.textContent, parent);                
-							  var t = text.replace(/\s+/g, '');
-							  
-							  switch (c) {
-							    case 0:
-							      k = r + 1;
-							      let aj = `{"port":"${k}","channel":[{"card":"A","status":"${t}"}`;
-							      ujson += aj;
-							    break;
-							    case 1:      
-							      let bj = `{"card":"B","status":"${t}"}`;
-							      ujson += bj;
-							    break;
-							    case 2:              
-							      let cj = `{"card":"C","status":"${t}"}`;
-							      ujson += cj;
-							    break;
-							    case 3:
-							      var dj = `{"card":"D","status":"${t}"}]}`;              
-							      if (i<(total-1)) {     
-							        dj += ",";
-							      }
-							      ujson += dj;
-							    break;
-							  }         
+							var ujson = `{"channels":${total/4},"ports":${total},"sims":[`;
 
-							  if (c==3) {                        
-							    c=0;          
-							    r++;
-							    if (i==(urows.length-1)) { 
-							      let tj = "]}";
-							      ujson += tj;              
-							      resolve();         
-							    }         
-							  } else {                   
-							    let ej = "," ;
-							    ujson += ej;                
-							    c++;
-							  } 
+							await new Promise((resolve, reject) => {
+								urows.forEach(async (row, i) => {         
+								  
+								  var parent = (await row.$x('..'))[0];  
+								  var text = await page.evaluate(parent => parent.textContent, parent);                
+								  var t = text.replace(/\s+/g, '');
+								  
+								  switch (c) {
+								    case 0:
+								      k = r + 1;
+								      let aj = `{"port":"${k}","channel":[{"card":"A","status":"${t}"}`;
+								      ujson += aj;
+								    break;
+								    case 1:      
+								      let bj = `{"card":"B","status":"${t}"}`;
+								      ujson += bj;
+								    break;
+								    case 2:              
+								      let cj = `{"card":"C","status":"${t}"}`;
+								      ujson += cj;
+								    break;
+								    case 3:
+								      var dj = `{"card":"D","status":"${t}"}]}`;              
+								      if (i<(total-1)) {     
+								        dj += ",";
+								      }
+								      ujson += dj;
+								    break;
+								  }         
 
-							});
-						});      
+								  if (c==3) {                        
+								    
+								    c=0;          
+								    r++;
+								    if (i==(urows.length-1)) { 
+								      let tj = "]}";
+								      ujson += tj;              
+								      resolve();         
+								    }  
 
-						return res.status(200).send(ujson);
+								  } else {      
+
+								    let ej = "," ;
+								    ujson += ej;                
+								    c++;
+
+								  } 
+
+								});
+							});      
+
+							return res.status(200).send(ujson);
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}
 
 					break;
 
 					case OPTION_COMPSUMPTION: 
 
-						const crows = await page.$$('.wid1 > tbody > tr');
-						var total = crows.length;
+						try { 
 
-						console.log("total: " + total);
+							const crows = await page.$$('.wid1 > tbody > tr');
+							var total = crows.length;						
 
-						var ujson = `{"ports":${total},"consumption":[`;
+							var ujson = `{"ports":${total},"consumption":[`;
 
-						await new Promise((resolve, reject) => {
-							crows.forEach(async (row, i) => {  
+							await new Promise((resolve, reject) => {
+								crows.forEach(async (row, i) => {  
 
-							  var td = (await row.$x('td'))[4];
-							  var text = await page.evaluate(td => td.textContent, td);  
-							  
-							  let spl = text.split("[");        
-							  let a = parseInt(spl[1].split("]")[0]);
-							  let b = parseInt(spl[2].split("]")[0]);
-							  let c = parseInt(spl[3].split("]")[0]);
-							  let d = parseInt(spl[4].split("]")[0]); 
+								  var td = (await row.$x('td'))[4];
+								  var text = await page.evaluate(td => td.textContent, td);  
+								  
+								  let spl = text.split("[");        
+								  let a = parseInt(spl[1].split("]")[0]);
+								  let b = parseInt(spl[2].split("]")[0]);
+								  let c = parseInt(spl[3].split("]")[0]);
+								  let d = parseInt(spl[4].split("]")[0]); 
 
-							  ujson += `{"port":"${i+1}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           
+								  ujson += `{"port":"${i+1}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           
 
-							  console.log("text: " + text);
-							  console.log("a: " + a);
-							  console.log("b: " + b);
-							  console.log("c: " + c);
-							  console.log("d: " + d);    
-							  
-							  if (i==(crows.length-1)) { 
-							    ujson += "]}";
-							    console.log("ujson: " + ujson);
-							    resolve();
-							  } else {
-							    ujson += ",";
-							  }
+								  console.log("text: " + text);
+								  console.log("a: " + a);
+								  console.log("b: " + b);
+								  console.log("c: " + c);
+								  console.log("d: " + d);    
+								  
+								  if (i==(crows.length-1)) { 
+								    ujson += "]}";
+								    console.log("ujson: " + ujson);
+								    resolve();
+								  } else {
+								    ujson += ",";
+								  }
 
-							});       
+								});       
 
-						});						
+							});						
 
-						return res.status(200).send(ujson);
+							return res.status(200).send(ujson);
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}
+
+					break;
+
+					case OPTION_STATUS:
+
+						try { 
+
+							const srows = await page.$$('.wid1 > tbody > tr');
+							var total = srows.length;					
+
+							var sjson = `{"ports":${total},"consumption":[`;
+
+							await new Promise((resolve, reject) => {
+								srows.forEach(async (row, i) => {  
+
+								  var tdstatus = (await row.$x('td'))[7];          
+								  const stat = await (await tdstatus.getProperty('title')).jsonValue();                   
+								 
+								  let spl = stat.split("[");   
+								  let a = spl[1].split("]")[0];
+								  let b = spl[2].split("]")[0];
+								  let c = spl[3].split("]")[0];
+								  let d = spl[4].split("]")[0];                    
+								 
+								  var tdop = (await row.$x('td'))[13];
+								  var operator = await page.evaluate(tdop => tdop.textContent, tdop);                             
+								  
+								  sjson += `{"port":"${i+1}","operator":"${operator}","channel":{"A":"${a}","B":"${b}","C":"${c}","D":"${d}"}}`;           
+								  
+								  if (i==(srows.length-1)) { 
+								    sjson += "]}";							    
+								    resolve();
+								  } else {
+								    sjson += ",";
+								  }
+
+								});       
+
+							});						
+
+							return res.status(200).send(sjson);
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}
+
+					break;
+
+					case OPTION_SEND:
+
+						try {      							
+
+							const phoneInput = 'textarea[name=sendtoPhoneNumber]';
+					        const recipient = req.body.data.recipient;
+					        await page.waitForSelector( phoneInput, { timeout: 0 });
+					        await page.focus(phoneInput);
+					        await page.keyboard.type(recipient);
+
+					        const msgInput = 'textarea[name=MessageInfo]';
+					        const msg = req.body.data.message;
+					        await page.waitForSelector( msgInput, { timeout: 0 });
+					        await page.focus(msgInput);
+					        await page.keyboard.type(msg);
+
+					        await page.on('dialog', async dialog => {                               
+					          await dialog.accept();	                  
+					        });
+					                     	              
+					        //submit
+					        await page.click('#send');     
+					      
+					        await page.waitForFunction('document.getElementById("SMSResult").value != ""');
+					        var el = await page.$("#SMSResult");
+					        var resutl = await page.evaluate(el => el.value, el); 
+
+					        return res.status(200).send({"restult":resutl}); 				
+
+						} catch (e) {							
+							return res.status(500).send({"error":e});							
+						}
 
 					break;
 
 					default: 	
-						res.status(402).send("Try other place");
+						return res.status(400).send("Bad Request");
 					break;
 
 				};
