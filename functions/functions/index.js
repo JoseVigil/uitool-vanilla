@@ -802,6 +802,10 @@
       await page.waitForSelector('.wid1', {
         visible: true,
       });   
+
+      //const nrows = await page.$$('.wid1 tbody tr td a[href]');
+      //var total = nrows.length;
+      
       
       const aresponses = await page.evaluate(
         () => Array.from(
