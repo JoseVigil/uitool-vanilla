@@ -780,34 +780,150 @@
 
   exports.parseTable = functions.https.onRequest( async (req, res) => {
 
-    (async () => {     
+      (async () => {              
 
-      console.log("_______1_______");
+          var autorization = req.body.data.autorization; 
 
-      var autorization = req.body.data.autorization; 
+          console.log("autorization: " + autorization);
+      
+          let browser = await puppeteer.launch({
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox']
+          });
 
-      console.log("autorization: " + autorization);
+          let page = await browser.newPage();              
+
+          await page.authenticate({'username':'admin', 'password': 'Notimation2020'});            
+
+          let pagenumber = parseInt(req.body.data.pagenumber); 
+          let channel = parseInt(req.body.data.channel); 
+
+          let url = "http://s5.notimation.com/en/5-3-1SMSinfo.php?ch=" + channel + "&type=r&card=T&page=" + pagenumber;
+
+          await page.goto(url);            
+
+          var pageselector = 'input[name=topage]';
+
+          await page.waitForSelector(pageselector, {
+            visible: true,
+          });    
+
+          /*var el = await page.$(pageselector);
+          var currentpage = parseInt(await page.evaluate(el => el.value, el));         
+          if (pagenumber != currentpage) {
+            console.log("entra");
+            await page.focus(pageselector);
+            await page.keyboard.type(pagenumber.toString());            
+            const buttons = await page.$$('input[type=button]');
+            var totalbuttons = buttons.length;
+            await new Promise((resolve, reject) => {
+              buttons.forEach(async (button, i) => {  
+                var text = await page.evaluate(button => button.value, button);  
+                if (text == "GO") {
+                  button.click();
+                  resolve();
+                }
+              });
+            });
+            await page.waitForNavigation();           
+          }*/
+
+          try {   
+
+            const lrows = await page.$$('.wid1 tbody tr td a[href]');
+            var total = lrows.length;
+            
+            console.log("total: " + total);
+
+            var jsonArray = [];          
+
+            await new Promise((resolve, reject) => {
+              lrows.forEach(async (link, i) => {                       
+
+                let linkclick = await page.evaluate(link => link.getAttribute('onclick'), link);                          
+                let lars = linkclick.split("load_messageinfo");
+                let outputstr = lars[1].replace(/'/g,'');
+                var rawtext = outputstr.replace("(", "").replace(");", "").toString();                                                        
+                  
+                if ( rawtext.includes("Bienvenido a Personal") ) {                   
+
+                    //var tdparent = (await link.$x('..'))[0]; 
+                    //var tr = (await tdparent.$x('..'))[0];                    
+                    //var gpt = await page.evaluate(tr => tr.textContent, tr);                                      
+                    //var removed = gpt.replace(/[ ,.]/g, "");
+                    //let ports = removed.split(" ");                   
+                    //let port = ports[3];
+                    //let from = ports[6];
+
+                    let raws = rawtext.split(",");
+
+                    let chnl = parseInt(raws[1]);
+                    let remote = raws[2];
+                    let time = raws[3];
+                    let content = raws[4];
+                    let simnumber = content.match(/{([^}]+)}/)[1];                  
+                    let portnumber = content.split("-{")[0];                
+                    let port = (chnl+1) + portnumber;                    
+
+                    let jsondata = `{
+                      "channel":"${chnl}",
+                      "remote_number":"${remote}",
+                      "time":"${time}",
+                      "sim_number":"${simnumber}",
+                      "port":"${port}"          
+                    }`;                   
+
+                    jsonArray.push(jsondata);                                           
+                }
+
+                console.log("i: " + i);
+
+                if (i==(total-1)) { 
+                  resolve();
+                }
+
+              });        
+
+            });
+
+            let jalength = jsonArray.length;
+            var json = `{"rows":${jalength},"sim_numbers":[`;            
+
+            console.log("jalength: " + jalength);
+              
+            if (jalength>0) {
+
+              for (var j=0; j<jalength;j++) {
+                
+                json += jsonArray[j];            
+                
+                if (j==(jalength-1)) {                  
+                  json += "]}";							                    
+                } else {
+                  json += ",";
+                }
+              }           
+              
+            } else {           
+              json += `0]}`;            
+            }         
+
+            res.status(200).send(JSON.parse(json));
+
+      } catch (e) {
+        console.error(e);
+        res.status(400).send(e);
+        return e;
+      }
+        
+    })();
+
+  });     
+
   
-      let browser = await puppeteer.launch({
-          headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-
-      let page = await browser.newPage();     
-
-      await page.authenticate({'username':'admin', 'password': 'Notimation2020'});            
-
-      await page.goto('http://s5.notimation.com/en/5-3-1SMSinfo.php?ch=0&type=r&card=T&page=1#');            
-
-      await page.waitForSelector('.wid1', {
-        visible: true,
-      });   
-
-      //const nrows = await page.$$('.wid1 tbody tr td a[href]');
-      //var total = nrows.length;
-      
-      
-      const aresponses = await page.evaluate(
+  
+            
+      /*const aresponses = await page.evaluate(
         () => Array.from(
           document.querySelectorAll('.wid1 tbody tr td a[href]'),
           a => a.getAttribute('onclick')
@@ -815,9 +931,13 @@
       );  
 
       await new Promise((resolve, reject) => {
-        aresponses.forEach(async (link, i) => {                   
+        aresponses.forEach(async (link, i) => { 
+          
+          let linkclick = await link.getAttribute('onclick');
 
-          let lars = link.split("load_messageinfo");
+          console.log("linkclick: " + linkclick);
+
+          let lars = linkclick.split("load_messageinfo");
           var outputstr = lars[1].replace(/'/g,'');
           var raw = outputstr.replace("(", "").replace(");", "");   
           
@@ -841,21 +961,21 @@
 
           }
 
-          /*for (var j=0; i<lars.length; j++) {
+          for (var j=0; i<lars.length; j++) {
             let t = lars[j];  
             console.log(t);          
-          }*/
+          }
 
-          /*var phonenumber = content.substring (
+          var phonenumber = content.substring (
             content.lastIndexOf("linea es ") + 1, 
             content.lastIndexOf(". Para mas")
-          );*/
+          );
 
           resolve();
 
         });        
 
-      });
+      });*/
       
       //console.log("acontent: " + acontent.length);
       
@@ -1096,9 +1216,9 @@
 
       //return json;
 
-    })();
+    //})();
       
-  });
+  //});
 
 
 
