@@ -44,11 +44,12 @@
 		}
 	};
 
-	var OPTION_SWITCH_STRATEGY = 'switchstrategy';
-	var OPTION_USING_CARDS = 'using';
-	var OPTION_COMPSUMPTION = 'consumption';
-	var OPTION_STATUS = 'status';
-	var OPTION_SEND = 'send';
+	var OPTION_SWITCH 		 		= 'switch';
+	var OPTION_USING_CARDS 			= 'using';
+	var OPTION_COMPSUMPTION 		= 'consumption';
+	var OPTION_STATUS 				= 'status';
+	var OPTION_SEND 				= 'send';
+	var OPTION_SIMS_RECEIVED    	= 'simsreceived';
 	
 	const gateway = async function(req, res) {
 
@@ -61,7 +62,7 @@
 		
 		switch (option) {			
 			
-			case OPTION_SWITCH_STRATEGY: 	
+			case OPTION_SWITCH: 	
 				let applyto = parseInt(req.body.data.applyto);
 				let swurl = "http://s" + gateway + req.body.data.url + applyto;			
 				let sparams = { "option" : option, "applyto" : applyto,	"url" : swurl	};					
@@ -80,6 +81,12 @@
 				let seurl = "http://s" + gateway + req.body.data.url + "?ch=" + req.body.data.channel;
 				let separams = { "option" : option, "url" : seurl };
 				return browse(req, res, separams);
+				break;	
+
+			case OPTION_SIMS_RECEIVED: 								 
+				let reurl = "http://s" + gateway + req.body.data.url + req.body.data.channel + "&type=r&card=T&page=" + req.body.data.pagenumber;
+				let reparams = { "option" : option, "url" : reurl };
+				return browse(req, res, reparams);
 				break;		
 
 			default: 	
@@ -120,7 +127,7 @@
 
 				switch (option) {			
 			
-					case OPTION_SWITCH_STRATEGY: 
+					case OPTION_SWITCH: 
 
 						try { 
 
@@ -357,6 +364,87 @@
 						} catch (e) {							
 							return res.status(500).send({"error":e});							
 						}
+
+					break;
+
+					case OPTION_SIMS_RECEIVED:
+					
+          				try {   
+
+				            const lrows = await page.$$('.wid1 tbody tr td a[href]');
+				            var total = lrows.length;
+				            
+				            console.log("total: " + total);
+
+				            var jsonArray = [];          
+
+				            await new Promise((resolve, reject) => {
+				              lrows.forEach(async (link, i) => {                       
+
+				                let linkclick = await page.evaluate(link => link.getAttribute('onclick'), link);                          
+				                let lars = linkclick.split("load_messageinfo");
+				                let outputstr = lars[1].replace(/'/g,'');
+				                var rawtext = outputstr.replace("(", "").replace(");", "").toString();                                                        
+				                  
+				                if ( rawtext.includes("Bienvenido a Personal") ) {
+
+				                	let raws = rawtext.split(",");
+
+				                    let chnl = parseInt(raws[1]);
+				                    let remote = raws[2];
+				                    let time = raws[3];
+				                    let content = raws[4];
+				                    let simnumber = content.match(/{([^}]+)}/)[1];                  
+				                    let portnumber = content.split("-{")[0];                
+				                    let port = (chnl+1) + portnumber;                    
+
+				                    let jsondata = `{
+				                      "channel":"${chnl}",
+				                      "remote_number":"${remote}",
+				                      "time":"${time}",
+				                      "sim_number":"${simnumber}",
+				                      "port":"${port}"          
+				                    }`;                   
+
+				                    jsonArray.push(jsondata);                                           
+				                }				              
+
+				                if (i==(total-1)) { 
+				                  resolve();
+				                }
+
+				              });        
+
+				            });
+
+				            let jalength = jsonArray.length;
+				            var json = `{"rows":${jalength},"sim_numbers":[`;            				            
+				              
+				            if (jalength>0) {
+
+				              for (var j=0; j<jalength;j++) {
+				                
+				                json += jsonArray[j];            
+				                
+				                if (j==(jalength-1)) {                  
+				                  json += "]}";							                    
+				                } else {
+				                  json += ",";
+				                }
+				              }           
+				              
+				            } else {           
+				              json += `0]}`;            
+				            }         
+
+				            res.status(200).send(JSON.parse(json));
+
+				      } catch (e) {
+				        console.error(e);
+				        res.status(400).send(e);
+				        return e;
+				      }
+
 
 					break;
 

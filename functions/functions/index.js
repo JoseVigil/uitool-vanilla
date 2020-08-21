@@ -808,25 +808,25 @@
             visible: true,
           });    
 
-          /*var el = await page.$(pageselector);
-          var currentpage = parseInt(await page.evaluate(el => el.value, el));         
-          if (pagenumber != currentpage) {
-            console.log("entra");
-            await page.focus(pageselector);
-            await page.keyboard.type(pagenumber.toString());            
-            const buttons = await page.$$('input[type=button]');
-            var totalbuttons = buttons.length;
-            await new Promise((resolve, reject) => {
-              buttons.forEach(async (button, i) => {  
-                var text = await page.evaluate(button => button.value, button);  
-                if (text == "GO") {
-                  button.click();
-                  resolve();
-                }
-              });
-            });
-            await page.waitForNavigation();           
-          }*/
+          //var el = await page.$(pageselector);
+          //var currentpage = parseInt(await page.evaluate(el => el.value, el));         
+          //if (pagenumber != currentpage) {
+          //  console.log("entra");
+          //  await page.focus(pageselector);
+          //  await page.keyboard.type(pagenumber.toString());            
+          //  const buttons = await page.$$('input[type=button]');
+          //  var totalbuttons = buttons.length;
+          //  await new Promise((resolve, reject) => {
+          //    buttons.forEach(async (button, i) => {  
+          //      var text = await page.evaluate(button => button.value, button);  
+          //      if (text == "GO") {
+          //        button.click();
+          //        resolve();
+          //      }
+          //    });
+          //  });
+          //  await page.waitForNavigation();           
+          //}
 
           try {   
 
