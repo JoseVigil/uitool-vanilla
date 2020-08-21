@@ -795,12 +795,32 @@
 
           await page.authenticate({'username':'admin', 'password': 'Notimation2020'});            
 
-          let pagenumber = parseInt(req.body.data.pagenumber); 
+          let url = "http://s5.notimation.com/en/9-7reboot.php"
+
+          await page.goto(url);         
+
+          await page.waitForSelector("#Reboot1", {
+            visible: true,
+          });  
+
+          await page.on('dialog', async dialog => {              
+            await dialog.accept();	                  
+            return res.status(200).send({"status":"rebooted"});
+          });
+                                       
+          //submit
+          await page.click('#Reboot1');     
+          
+      })();
+
+  });     
+
+  
+      /*
+      let pagenumber = parseInt(req.body.data.pagenumber); 
           let channel = parseInt(req.body.data.channel); 
 
           let url = "http://s5.notimation.com/en/5-3-1SMSinfo.php?ch=" + channel + "&type=r&card=T&page=" + pagenumber;
-
-          await page.goto(url);            
 
           var pageselector = 'input[name=topage]';
 
@@ -915,13 +935,7 @@
         res.status(400).send(e);
         return e;
       }
-        
-    })();
-
-  });     
-
-  
-  
+      */
             
       /*const aresponses = await page.evaluate(
         () => Array.from(

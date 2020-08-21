@@ -50,6 +50,7 @@
 	var OPTION_STATUS 				= 'status';
 	var OPTION_SEND 				= 'send';
 	var OPTION_SIMS_RECEIVED    	= 'simsreceived';
+	var OPTION_REBOOT		    	= 'reboot';
 	
 	const gateway = async function(req, res) {
 
@@ -71,7 +72,8 @@
 
 			case OPTION_USING_CARDS: 											 
 			case OPTION_COMPSUMPTION: 
-			case OPTION_STATUS: 								 
+			case OPTION_STATUS: 
+			case OPTION_REBOOT:								 
 				let url = "http://s" + gateway + req.body.data.url;
 				let params = { "option" : option, "url" : url	};
 				return browse(req, res, params);
@@ -447,6 +449,21 @@
 
 
 					break;
+
+					case OPTION_REBOOT:
+
+						await page.waitForSelector("#Reboot1", {
+							visible: true,
+						});  
+
+						await page.on('dialog', async dialog => {              
+							await dialog.accept();	                  
+							return res.status(200).send({"status":"rebooted"});
+						});						                           
+			
+						await page.click('#Reboot1');    
+
+					break;					
 
 					default: 	
 						return res.status(400).send("Bad Request");
