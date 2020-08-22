@@ -31,8 +31,7 @@
 
 		if ( (user === "admin") && (pass === "Notimation2020") ) {
 
-			switch (req.url.split('/')[1]) {			
-				case 'hello': hello(req, res); break;
+			switch (req.url.split('/')[1]) {							
 				case 'gateway': gateway(req, res); break;
 				case 'convert': convertHtmlToImage(req, res); break;
 				default: getDefault(req, res);
@@ -459,7 +458,8 @@
 						await page.on('dialog', async dialog => {              
 							await dialog.accept();	                  
 							return res.status(200).send({"status":"rebooted"});
-						});						                           
+						});
+						                           
 			
 						await page.click('#Reboot1');    
 
@@ -593,7 +593,3 @@
 	};			
 
 
-
-	const hello = async function(req, res)  {
-		res.status(200).send("hello from backend");
-	};
