@@ -1,5 +1,5 @@
     
-    const express = require('express');
+    
     const functions = require('firebase-functions');
     const firebase = require('firebase');
     var admin = require('firebase-admin');
@@ -57,9 +57,6 @@
 
     const settings = {timestampsInSnapshots: true};          
     firestore.settings(settings);
-
-    const app = express();
-    exports.app = functions.https.onRequest(app);
 
     exports.processXml = functions.storage.object().onFinalize(async (object) => {  
     
@@ -393,9 +390,11 @@
     }); 
 
 
+    exports.test = functions.https.onRequest( async (req, res) => {      
 
+      return parsethis;
     
-    
+    });
     
     //exports.scheduledFunction = functions.pubsub.schedule('* * * * * sleep 30').onRun((context) => {
       
@@ -575,6 +574,7 @@
 
         console.log("req.path:", req.path); 
         var autorization = req.body.data.autorization;
+        
         //var _url = req.body.data.url;        
         //console.log("ENTRA BACKEND");         
         //console.log("req.body.data.autorization:" + autorization);         

@@ -360,10 +360,58 @@
 					        await page.click('#send');     
 					      
 					        await page.waitForFunction('document.getElementById("SMSResult").value != ""');
+					        await page.waitFor(5000);
 					        var el = await page.$("#SMSResult");
-					        var resutl = await page.evaluate(el => el.value, el); 
+					        var resutl = await page.evaluate(el => el.value, el);
 
-					        return res.status(200).send({"restult":resutl}); 				
+							var lines = resutl.split("\n");          
+							var headers;
+							var sjson = `{"gateway":"${req.body.data.gateway}","channel":"${req.body.data.channel}","sent":[`;							
+
+							for (var l = 0; l < lines.length; l++) {								
+								headers = lines[l].split(" ");
+								for (var i = 0; i < headers.length; i++) {             								
+								   var flag = false;
+								   switch (i) {
+								      case 2:
+								        sjson += `{"day":"${headers[i]}"`;
+								        flag=true;
+								        break;
+								      case 3:
+								        sjson += `"time":"${headers[i]}"`;
+								        flag=true;
+								        break;
+								      case 6:
+								        sjson += `"port":"${headers[i]}"`;
+								        flag=true;
+								        break;
+								      case 19:
+								        sjson += `"number":"${headers[i]}"`;
+								        flag=true;
+								        break;
+								      case 21:
+								      case 22:  
+								        if(headers[i] === "") {
+								            continue;
+								        }
+								        sjson += `"status":"${headers[i]}"`;
+								        flag=true;
+								        break;
+								    } 								    
+								    if (flag) {
+								      if (i === (headers.length-1)) {                  
+								        if (l === (lines.length-2)) {
+								          sjson += `}]}`;
+								        } else {
+								          sjson += `},`;
+								        }
+								      } else {                 
+								          sjson += `,`;                  
+								      }   
+								    }								    
+								}
+							}
+					        return res.status(200).send({"restult":JSON.parse(sjson)}); 				
 
 						} catch (e) {							
 							return res.status(500).send({"error":e});							
