@@ -1,0 +1,88 @@
+{
+    "gateways": {
+        "S1": {
+            "position": 6,
+            "gateway": "S1",
+            "number": 1,
+            "subCollection": {}
+        },
+        "S10": {
+            "gateway": "S10",
+            "position": 67,
+            "number": 10,
+            "subCollection": {}
+        },
+        "S11": {
+            "gateway": "S11",
+            "number": 11,
+            "position": 80,
+            "subCollection": {}
+        },
+        "S12": {
+            "number": 12,
+            "gateway": "S12",
+            "position": 93,
+            "subCollection": {}
+        },
+        "S13": {
+            "gateway": "S13",
+            "position": 106,
+            "number": 13,
+            "subCollection": {}
+        },
+        "S14": {
+            "gateway": "S14",
+            "position": 119,
+            "number": 14,
+            "subCollection": {}
+        },
+        "S2": {
+            "number": 2,
+            "position": 13,
+            "gateway": "S2",
+            "subCollection": {}
+        },
+        "S3": {
+            "position": "20",
+            "number": 3,
+            "gateway": "S3",
+            "subCollection": {}
+        },
+        "S5": {
+            "number": "5",
+            "gateway": "S5",
+            "position": 27,
+            "subCollection": {}
+        },
+        "S6": {
+            "gateway": "S6",
+            "position": 34,
+            "number": 6,
+            "subCollection": {}
+        },
+        "S8": {
+            "gateway": "S8",
+            "position": 41,
+            "number": 8,
+            "subCollection": {}
+        },
+        "S9": {
+            "number": 9,
+            "gateway": "S9",
+            "position": 54,
+            "subCollection": {}
+        },
+        "urls": {
+            "parmas_using": "/backend/gateway/using",
+            "url_send": "/en/5-3-2SMSsend.php?ch",
+            "url_base_local": "http://localhost:5001/notims/us-central1",
+            "url_base": "http://s",
+            "url_switch": "/en/5-9-1SIMSet.php",
+            "url_sims": "/en/5-9SIM.php",
+            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
+            "url_consumption": "/en/10-6SMSManagement.php",
+            "url_domain": ".notimation.com",
+            "subCollection": {}
+        }
+    }
+}

@@ -43,8 +43,8 @@
 		}
 	};
 
-	var OPTION_SWITCH 		 		= 'switch';
-	var OPTION_USING_CARDS 			= 'using';
+	var OPTION_SWITCH_SIM    		= 'switchsim';
+	var OPTION_USING 			    = 'using';
 	var OPTION_COMPSUMPTION 		= 'consumption';
 	var OPTION_STATUS 				= 'status';
 	var OPTION_SEND 				= 'send';
@@ -60,23 +60,24 @@
 		console.log("gateway: " + gateway);  
 		console.log("option: " + option);  		
 		
-		switch (option) {			
+		switch (option) {					
 			
-			case OPTION_SWITCH: 	
+
+			case OPTION_USING: 											 
+			case OPTION_COMPSUMPTION: 
+			case OPTION_STATUS: 
+			case OPTION_REBOOT: 								 
+				let url = "http://s" + gateway + req.body.data.url;
+				let params = { "option" : option, "url" : url	};
+				return browse(req, res, params);
+				break;		
+
+			case OPTION_SWITCH_SIM: 	
 				let applyto = parseInt(req.body.data.applyto);
 				let swurl = "http://s" + gateway + req.body.data.url + applyto;			
 				let sparams = { "option" : option, "applyto" : applyto,	"url" : swurl	};					
 				return browse(req, res, sparams);
 				break;	
-
-			case OPTION_USING_CARDS: 											 
-			case OPTION_COMPSUMPTION: 
-			case OPTION_STATUS: 
-			case OPTION_REBOOT:								 
-				let url = "http://s" + gateway + req.body.data.url;
-				let params = { "option" : option, "url" : url	};
-				return browse(req, res, params);
-				break;		
 
 			case OPTION_SEND: 								 
 				let seurl = "http://s" + gateway + req.body.data.url + "?ch=" + req.body.data.channel;
@@ -126,48 +127,9 @@
 				await page.authenticate({'username':'admin', 'password': 'Notimation2020'});															
 				await page.goto(url);  
 
-				switch (option) {			
-			
-					case OPTION_SWITCH: 
+				switch (option) {	
 
-						try { 
-
-							const portsCount = (await page.$$('.select option')).length;                						
-
-							var switch_strategy = parseInt(req.body.data.switch_strategy); 
-
-							//disable
-							const radios = await page.$$('input[name="SwitchMode"]');
-							await new Promise((resolve, reject) => {
-								radios.forEach(async (radio, i) => {								
-									if (i === switch_strategy) {									
-										radio.click();
-										resolve();
-									}
-								});
-							});
-
-							//select all ports
-							var all = JSON.parse(req.body.data.all);	
-							if (all) {							
-								await page.click('.mr5'); 						
-							}
-
-							//submit
-							await page.click('.mr20');            
-							await page.on('dialog', async dialog => {
-								await dialog.accept();							  
-							}); 		
-						
-							return res.status(200).send({"ports":portsCount}); 	
-
-						} catch (e) {							
-							return res.status(500).send(e);							
-						}	
-
-					break;
-
-					case OPTION_USING_CARDS: 
+				case OPTION_USING: 
 
 						try { 
 
@@ -237,7 +199,48 @@
 							return res.status(500).send(e);							
 						}
 
+					break;		
+			
+					case OPTION_SWITCH_SIM: 
+
+						try { 
+
+							const portsCount = (await page.$$('.select option')).length;                						
+
+							var switch_mode = parseInt(req.body.data.switch_mode); 
+
+							//disable
+							const radios = await page.$$('input[name="SwitchMode"]');
+							await new Promise((resolve, reject) => {
+								radios.forEach(async (radio, i) => {								
+									if (i === switch_mode) {									
+										radio.click();
+										resolve();
+									}
+								});
+							});
+
+							//select all ports
+							var all = JSON.parse(req.body.data.all);	
+							if (all) {							
+								await page.click('.mr5'); 						
+							}
+
+							//submit
+							await page.click('.mr20');            
+							await page.on('dialog', async dialog => {
+								await dialog.accept();							  
+							}); 		
+						
+							return res.status(200).send({"ports":portsCount}); 	
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}	
+
 					break;
+
+					
 
 					case OPTION_COMPSUMPTION: 
 

@@ -10,9 +10,7 @@
     var pdfFonts = require("pdfmake/build/vfs_fonts");
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
     var htmlToPdfmake = require("html-to-pdfmake");
-    var rp = require('request-promise');
-
-    const delay = require('delay');
+    var rp = require('request-promise');    
 
     //const readXlsxFile = require('read-excel-file/node');
 
@@ -34,7 +32,7 @@
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         databaseURL: db_url,        
-    });
+    });    
 
     firestoreService.initializeApp({
       credential: admin.credential.cert(serviceAccount),
@@ -197,7 +195,7 @@
      * Post SMS
      */
 
-    exports.postSMS = functions.https.onRequest( async  (req, res) => {        
+    exports.postSMS = functions.https.onRequest( async (req, res) => {        
 
       const _phone = req.body.data.phone;
       const _name = req.body.data.name;
@@ -301,7 +299,7 @@
       }); 
     }          
 
-    exports.tiggerUpdate = functions.firestore
+    exports.triggerUpdate = functions.firestore
       .document('cobranzas/{cobranzasId}')
       .onUpdate( async (change, context) => {    
 
@@ -390,49 +388,524 @@
             }
 
         });
+      }    
 
-      }  
+    }); 
+
+
+
+    
+    
+    
+    //exports.scheduledFunction = functions.pubsub.schedule('* * * * * sleep 30').onRun((context) => {
+      
+    exports.schedule = functions.https.onRequest( async (req, res) => {             
+
+      var gatewaysRef = firestore.collection('gateways');
+
+      /*var url_sims, url_base, url_consumption, 
+      url_base, url_send, url_switch, url_domain,
+      url_base_remote, url_base_local, parmas_using;*/
+
+      var _autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
+
+      var obj = {};   
+      var count = 0;
+
+      gatewaysRef.get().then( async (querySnapshot) => {  
         
-    });    
-
-    exports.buildHtml = functions.https.onRequest((req, res) => {
-
-        console.log("req.path:", req.path); 
-        const pathParams = req.path.split('/');
-
+          var length = querySnapshot.length;
+          console.log('length:' + length);
         
-        // EXPORT   
+          querySnapshot.forEach( async (doc) => {
+            
+            let docId = doc.id;
+            console.log('docId:' + docId);
+
+            /*"url_domain": ".notimation.com",
+            "url_switch": "/en/5-9-1SIMSet.php",
+            "url_send": "/en/5-3-2SMSsend.php?ch",
+            "url_consumption": "/en/10-6SMSManagement.php",
+            "url_base": "http://s",
+            "url_sims": "/en/5-9SIM.php",*/                       
+            
+            if (docId==="S2") {              
+              obj.gateway = doc.data().gateway;   
+              obj.number = doc.data().number;   
+              obj.position = doc.data().position;  
+              obj.id = docId;  
+            }
+
+            if (docId==="urls") {
+
+              obj.url_domain = doc.data().url_domain;   
+              obj.url_sims = doc.data().url_sims;   
+              obj.url_base = doc.data().url_base;   
+              obj.url_consumption = doc.data().url_consumption;   
+              obj.url_base = doc.data().url_base;   
+              obj.url_switch = doc.data().url_switch;   
+              obj.url_base_remote = doc.data().url_base_remote;  
+              obj.url_base_local = doc.data().url_base_local;  
+              obj.parmas_using = doc.data().parmas_using;                
+            
+            //}
+
+            //if (count === (length-1)) {
+
+              /*console.log("Calling function");
+              console.log(">>>>>>>>>>>>>>>>>>>> POST <<<<<<<<<<<<<<<<<<<<<<<<");
+              console.log(">>>>>>>>gateway " + obj.gateway);
+              console.log(">>>>>>>>number " + obj.number);
+              console.log(">>>>>>>>position " + obj.position);
+              console.log("------------------------------------------");
+              console.log(">>>>>>>>url_base_local " + obj.url_base_local);
+              console.log(">>>>>>>>parmas_using " + obj.parmas_using);*/
+
+              console.log(">>>>>>>>>>>>>>>>>======================");
+
+              /*let uri  = obj.url_base_local + obj.parmas_using;
+              let uri_remote = obj.url_base_remote + obj.parmas_using;
+              console.log("uri: "  + uri);
+              var options = {
+                method: 'POST',
+                uri: uri,
+                body: {
+                  data: {
+                    gateway: obj.number,            
+                    url : obj.url_sims,
+                    url_remote : uri_remote,
+                    autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                  }
+                },
+                json: true 
+              };    
+          
+              rp(options).then(function (body) {               
+                return res.status(200).send({"response" :body});
+              }).catch(function (err) {           
+                return res.status(400).send({"error" :err});
+              });*/ 
+                           
+              let uri_remote = obj.url_base_remote + obj.parmas_using;
+              let url_gateway = obj.url_domain + obj.url_sims; 
+
+              /*var options = {
+                method: 'POST',
+                uri: uri_remote,
+                body: {
+                  data: {
+                    gateway: obj.number, //`"${obj.number}"`,            
+                    url : url_gateway,
+                    autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                  }
+                },
+                json: true 
+              };    
         
-        if (pathParams[1] === "export") {
+              console.log(JSON.stringify(options));*/
 
-            //http://localhost:5000/export/cobranzas
-            //https://noti.ms/export/cobranzas
+              try {
 
-            let collection = pathParams[2];         
-        
-            try {
+                let json = "{\"response\":{\"channels\":16,\"ports\":64,\"sims\":[{\"port\":\"1\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Using\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"2\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"3\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"4\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"5\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"6\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"7\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"8\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Using\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"9\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"10\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"11\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Using\"}]},{\"port\":\"12\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"13\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"14\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"15\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"16\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]}]}}";
+          
+                let pjson = JSON.parse(json);
 
-              firestoreService
-              .backup(collection)
-              .then(data => {  
-                res.status(200).send(data);
-                //downloadJson(collection, data);   
-                return data;           
-              }).catch((error) => {                
-                console.log('Error getting sertvice backup');
-                return error;
-              });  
-              
+                /*rp(options).then(function (body) {               
+                  return res.status(200).send({"response" :body});
+                }).catch(function (err) {           
+                  return res.status(400).send({"error" :err});
+                });*/    
+
+                console.log('Pasa----'+obj.id);
+
+                firestore.collection('gateways').doc(obj.id).update({ 
+                  channels : pjson.response.channels,
+                  ports: pjson.response.ports,            
+                  sims : pjson.response.sims,
+                },{merge:true}).then(function(document) {                      
+                  
+                  console.log('Updated:'+document.id);
+                  res.status(200).send({"updated" :document.id});
+
+                }).catch((error) => {
+                  console.log('Error updating collection:', error);
+                  res.status(400).send({"error" :err});
+                });
+
             } catch (e) {
-                console.error(e);
-                return e;
+              console.error(e);
+              res.status(400).send(error);                
+            }
+               
+              
+
             }
             
+            count++;
+
+
+          });
+
+          return querySnapshot;
+
+      }).catch(err => {
+          console.log('Error getting documents', err);
+      });
+
+      return gatewaysRef;
+
+    });
+
+    var OPTION_ACTION           = 'action';
+    var OPTION_GATEWAY          = 'gateway';
+    var OPTION_COMPOSER         = 'composer';
+    
+    var OPTION_EXPORT           = 'export';
+    var OPTION_IMPORT           = 'import';
+
+    var OPTION_COMPSUMPTION     = 'consumption';
+    var OPTION_STATUS           = 'status';
+    var OPTION_SEND             = 'send';
+    var OPTION_SIMS_RECEIVED    = 'simsreceived';
+    var OPTION_REBOOT           = 'reboot';
+  
+    exports.server = functions.https.onRequest((req, res) => {        
         
-        // IMPORT        
+        console.log("<<<<<<<<<<<<<<<<<<<<======================");
 
-        } else if (pathParams[1] === "import") {
+        console.log("req.path:", req.path); 
+        var autorization = req.body.data.autorization;
+        //var _url = req.body.data.url;        
+        //console.log("ENTRA BACKEND");         
+        //console.log("req.body.data.autorization:" + autorization);         
+        //console.log("req.body.data.url:" + _url);         
+    
+        var buff = Buffer.from(autorization, 'base64'); 
+        let key = buff.toString('ascii');
 
+        var keys = key.split(":"); 
+      
+        let user = keys[0];
+        let pass = keys[1];
+
+        console.log("user: " +user);
+        console.log("pass: " + pass); 
+
+        if ( (user === "admin") && (pass === "Notimation2020") ) {
+
+          console.log("req.path.split('/')[1]:" +req.path.split('/')[1]);
+
+          switch (req.path.split('/')[1]) {                        
+            case OPTION_GATEWAY: gateway(req, res); break;
+            case OPTION_COMPOSER: composer(req, res); break;
+            case OPTION_ACTION: action(req, res); break;
+            default: noti(req, res);
+          } 
+
+        } else {
+
+          res.status(401).send("Invalid authorization");  
+
+        }         
+
+    });
+
+    var OPTION_GET_SIM_NUMBERS  = 'simnumber';
+
+    var OPTION_USING            = 'using';
+    var OPTION_SWITCH           = 'switch';
+
+    /*var OPTION_SWITCH_SIM       = 'switchsim';    
+    var OPTION_COMPSUMPTION     = 'consumption';
+    var OPTION_STATUS           = 'status';
+    var OPTION_SEND             = 'send';
+    var OPTION_SIMS_RECEIVED    = 'simsreceived';
+    var OPTION_REBOOT           = 'reboot';*/
+  
+    var gateway = async function(req, res) {
+      
+      console.log("gateway: " + req.path.split('/')[2]);
+      console.log("url_remote: " + req.body.data.url_remote);     
+      
+      switch (req.path.split('/')[2]) {      
+
+        case OPTION_USING: {           
+          let uurl = req.body.data.url_remote; //'https://us-central1-notims.cloudfunctions.net/backend/gateway/using';          
+          return using(req, res, uurl);          
+        }
+        
+        case OPTION_SWITCH: switchsim(req, res); break;
+        case OPTION_COMPSUMPTION: consumption(req, res); break;
+        default: noti(req, res);
+      } 
+
+    };
+
+    const using = async function(req, res, url) {  
+
+      console.log(">>>>>>>>>>>>>>>>>>>> POST <<<<<<<<<<<<<<<<<<<<<<<<");
+  
+      var options = {
+        method: 'POST',
+        uri: url,
+        body: {
+          data: {
+            gateway: req.body.data.gateway,            
+            url : req.body.data.url,
+            autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+          }
+        },
+        json: true 
+      };    
+
+      console.log(JSON.stringify(options));
+ 
+      rp(options).then(function (body) {               
+        return res.status(200).send({"response" :body});
+      }).catch(function (err) {           
+        return res.status(400).send({"error" :err});
+      });    
+       
+    };  
+   
+
+
+    const switchsim = async function(req, res, url) { 
+      
+      console.log("entra");
+  
+      var options = {
+        method: 'POST',
+        uri: url,
+        body: {
+          data: {
+            all: req.body.data.all,
+            applyto: req.body.data.applyto,
+            gateway: req.body.data.gateway,
+            switch_mode: req.body.data.switch_mode,
+            url : url,
+            autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+          }
+        },
+        json: true 
+      };
+
+      console.log("json: " + JSON.stringify(options));
+ 
+      rp(options).then(function (body) {        
+        
+        return res.status(200).send({"response" :body});
+
+      }).catch(function (err) {          
+        return res.status(400).send({"error" :err});
+      });    
+       
+    };  
+   
+
+
+    var ACTION_OBTAIN_TELCO = "action_obtain_telco";
+
+    const simnumbers = async function(req, res) {
+      
+      var _gateway = req.body.data.gateway;
+      
+      var options = {
+        method: 'POST',
+        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switch',
+        body: {
+          data: {
+            all: false,
+            applyto: 0,
+            gateway:_gateway,
+            switch_strategy: 5,
+            url : ".notimation.com/en/5-9-1SIMSet.php?id=",
+            autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+          }
+        },
+        json: true 
+      };
+
+      rp(options).then(function (body) {
+       
+         let ports = parseInt(body.ports);        
+         var _time =  new Date();
+
+         firestore.collection('gateways')
+          .doc(`S${_gateway}`)       
+          .update({ 
+            ports : ports,
+            action: ACTION_OBTAIN_TELCO,            
+            last_update: _time 
+          }).then(function(document) {                      
+            
+            return actions(req, res, ACTION_OBTAIN_TELCO);
+
+          }).catch((error) => {
+            console.log('Error updating collection:', error);
+            res.status(400).send({"error" :err});
+          });
+
+          return body;
+
+      }).catch(function (err) {          
+        res.status(400).send({"error" :err});
+      });    
+
+    };
+
+
+    const composer = async function(req, res) {  
+      
+      var _gateway = req.body.data.gateway;   
+      
+      if (pathParams[2] === "campaign") {
+
+        return res.status(200).sendFile( path.join(__dirname + '/../public/html/campaign_composer.html' ));
+
+      } else if (pathParams[2] === "web") {
+
+        return res.status(200).sendFile( path.join(__dirname + '/../public/html/web_composer.html' ));
+
+      } else {
+      
+        return res.status(200).sendFile( path.join(__dirname + '/../public/html/composer.html'));            
+
+      }    
+
+    };
+
+    
+    const send = async function(req, res) {  
+      
+      var _gateway = req.body.data.gateway;        
+
+    };
+
+
+    /*const switchannel = async function(req, res, slot) {
+
+      var options = {
+        method: 'POST',
+        uri: "http://s" + _gateway + ".notimation.com/5-9-2SIMSwitch.php",
+        headers : {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+          'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+        },
+        form: {
+          action: 'SIMSwitch',
+          info: '1:0'
+        }   
+
+      };
+
+      rp(options).then(function (body) {
+
+        let ports = parseInt(body.response);        
+        var _time =  new Date();
+      
+      }).catch(function (err) {          
+        res.status(400).send({"error" :err});
+      });    
+
+    };*/
+
+    
+    
+  // NOTI
+
+  const noti = async function(req, res) {
+
+    // SHOW CARD          
+    
+    const postId = req.path.split('/')[1];
+             
+    if (!postId) {
+      return res.status(400).send('No se encontro el Id');
+    }             
+
+    return firestore.collection("cobranzas").doc(postId)
+                    .get()
+                    .then( (document) => {        
+        
+      if (document.exists) {
+
+        let docId = document.id;
+        let name = document.data().name;          
+      
+        let preview_image = document.data().preview_image;          
+        let title = "Mensaje para " + name;
+        const htmlString = buildHTMLForPage(docId, title, name, preview_image);
+
+        console.log("_________________________");
+        console.log(htmlString);
+        
+        return res.status(200).send(htmlString);
+      
+      } else {
+        return res.status(403).send("Document do not exit");
+      }        
+
+    }).catch((error) => {    
+        console.log("Error getting document:", error);
+        return res.status(404).send(error);
+    });
+
+    function buildHTMLForPage (docId, title, nombre, image) {      
+     var _html = '<!DOCTYPE html><head>' +          
+     '<meta property="og:title" content="' + nombre + '">' +                    
+     '<meta property="og:image" content="' + image + '"/>' +
+     '<title>' + title + '</title>';                
+     let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
+     var _script;                
+     _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
+     _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
+     _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
+     _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
+     _script += `<script>${_javascript}</script>`;
+     _html = _html + _script + '</head>';        
+     return _html;
+   } 
+    
+  };     
+
+
+
+  const action = async function(req, res) { 
+
+    let option = req.path.split('/')[2]; 
+    var collection = req.body.data.collection; 
+    
+    console.log("option: " +option);
+
+    switch (option) {
+
+      case OPTION_EXPORT:          
+         
+          //http://localhost:5000/export/cobranzas
+          //https://noti.ms/export/cobranzas                 
+
+          try {
+
+            firestoreService
+            .backup(collection)
+            .then(data => {  
+              return res.status(200).send(data);          
+            }).catch((error) => {                
+              console.log('Error getting sertvice backup');
+              return res.status(400).send(error);                
+            });  
+            
+          } catch (e) {
+              console.error(e);
+              return res.status(400).send(error);                
+          }
+
+        break;
+
+        case OPTION_IMPORT: 
+          
             //http://localhost:5000/import/cobranzas
             //https://noti.ms/import/cobranzas
 
@@ -475,764 +948,18 @@
             console.error(e);
             return e;
           }  
-          
-        } else if (pathParams[1] === "composer") {         
 
-            
-           // COMPOSER
-           // PREVIEW
-           // WEB           
-
-            if (pathParams[2] === "preview") {
-
-              return res.status(200).sendFile( path.join(__dirname + '/../public/html/preview_composer.html' ));
-
-            } else if (pathParams[2] === "campaign") {
-
-              return res.status(200).sendFile( path.join(__dirname + '/../public/html/campaign_composer.html' ));
-
-            } else if (pathParams[2] === "web") {
-
-              return res.status(200).sendFile( path.join(__dirname + '/../public/html/web_composer.html' ));
-
-            } else {
-            
-              return res.status(200).sendFile( path.join(__dirname + '/../public/html/composer.html'));            
-
-            }        
-      
-        } else {
-
-        
-         // SHOW CARD        
-        
-          const postId = pathParams[1];   
-                
-          if (!postId) {
-            return res.status(400).send('No se encontro el Id');
-          }             
-
-          return firestore.collection("cobranzas").doc(postId)
-                          .get()
-                          .then( (document) => {        
-              
-            if (document.exists) {
-
-              let docId = document.id;
-              let name = document.data().name;          
-            
-              let preview_image = document.data().preview_image;          
-              let title = "Mensaje para " + name;
-              const htmlString = buildHTMLForPage(docId, title, name, preview_image);
-
-              console.log("_________________________");
-              console.log(htmlString);
-              
-              return res.status(200).send(htmlString);
-            
-            } else {
-              return res.status(403).send("Document do not exit");
-            }        
-
-          }).catch((error) => {    
-              console.log("Error getting document:", error);
-              return res.status(404).send(error);
-          });
-
-        }     
-
-        function buildHTMLForPage (docId, title, nombre, image) {      
-          var _html = '<!DOCTYPE html><head>' +          
-          '<meta property="og:title" content="' + nombre + '">' +                    
-          '<meta property="og:image" content="' + image + '"/>' +
-          '<title>' + title + '</title>';                
-          let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
-          var _script;                
-          _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
-          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
-          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
-          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
-          _script += `<script>${_javascript}</script>`;
-          _html = _html + _script + '</head>';        
-          return _html;
-        }  
-
-    });
-
-
-
-    exports.gateways = functions.https.onRequest( async (req, res) => {
-
-      var autorization = req.body.data.autorization; 
-		
-      var buff = Buffer.from(autorization, 'base64'); 
-      let key = buff.toString('ascii');  
-      var keys = key.split(":");     
-      let user = keys[0];
-      let pass = keys[1];
-  
-      console.log("user: " +user);
-      console.log("pass: " + pass);	
-  
-      if ( (user === "admin") && (pass === "Notimation2020") ) {
-  
-        switch (req.url.split('/')[1]) {			
-          case 'simnumbers': simnumbers(req, res); break;
-          case 'send': send(req, res); break;
-          case 'convert': convertHtmlToImage(req, res); break;
-          default: getDefault(req, res);
-        }	
-  
-      } else {
-  
-        res.status(401).send("Invalid authorization");  
-      }
-
-    });
-
-
-    const send = async function(req, res) {  
-      
-      var _gateway = req.body.data.gateway;        
-
-    };
-
-
-    const switchannel = async function(req, res, slot) {
-
-      var options = {
-        method: 'POST',
-        uri: "http://s" + _gateway + ".notimation.com/5-9-2SIMSwitch.php",
-        headers : {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
-          'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
-        },
-        form: {
-          action: 'SIMSwitch',
-          info: '1:0'
-        }   
-
-      };
-
-      rp(options).then(function (body) {
-
-        let ports = parseInt(body.response);        
-        var _time =  new Date();
-      
-      }).catch(function (err) {          
-        res.status(400).send({"error" :err});
-      });    
-
-    };
-
-    
-    var ACTION_OBTAIN_TELCO = "action_obtain_telco";
-
-    const simnumbers = async function(req, res) {
-      
-      var _gateway = req.body.data.gateway;
-      
-      var options = {
-        method: 'POST',
-        uri: 'https://us-central1-notims.cloudfunctions.net/backend/gateway/switch',
-        body: {
-          data: {
-            all: false,
-            applyto: 0,
-            gateway:_gateway,
-            switch_strategy: 5,
-            url : ".notimation.com/en/5-9-1SIMSet.php?id=",
-            autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-          }
-        },
-        json: true 
-      };
-
-      rp(options).then(function (body) {
-       
-         let ports = parseInt(body.ports);        
-         var _time =  new Date();
-
-         firestore.collection('gateways')
-          .doc(`S${_gateway}`)       
-          .update({ 
-            ports : ports,
-            action: ACTION_OBTAIN_TELCO,            
-            last_update: _time 
-          }).then(function(document) {            
-            return actions(req, res, ACTION_OBTAIN_TELCO);
-          }).catch((error) => {
-            console.log('Error updating collection:', error);
-            res.status(400).send({"error" :err});
-          });
-
-          return body;
-
-      }).catch(function (err) {          
-        res.status(400).send({"error" :err});
-      });    
-
-  };
-
-
-  const actions = async function(req, res, action) {
-
-    switch (action) {
-
-      case ACTION_OBTAIN_TELCO:
-        console.log("show action");
-         return switchByChannel("A");
         break;
-      
+        
 
-    }
-
+      default:  
+        res.status(402).send("Option not found");
+      break;
+    }   
+    
   };
 
 
-
-  
-
-
-  /*exports.processAction = functions.firestore
-    .document('gateways/{number}')
-    .onWrite((change, context) => {    
-
-      const newValue = change.after.data();       
-      let action = newValue.action;
-
-      
-
-
-      return action;
-  }); */   
-
-
-
-  /*
-
-  for (var i=0; i<ports;i++) {
-              
-                var options = {
-                    method: 'POST',
-                    uri: 'http://s' + _gateway + '.notimation.com/5-9-2SIMSwitch.php',
-                    headers : {
-                      'Content-Type': 'application/x-www-form-urlencoded',
-                      'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
-                      'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
-                    },
-                    form: {
-                      'action': 'SIMSwitch',
-                      'info': i + ':0'
-                    }
-                };
-
-                rp(options).then(function (body) {
-
-                  if (i==(_gateway-1)) {
-
-                  }
-
-                }).catch(function (err) {          
-                  res.status(400).send({"error" :err});
-                });
-              
-           }
-
-           */
-   
-
-  /*var options = {
-    'method': 'POST',
-    'url': 'http://s2.notimation.com/5-9-2SIMSwitch.php',
-    'headers': {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
-      'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
-    },
-    form: {
-      'action': 'SIMSwitch',
-      'info': '1:0'
-    }
-  };
-
-  request(options, function (error, response, body) {       
-
-      if (!error) {
-
-          var obj = eval('(' + body + ')');
-          var json = JSON.stringify(obj); 
-          
-          console.log("body: " + JSON.stringify(json));
-          
-          res.send(json);                         
-          
-      } else { 
-
-          var _error = JSON.parse(error);
-          res.send(_error);
-          return error;
-      }
-
-  });*/
-
-
-  exports.parseTable = functions.https.onRequest( async (req, res) => {
-
-      (async () => {              
-
-          var autorization = req.body.data.autorization; 
-
-          console.log("autorization: " + autorization);
-      
-          let browser = await puppeteer.launch({
-              headless: true,
-              args: ['--no-sandbox', '--disable-setuid-sandbox']
-          });
-
-          let page = await browser.newPage();              
-
-          await page.authenticate({'username':'admin', 'password': 'Notimation2020'});            
-
-          let url = "http://s5.notimation.com/en/9-7reboot.php"
-
-          await page.goto(url);         
-
-          await page.waitForSelector("#Reboot1", {
-            visible: true,
-          });  
-
-          await page.on('dialog', async dialog => {              
-            await dialog.accept();	                  
-            return res.status(200).send({"status":"rebooted"});
-          });
-                                       
-          //submit
-          await page.click('#Reboot1');     
-          
-      })();
-
-  });     
-
-  
-      /*
-      let pagenumber = parseInt(req.body.data.pagenumber); 
-          let channel = parseInt(req.body.data.channel); 
-
-          let url = "http://s5.notimation.com/en/5-3-1SMSinfo.php?ch=" + channel + "&type=r&card=T&page=" + pagenumber;
-
-          var pageselector = 'input[name=topage]';
-
-          await page.waitForSelector(pageselector, {
-            visible: true,
-          });    
-
-          //var el = await page.$(pageselector);
-          //var currentpage = parseInt(await page.evaluate(el => el.value, el));         
-          //if (pagenumber != currentpage) {
-          //  console.log("entra");
-          //  await page.focus(pageselector);
-          //  await page.keyboard.type(pagenumber.toString());            
-          //  const buttons = await page.$$('input[type=button]');
-          //  var totalbuttons = buttons.length;
-          //  await new Promise((resolve, reject) => {
-          //    buttons.forEach(async (button, i) => {  
-          //      var text = await page.evaluate(button => button.value, button);  
-          //      if (text == "GO") {
-          //        button.click();
-          //        resolve();
-          //      }
-          //    });
-          //  });
-          //  await page.waitForNavigation();           
-          //}
-
-          try {   
-
-            const lrows = await page.$$('.wid1 tbody tr td a[href]');
-            var total = lrows.length;
-            
-            console.log("total: " + total);
-
-            var jsonArray = [];          
-
-            await new Promise((resolve, reject) => {
-              lrows.forEach(async (link, i) => {                       
-
-                let linkclick = await page.evaluate(link => link.getAttribute('onclick'), link);                          
-                let lars = linkclick.split("load_messageinfo");
-                let outputstr = lars[1].replace(/'/g,'');
-                var rawtext = outputstr.replace("(", "").replace(");", "").toString();                                                        
-                  
-                if ( rawtext.includes("Bienvenido a Personal") ) {                   
-
-                    //var tdparent = (await link.$x('..'))[0]; 
-                    //var tr = (await tdparent.$x('..'))[0];                    
-                    //var gpt = await page.evaluate(tr => tr.textContent, tr);                                      
-                    //var removed = gpt.replace(/[ ,.]/g, "");
-                    //let ports = removed.split(" ");                   
-                    //let port = ports[3];
-                    //let from = ports[6];
-
-                    let raws = rawtext.split(",");
-
-                    let chnl = parseInt(raws[1]);
-                    let remote = raws[2];
-                    let time = raws[3];
-                    let content = raws[4];
-                    let simnumber = content.match(/{([^}]+)}/)[1];                  
-                    let portnumber = content.split("-{")[0];                
-                    let port = (chnl+1) + portnumber;                    
-
-                    let jsondata = `{
-                      "channel":"${chnl}",
-                      "remote_number":"${remote}",
-                      "time":"${time}",
-                      "sim_number":"${simnumber}",
-                      "port":"${port}"          
-                    }`;                   
-
-                    jsonArray.push(jsondata);                                           
-                }
-
-                console.log("i: " + i);
-
-                if (i==(total-1)) { 
-                  resolve();
-                }
-
-              });        
-
-            });
-
-            let jalength = jsonArray.length;
-            var json = `{"rows":${jalength},"sim_numbers":[`;            
-
-            console.log("jalength: " + jalength);
-              
-            if (jalength>0) {
-
-              for (var j=0; j<jalength;j++) {
-                
-                json += jsonArray[j];            
-                
-                if (j==(jalength-1)) {                  
-                  json += "]}";							                    
-                } else {
-                  json += ",";
-                }
-              }           
-              
-            } else {           
-              json += `0]}`;            
-            }         
-
-            res.status(200).send(JSON.parse(json));
-
-      } catch (e) {
-        console.error(e);
-        res.status(400).send(e);
-        return e;
-      }
-      */
-            
-      /*const aresponses = await page.evaluate(
-        () => Array.from(
-          document.querySelectorAll('.wid1 tbody tr td a[href]'),
-          a => a.getAttribute('onclick')
-        )
-      );  
-
-      await new Promise((resolve, reject) => {
-        aresponses.forEach(async (link, i) => { 
-          
-          let linkclick = await link.getAttribute('onclick');
-
-          console.log("linkclick: " + linkclick);
-
-          let lars = linkclick.split("load_messageinfo");
-          var outputstr = lars[1].replace(/'/g,'');
-          var raw = outputstr.replace("(", "").replace(");", "");   
-          
-          //var tdport = (await link.$x('..'))[0];  
-          //var textport = await tdport.evaluate(tdport => tdport.textContent, tdport);  
-
-          if (raw.includes("Bienvenido a Personal")) {
-
-            //console.log("textport: " + textport);
-
-            console.log("raw: " + raw);
-
-            var phonenumber = raw.substring (
-              raw.lastIndexOf("linea es ") + 9, 
-              raw.lastIndexOf(". Para mas")
-            );
-            console.log("----------------");
-            console.log("phonenumber: " + phonenumber);
-
-            //json += `{"port":"${port}","phonenumber":"${phonenumber}","channel":"${i+1}"}`;           
-
-          }
-
-          for (var j=0; i<lars.length; j++) {
-            let t = lars[j];  
-            console.log(t);          
-          }
-
-          var phonenumber = content.substring (
-            content.lastIndexOf("linea es ") + 1, 
-            content.lastIndexOf(". Para mas")
-          );
-
-          resolve();
-
-        });        
-
-      });*/
-      
-      //console.log("acontent: " + acontent.length);
-      
-      /*const nrows = await page.$$('.wid1 > tbody > tr');
-      var total = nrows.length;
-
-      console.log("total: " + total);
-
-      var json = `{"ports":${total},"numbers":[`;
-
-      await new Promise((resolve, reject) => {
-        nrows.forEach(async (row, i) => {  
-
-          console.log("_______i_______> " + i);
-
-          var tdport = (await row.$x('td'))[2];
-          var port = await page.evaluate(tdport => tdport.textContent, tdport);                                                 
-
-          console.log("port: " + port);
-
-         
-
-          //console.log("acontent: " + acontent);
-
-          let content = acontent.jsonValue();
-
-          var phonenumber = content.substring(
-            content.lastIndexOf("linea es ") + 1, 
-            content.lastIndexOf(". Para mas")
-          );
-          
-          
-          console.log("phonenumber: " + phonenumber);
-
-          console.log("______________");
-          
-          json += `{"port":"${port}","phonenumber":"${phonenumber}","channel":"${i+1}"}`;           
-
-          if (i==(nrows.length-1)) { 
-            json += "]}";
-            console.log("json: " + json);
-            resolve();
-          } else {
-            json += ",";
-          }
-
-        });       
-
-      });*/
-
-      //res.status(200).send(json);
-
-      /*await page.goto('http://s5.notimation.com/en/5-3-2SMSsend.php?ch=0');                 
-      
-      try {           
-                                  
-        const phoneInput = 'textarea[name=sendtoPhoneNumber]';
-        const phoneNumber = req.body.data.phone;
-        await page.waitForSelector( phoneInput, { timeout: 0 });
-        await page.focus(phoneInput);
-        await page.keyboard.type(phoneNumber);
-
-        const msgInput = 'textarea[name=MessageInfo]';
-        const msg = req.body.data.message;
-        await page.waitForSelector( msgInput, { timeout: 0 });
-        await page.focus(msgInput);
-        await page.keyboard.type(msg);
-
-        await page.on('dialog', async dialog => {                               
-          await dialog.accept();	                  
-        });
-                     	              
-        //submit
-        await page.click('#send');     
-      
-        await page.waitForFunction('document.getElementById("SMSResult").value != ""');
-        var el = await page.$("#SMSResult");
-        var resutl = await page.evaluate(el => el.value, el); 
-
-        await browser.close();
-
-        return res.status(200).send({"restult":resutl}); 		        
-
-      } catch (e) {
-        console.error(e);
-        res.status(400).send(e);
-        return e;
-      }*/
-
-      /*await page.goto('http://s2.notimation.com/en/1-2chstatus.php');            
-      
-      const srows = await page.$$('.wid1 > tbody > tr');
-      var total = srows.length;
-
-      console.log("total: " + total);
-
-      var json = `{"ports":${total},"consumption":[`;
-
-      await new Promise((resolve, reject) => {
-        srows.forEach(async (row, i) => {  
-
-          var tdstatus = (await row.$x('td'))[7];          
-          const stat = await (await tdstatus.getProperty('title')).jsonValue();                   
-         
-          let spl = stat.split("[");   
-          let a = spl[1].split("]")[0];
-          let b = spl[2].split("]")[0];
-          let c = spl[3].split("]")[0];
-          let d = spl[4].split("]")[0];                    
-         
-          var tdop = (await row.$x('td'))[13];
-          var operator = await page.evaluate(tdop => tdop.textContent, tdop);                             
-          
-          json += `{"port":"${i+1}","operator":"${operator}","channel":{"A":"${a}","B":"${b}","C":"${c}","D":"${d}"}}`;           
-          
-          if (i==(srows.length-1)) { 
-            json += "]}";
-            console.log("json: " + json);
-            resolve();
-          } else {
-            json += ",";
-          }
-
-        });       
-
-      });
-
-      console.log("-------------");
-
-      res.status(200).send(json);*/
-
-      /*await page.goto('http://s2.notimation.com/en/10-6SMSManagement.php');            
-      
-      const crows = await page.$$('.wid1 > tbody > tr');
-      var total = crows.length;
-
-      console.log("total: " + total);
-
-      var json = `{"ports":${total},"consumption":[`;
-
-      await new Promise((resolve, reject) => {
-        crows.forEach(async (row, i) => {  
-
-          var td = (await row.$x('td'))[4];
-          var text = await page.evaluate(td => td.textContent, td);  
-          
-          let spl = text.split("[");        
-          let a = parseInt(spl[1].split("]")[0]);
-          let b = parseInt(spl[2].split("]")[0]);
-          let c = parseInt(spl[3].split("]")[0]);
-          let d = parseInt(spl[4].split("]")[0]); 
-
-          json += `{"port":"${i+1}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           
-
-          console.log("text: " + text);
-          console.log("a: " + a);
-          console.log("b: " + b);
-          console.log("c: " + c);
-          console.log("d: " + d);    
-          
-          if (i==(crows.length-1)) { 
-            json += "]}";
-            console.log("json: " + json);
-            resolve();
-          } else {
-            json += ",";
-          }
-        });       
-
-      });
-
-
-      console.log("-------------");
-
-      res.status(200).send(json);*/
-
-      /*
-      await page.goto('http://s8.notimation.com/en/5-9SIM.php');       
-
-      var c = 0;
-      var r = 0;
-      var k = 0;
-      
-      const rows = await page.$$('.wid1 > tbody > tr > td i');
-      var total = rows.length;
-
-      var json = `{"channels":${total/4},"ports":${total},"sims":[`;
-
-      await new Promise((resolve, reject) => {
-        rows.forEach(async (row, i) => {         
-          
-          var parent = (await row.$x('..'))[0];  
-          var text = await page.evaluate(parent => parent.textContent, parent);                
-          var t = text.replace(/\s+/g, '');
-          
-          switch (c) {
-            case 0:
-              k = r + 1;
-              let aj = `{"port":"${k}","channel":[{"card":"A","status":"${t}"}`;
-              json += aj;
-            break;
-            case 1:      
-              let bj = `{"card":"B","status":"${t}"}`;
-              json += bj;
-            break;
-            case 2:              
-              let cj = `{"card":"C","status":"${t}"}`;
-              json += cj;
-            break;
-            case 3:
-              var dj = `{"card":"D","status":"${t}"}]}`;              
-              if (i<(total-1)) {     
-                dj += ",";
-              }
-              json += dj;
-            break;
-          }         
-
-          if (c==3) {                        
-            c=0;          
-            r++;
-            if (i==(rows.length-1)) { 
-              let tj = "]}";
-              json += tj;              
-              resolve();         
-            }         
-          } else {                   
-            let ej = "," ;
-            json += ej;                
-            c++;
-          }             
-        });
-      });*/      
-
-      //res.status(200).send(json);
-
-     
-
-      //return json;
-
-    //})();
-      
-  //});
 
 
 

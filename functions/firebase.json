@@ -11,7 +11,7 @@
     ],
     "rewrites": [ { 
       "source": "/**", 
-      "function": "buildHtml" 
+      "function": "backend" 
       }    
     ]
   },
