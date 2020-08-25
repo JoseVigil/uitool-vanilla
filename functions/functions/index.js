@@ -490,34 +490,50 @@
                               console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!!");
                             }
                             
-                            console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
+                            console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");                         
+
+                            var jsonCards = `{`;
+                            var countAdded=0;
                             
+                            await obj.channel.forEach( async (channel) => {                                                                      
+                         
+                              console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!");                           
 
-                            var jsonPort;                                               
-                            await obj.channel.forEach( async (channel) => {
-                              
-                              let card = channel.card;                                                            
-                              jsonPort = {
-                                card : card,
-                                status : channel.status
-                              };                                                 
+                              jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;                                                                                                             
 
-                              return portRef.collection("sims").doc(portName).set(jsonPort)
-                              .then( async () => {                                
-                                
-                                if (card === "D") {
-                                  if (countPots === (simsLength-1)) {
-                                    console.log("");
-                                    console.log("");
-                                    res.status(200).send({"result" : true});
-                                  }  
-                                  countPots++;
-                                }                                    
-                                
-                              }).catch((error) => {
-                                console.log('Error updating collection:', error);
-                                res.status(400).send({"error" :err});
-                              });                                                      
+                              if (countAdded === 3) {
+
+                                  jsonCards += `}`;
+
+                                  console.log("jsonCards: " +jsonCards);
+                                  
+                                  let jsonPorts = JSON.parse(jsonCards);
+                                  countAdded=0;
+
+                                  var simsRef = await portRef.collection("sims").doc(portName);
+
+                                 return simsRef.set(jsonPorts,{merge:true})
+                                  .then( async (pdoc) => {                                                                                                  
+                                    
+                                      if (countPots === (simsLength-1)) {                                      
+                                        res.status(200).send({"result" : true});
+                                      }  
+                                      countPots++;                                                        
+                                    
+                                  }).catch((error) => {
+                                    console.log('Error updating collection:', error);
+                                    res.status(400).send({"error" :err});
+                                  });   
+
+
+                              } else {
+
+                                jsonCards += `,`;
+                                countAdded++;
+
+                              } 
+
+                                                                                 
                                 
                             });
                           });                        
@@ -525,10 +541,7 @@
                       }).catch((error) => {
                         console.log('Error updating collection:', error);
                         res.status(400).send({"error" :err});
-                      });                      
-
-                                 
-
+                      });    
                       
 
                   } catch (e) {
