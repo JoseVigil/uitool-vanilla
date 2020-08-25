@@ -399,175 +399,136 @@
       
     exports.schedule = functions.https.onRequest( async (req, res) => {             
 
-      var gatewaysRef = firestore.collection('gateways');
+        var gatewaysRef = firestore.collection('gateways');
+        var _autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
 
-      /*var url_sims, url_base, url_consumption, 
-      url_base, url_send, url_switch, url_domain,
-      url_base_remote, url_base_local, parmas_using;*/
+        var urlObj = {};     
+        var cards = [];
 
-      var _autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
+        var result = await gatewaysRef.get().then( async (querySnapshot) => {     
+            querySnapshot.forEach( async (doc) => {                      
 
-      var obj = {};   
+              if (doc.id=="urls") {             
+                
+                console.log("cards: " + JSON.stringify(cards));
+                urlObj.url_domain      = doc.data().url_domain;   
+                urlObj.url_using       = doc.data().url_using;   
+                urlObj.url_base        = doc.data().url_base;   
+                urlObj.url_consumption = doc.data().url_consumption;   
+                urlObj.url_base        = doc.data().url_base;   
+                urlObj.url_switch      = doc.data().url_switch;   
+                urlObj.url_base_remote = doc.data().url_base_remote;  
+                urlObj.url_base_local  = doc.data().url_base_local;  
+                urlObj.parmas_using    = doc.data().parmas_using; 
 
-      gatewaysRef.get().then( async (querySnapshot) => {     
-          querySnapshot.forEach( async (doc) => {           
-            
-            if (doc.id==="S2") {              
-              obj.gateway = doc.data().gateway;   
-              obj.number = doc.data().number;   
-              obj.position = doc.data().position;  
-              obj.id = doc.id;  
-            }
+              } else {
 
-            if (doc.id==="urls") {
-
-              obj.url_domain      = doc.data().url_domain;   
-              obj.url_using        = doc.data().url_using;   
-              obj.url_base        = doc.data().url_base;   
-              obj.url_consumption = doc.data().url_consumption;   
-              obj.url_base        = doc.data().url_base;   
-              obj.url_switch      = doc.data().url_switch;   
-              obj.url_base_remote = doc.data().url_base_remote;  
-              obj.url_base_local  = doc.data().url_base_local;  
-              obj.parmas_using    = doc.data().parmas_using;                            
-          
-              console.log("");
-              console.log("");
-              console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-              console.log("     !!!!!!!!!! GATEWAY " + obj.gateway + " !!!!!!!!!!");
-              console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-              console.log("");
-              
-              var uri_remote = obj.url_base_remote + obj.parmas_using;
-              var url_gateway = obj.url_domain + obj.url_using;              
-
-              var options = {
-                method: 'POST',
-                uri: uri_remote,
-                body: {
-                  data: {
-                    gateway: obj.number,            
-                    url : url_gateway,                    
-                    autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                  }
-                },
-                json: true 
-              };               
-          
-              rp(options).then( async function (body) {                  
-
-                    try {
-
-                      console.log("");
-                      console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
-                      console.log("     !!!!!!!!! Channels " + body.response.channels + " !!!!!!!!!!");
-                      console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
-                      console.log("");                         
-                     
-
-                      var channels = body.response.channels; 
-                      var ports = body.response.ports;                    
-
-                      var portRef = firestore.collection('gateways').doc(obj.gateway);
-
-                      return portRef.set({ 
-                        channels : channels,
-                        ports: ports,
-                      },{merge:true}).then( async () => {                      
-                          
-                          var simsJeys = Object.keys(body.response.sims);
-                          var simsLength = simsJeys.length;                     
+                let icard =  {
+                  gateway : doc.data().gateway,   
+                  number : doc.data().number,   
+                  position : doc.data().position,
+                  id : doc.id
+                };
     
-                          var countPots = 0;    
-                          await body.response.sims.forEach( async (obj) => {                               
+                cards.push(icard);
+              }
 
-                            var portName = "port" + obj.port;                                                     
+            });
+        });
 
-                            console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
-                            if (parseInt(obj.port)>9) {
-                              console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!");
-                            } else {
-                              console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!!");
-                            }
-                            
-                            console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");                         
+        var ps = [];
 
-                            var jsonCards = `{`;
-                            var countAdded=0;
-                            
-                            await obj.channel.forEach( async (channel) => {                                                                      
-                         
-                              console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!");                           
+        await cards.forEach( async (card) => {    
 
-                              jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;                                                                                                             
+            let uri_remote = urlObj.url_base_remote + urlObj.parmas_using;
+            let url_gateway = urlObj.url_domain + urlObj.url_using;              
 
-                              if (countAdded === 3) {
+            let options = {
+              method: 'POST',
+              uri: uri_remote,
+              body: {
+                data: {
+                  gateway: card.number,            
+                  url : url_gateway,                    
+                  autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                }
+              },
+              json: true 
+            };    
 
-                                  jsonCards += `}`;
+            ps.push(rp(options));         
 
-                                  console.log("jsonCards: " +jsonCards);
-                                  
-                                  let jsonPorts = JSON.parse(jsonCards);
-                                  countAdded=0;
+        }); 
 
-                                  var simsRef = await portRef.collection("sims").doc(portName);
+        var _results;
+        var promises_sims = [];
 
-                                 return simsRef.set(jsonPorts,{merge:true})
-                                  .then( async (pdoc) => {                                                                                                  
-                                    
-                                      if (countPots === (simsLength-1)) {                                      
-                                        res.status(200).send({"result" : true});
-                                      }  
-                                      countPots++;                                                        
-                                    
-                                  }).catch((error) => {
-                                    console.log('Error updating collection:', error);
-                                    res.status(400).send({"error" :err});
-                                  });   
+        Promise.all(ps)
+        .then((results) => {
 
+            _results = results;        
+            return results;
 
-                              } else {
+        }).then((results) => {
 
-                                jsonCards += `,`;
-                                countAdded++;
+            var promises_gateway = [];
 
-                              } 
+            results.forEach( async (result) => {
 
-                                                                                 
-                                
-                            });
-                          });                        
-                      
-                      }).catch((error) => {
-                        console.log('Error updating collection:', error);
-                        res.status(400).send({"error" :err});
-                      });    
-                      
+              let response  = result.response;
+              let gateway   = "S" + response.gateway;
+              let channels  = response.channels;
+              let ports     = response.ports;               
+              
+              response.sims.forEach( async (obj) => {                 
+                var portName = "port" + obj.port;                                                                     
+                var jsonCards = `{`;
+                var countAdded=0;                
+                obj.channel.forEach( async (channel) => {
+                  jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;                                                                                                             
+                  if (countAdded === 3) {
+                      jsonCards += `}`;                     
+                      let jsonPorts = JSON.parse(jsonCards);
+                      countAdded=0;
+                      promises_sims.push(firestore.collection('gateways').doc(gateway)
+                      .collection("sims").doc(portName).set(jsonPorts,{merge:true}));
+                  } else {
+                    jsonCards += `,`;
+                    countAdded++;
+                  }                                        
+                });
+              });   
 
-                  } catch (e) {
-                    console.error(e);
-                    return res.status(400).send(e);                
-                  }
+              promises_gateway.push(
+                firestore.collection('gateways').doc(gateway)
+                .set({channels : channels, ports: ports},{merge:true})
+              );  
+              
+            });
 
-              }).catch(function (err) {     
-                console.log('------ERROORRR----------');      
-                return res.status(400).send({"error" :err});
-              });               
+            return Promise.all(promises_gateway);  
 
-            }            
-            
+        }).then((documents) => {
+          
+          return Promise.all(promises_sims); 
 
-          });
+        }).then((documents) => {
 
-          return querySnapshot;
+          res.status(200).send({"result":"success"});            
 
-      }).catch(err => {
-          console.log('Error getting documents', err);
-      });
+        }).catch((error) => {
 
-      return gatewaysRef;
+          console.log(err); 
+          res.status(400).send({"result" : "error", "" : err});
 
-    });
+        });
+           
+     });
+
+    
+          
+
+         
 
     var OPTION_ACTION           = 'action';
     var OPTION_GATEWAY          = 'gateway';

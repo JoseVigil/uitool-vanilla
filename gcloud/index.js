@@ -68,7 +68,7 @@
 			case OPTION_STATUS: 
 			case OPTION_REBOOT: 								 
 				let url = "http://s" + gateway + req.body.data.url;
-				let params = { "option" : option, "url" : url	};
+				let params = { "option" : option, "url" : url, "gateway" : gateway };
 				return browse(req, res, params);
 				break;		
 
@@ -133,6 +133,8 @@
 
 						try { 
 
+							let gateway = params.gateway;	
+
 							var c = 0;
 							var r = 0;
 							var k = 0;
@@ -140,7 +142,7 @@
 							const urows = await page.$$('.wid1 > tbody > tr > td i');
 							var total = urows.length;
 
-							var ujson = `{"channels":${total/4},"ports":${total},"sims":[`;
+							var ujson = `{"gateway":${gateway}, "channels":${total/4},"ports":${total},"sims":[`;
 
 							await new Promise((resolve, reject) => {
 								urows.forEach(async (row, i) => {         
