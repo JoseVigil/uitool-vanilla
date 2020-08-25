@@ -191,9 +191,10 @@
 								  } 
 
 								});
-							});      
+							});
+  
 
-							return res.status(200).send(ujson);
+							return res.status(200).send({"response":JSON.parse(ujson)});
 
 						} catch (e) {							
 							return res.status(500).send(e);							

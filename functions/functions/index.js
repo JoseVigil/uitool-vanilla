@@ -361,7 +361,6 @@
                 pdfDocGenerator.getBuffer(function(buffer) {
                   fs.writeFileSync('example.pdf', buffer);
                 });
-
                                 
                 return userRef.update({
                   image_path: image_path,
@@ -392,7 +391,7 @@
 
     exports.test = functions.https.onRequest( async (req, res) => {      
 
-      return parsethis;
+      return null;
     
     });
     
@@ -409,139 +408,141 @@
       var _autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
 
       var obj = {};   
-      var count = 0;
 
-      gatewaysRef.get().then( async (querySnapshot) => {  
-        
-          var length = querySnapshot.length;
-          console.log('length:' + length);
-        
-          querySnapshot.forEach( async (doc) => {
+      gatewaysRef.get().then( async (querySnapshot) => {     
+          querySnapshot.forEach( async (doc) => {           
             
-            let docId = doc.id;
-            console.log('docId:' + docId);
-
-            /*"url_domain": ".notimation.com",
-            "url_switch": "/en/5-9-1SIMSet.php",
-            "url_send": "/en/5-3-2SMSsend.php?ch",
-            "url_consumption": "/en/10-6SMSManagement.php",
-            "url_base": "http://s",
-            "url_sims": "/en/5-9SIM.php",*/                       
-            
-            if (docId==="S2") {              
+            if (doc.id==="S2") {              
               obj.gateway = doc.data().gateway;   
               obj.number = doc.data().number;   
               obj.position = doc.data().position;  
-              obj.id = docId;  
+              obj.id = doc.id;  
             }
 
-            if (docId==="urls") {
+            if (doc.id==="urls") {
 
-              obj.url_domain = doc.data().url_domain;   
-              obj.url_sims = doc.data().url_sims;   
-              obj.url_base = doc.data().url_base;   
+              obj.url_domain      = doc.data().url_domain;   
+              obj.url_using        = doc.data().url_using;   
+              obj.url_base        = doc.data().url_base;   
               obj.url_consumption = doc.data().url_consumption;   
-              obj.url_base = doc.data().url_base;   
-              obj.url_switch = doc.data().url_switch;   
+              obj.url_base        = doc.data().url_base;   
+              obj.url_switch      = doc.data().url_switch;   
               obj.url_base_remote = doc.data().url_base_remote;  
-              obj.url_base_local = doc.data().url_base_local;  
-              obj.parmas_using = doc.data().parmas_using;                
-            
-            //}
-
-            //if (count === (length-1)) {
-
-              /*console.log("Calling function");
-              console.log(">>>>>>>>>>>>>>>>>>>> POST <<<<<<<<<<<<<<<<<<<<<<<<");
-              console.log(">>>>>>>>gateway " + obj.gateway);
-              console.log(">>>>>>>>number " + obj.number);
-              console.log(">>>>>>>>position " + obj.position);
-              console.log("------------------------------------------");
-              console.log(">>>>>>>>url_base_local " + obj.url_base_local);
-              console.log(">>>>>>>>parmas_using " + obj.parmas_using);*/
-
-              console.log(">>>>>>>>>>>>>>>>>======================");
-
-              /*let uri  = obj.url_base_local + obj.parmas_using;
-              let uri_remote = obj.url_base_remote + obj.parmas_using;
-              console.log("uri: "  + uri);
-              var options = {
-                method: 'POST',
-                uri: uri,
-                body: {
-                  data: {
-                    gateway: obj.number,            
-                    url : obj.url_sims,
-                    url_remote : uri_remote,
-                    autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                  }
-                },
-                json: true 
-              };    
+              obj.url_base_local  = doc.data().url_base_local;  
+              obj.parmas_using    = doc.data().parmas_using;                            
           
-              rp(options).then(function (body) {               
-                return res.status(200).send({"response" :body});
-              }).catch(function (err) {           
-                return res.status(400).send({"error" :err});
-              });*/ 
-                           
-              let uri_remote = obj.url_base_remote + obj.parmas_using;
-              let url_gateway = obj.url_domain + obj.url_sims; 
+              console.log("");
+              console.log("");
+              console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+              console.log("     !!!!!!!!!! GATEWAY " + obj.gateway + " !!!!!!!!!!");
+              console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+              console.log("");
+              
+              var uri_remote = obj.url_base_remote + obj.parmas_using;
+              var url_gateway = obj.url_domain + obj.url_using;              
 
-              /*var options = {
+              var options = {
                 method: 'POST',
                 uri: uri_remote,
                 body: {
                   data: {
-                    gateway: obj.number, //`"${obj.number}"`,            
-                    url : url_gateway,
+                    gateway: obj.number,            
+                    url : url_gateway,                    
                     autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
                   }
                 },
                 json: true 
-              };    
-        
-              console.log(JSON.stringify(options));*/
-
-              try {
-
-                let json = "{\"response\":{\"channels\":16,\"ports\":64,\"sims\":[{\"port\":\"1\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Using\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"2\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"3\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"4\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"5\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"6\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"7\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"8\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Using\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"9\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"10\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"11\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Using\"}]},{\"port\":\"12\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"13\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"14\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"15\",\"channel\":[{\"card\":\"A\",\"status\":\"Exist\"},{\"card\":\"B\",\"status\":\"Using\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]},{\"port\":\"16\",\"channel\":[{\"card\":\"A\",\"status\":\"Using\"},{\"card\":\"B\",\"status\":\"Exist\"},{\"card\":\"C\",\"status\":\"Exist\"},{\"card\":\"D\",\"status\":\"Exist\"}]}]}}";
+              };               
           
-                let pjson = JSON.parse(json);
+              rp(options).then( async function (body) {                  
 
-                /*rp(options).then(function (body) {               
-                  return res.status(200).send({"response" :body});
-                }).catch(function (err) {           
-                  return res.status(400).send({"error" :err});
-                });*/    
+                    try {
 
-                console.log('Pasa----'+obj.id);
+                      console.log("");
+                      console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
+                      console.log("     !!!!!!!!! Channels " + body.response.channels + " !!!!!!!!!!");
+                      console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
+                      console.log("");                         
+                     
 
-                firestore.collection('gateways').doc(obj.id).update({ 
-                  channels : pjson.response.channels,
-                  ports: pjson.response.ports,            
-                  sims : pjson.response.sims,
-                },{merge:true}).then(function(document) {                      
-                  
-                  console.log('Updated:'+document.id);
-                  res.status(200).send({"updated" :document.id});
+                      var channels = body.response.channels; 
+                      var ports = body.response.ports;                    
 
-                }).catch((error) => {
-                  console.log('Error updating collection:', error);
-                  res.status(400).send({"error" :err});
-                });
+                      var portRef = firestore.collection('gateways').doc(obj.gateway);
 
-            } catch (e) {
-              console.error(e);
-              res.status(400).send(error);                
-            }
-               
-              
+                      return portRef.set({ 
+                        channels : channels,
+                        ports: ports,
+                      },{merge:true}).then( async () => {                      
+                          
+                          var simsJeys = Object.keys(body.response.sims);
+                          var simsLength = simsJeys.length;                     
+    
+                          var countPots = 0;    
+                          await body.response.sims.forEach( async (obj) => {                               
 
-            }
+                            var portName = "port" + obj.port;                                                     
+
+                            console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
+                            if (parseInt(obj.port)>9) {
+                              console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!");
+                            } else {
+                              console.log("     !!!!!!!!!!!  PORT " + obj.port + " !!!!!!!!!!!!");
+                            }
+                            
+                            console.log("     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      ");
+                            
+
+                            var jsonPort;                                               
+                            await obj.channel.forEach( async (channel) => {
+                              
+                              let card = channel.card;                                                            
+                              jsonPort = {
+                                card : card,
+                                status : channel.status
+                              };                                                 
+
+                              return portRef.collection("sims").doc(portName).set(jsonPort)
+                              .then( async () => {                                
+                                
+                                if (card === "D") {
+                                  if (countPots === (simsLength-1)) {
+                                    console.log("");
+                                    console.log("");
+                                    res.status(200).send({"result" : true});
+                                  }  
+                                  countPots++;
+                                }                                    
+                                
+                              }).catch((error) => {
+                                console.log('Error updating collection:', error);
+                                res.status(400).send({"error" :err});
+                              });                                                      
+                                
+                            });
+                          });                        
+                      
+                      }).catch((error) => {
+                        console.log('Error updating collection:', error);
+                        res.status(400).send({"error" :err});
+                      });                      
+
+                                 
+
+                      
+
+                  } catch (e) {
+                    console.error(e);
+                    return res.status(400).send(e);                
+                  }
+
+              }).catch(function (err) {     
+                console.log('------ERROORRR----------');      
+                return res.status(400).send({"error" :err});
+              });               
+
+            }            
             
-            count++;
-
 
           });
 

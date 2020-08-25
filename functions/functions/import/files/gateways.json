@@ -78,7 +78,7 @@
             "url_base_local": "http://localhost:5001/notims/us-central1",
             "url_base": "http://s",
             "url_switch": "/en/5-9-1SIMSet.php",
-            "url_sims": "/en/5-9SIM.php",
+            "url_using": "/en/5-9SIM.php",
             "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
             "url_consumption": "/en/10-6SMSManagement.php",
             "url_domain": ".notimation.com",
