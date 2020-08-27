@@ -7,21 +7,21 @@
             "subCollection": {}
         },
         "S10": {
-            "gateway": "S10",
             "position": 67,
             "number": 10,
+            "gateway": "S10",
             "subCollection": {}
         },
         "S11": {
             "gateway": "S11",
-            "number": 11,
             "position": 80,
+            "number": 11,
             "subCollection": {}
         },
         "S12": {
-            "number": 12,
-            "gateway": "S12",
             "position": 93,
+            "gateway": "S12",
+            "number": 12,
             "subCollection": {}
         },
         "S13": {
@@ -31,16 +31,28 @@
             "subCollection": {}
         },
         "S14": {
+            "number": 14,
             "gateway": "S14",
             "position": 119,
-            "number": 14,
             "subCollection": {}
         },
         "S2": {
-            "number": 2,
-            "position": 13,
             "gateway": "S2",
-            "subCollection": {}
+            "position": 13,
+            "number": 2,
+            "subCollection": {
+                "gateways/S2/sims": {
+                    "port2": {
+                        "B": {
+                            "status": "Empty"
+                        },
+                        "A": {
+                            "status": "Empty"
+                        },
+                        "subCollection": {}
+                    }
+                }
+            }
         },
         "S3": {
             "position": "20",
@@ -49,15 +61,15 @@
             "subCollection": {}
         },
         "S5": {
-            "number": "5",
-            "gateway": "S5",
             "position": 27,
+            "gateway": "S5",
+            "number": "5",
             "subCollection": {}
         },
         "S6": {
-            "gateway": "S6",
             "position": 34,
             "number": 6,
+            "gateway": "S6",
             "subCollection": {}
         },
         "S8": {
@@ -67,21 +79,22 @@
             "subCollection": {}
         },
         "S9": {
-            "number": 9,
             "gateway": "S9",
             "position": 54,
+            "number": 9,
             "subCollection": {}
         },
         "urls": {
-            "parmas_using": "/backend/gateway/using",
-            "url_send": "/en/5-3-2SMSsend.php?ch",
-            "url_base_local": "http://localhost:5001/notims/us-central1",
-            "url_base": "http://s",
-            "url_switch": "/en/5-9-1SIMSet.php",
+            "url_status": "/en/1-2chstatus.php",
             "url_using": "/en/5-9SIM.php",
-            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
-            "url_consumption": "/en/10-6SMSManagement.php",
+            "url_base_local": "http://localhost:5001/notims/us-central1",
             "url_domain": ".notimation.com",
+            "url_send": "/en/5-3-2SMSsend.php?ch",
+            "url_management": "/en/10-6SMSManagement.php",
+            "parmas_using": "/backend/gateway/using",
+            "url_switch": "/en/5-9-1SIMSet.php",
+            "url_base": "http://s",
+            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
             "subCollection": {}
         }
     }

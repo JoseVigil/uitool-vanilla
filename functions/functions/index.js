@@ -389,18 +389,349 @@
     }); 
 
 
-    exports.test = functions.https.onRequest( async (req, res) => {      
+    exports.test = functions.https.onRequest( async (req, res) => {   
+      
+      await cards.forEach( async (card) => {    
+
+        let uri_remote = urlObj.url_base_remote + urlObj.parmas_using;
+        let url_gateway = urlObj.url_domain + urlObj.url_using;              
+
+        let options = {
+          method: 'POST',
+          uri: uri_remote,
+          body: {
+            data: {
+              gateway: card.number,            
+              url : url_gateway,                    
+              autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+            }
+          },
+          json: true 
+        };    
+
+        ps.push(rp(options));         
+
+    }); 
 
       return null;
     
     });
+
+    exports.exist = functions.https.onRequest( async (req, res) => {       
+      
+
+      //console.log("json: " + JSON.stringify(options));
+
+      //rp(options).then(function (body) {      
+
+    });
+
+
+    exports.status = functions.https.onRequest( async (req, res) => {  
+
+
+      
+
+    });
+
+    exports.exist = functions.https.onRequest( async (req, res) => {  
+      
+      var channel = "A";
+      var position;
+
+      //var a_promise_switch = []; 
+      //var b_promise_switch = [];  
+      //var c_promise_switch = []; 
+      //var d_promise_switch = []; 
+      
+      //var a_promise_switch = await SwitchByGatewayAndChannel("S1","A");
+
+      
+      var urls = await UsingAll();     
+    
+      console.log("url_domain: " + urls.url_domain);
+      console.log("url_using: " + urls.url_using );
+      console.log("url_base: " + urls.url_base  );
+      console.log("");    
+      
+      StatusByGateway(1);
+
+      Promise.all(save_all_promises)
+      .then(( rAll ) => {
+
+          console.log("rAll: " + rAll);   
+
+          return rAll;
+          
+          /*Promise.all(a_promise_switch)
+          .then((rA) => {
+
+            return rA;
+
+          }).catch((error) => {
+            res.status(400).send({"result" : "error", "" : err});
+          });*/
+
+      }).then((results) => {
+
+        //console.log("error: " + error);
+
+        res.status(200).send({"result" : results});          
+
+      }).catch((error) => {
+        
+        //console.log("error: " + error);
+        res.status(400).send({"result" : "error", "" : error});
+
+      });      
+
+      /*Promise.all(a_promise_switch)
+        .then((results) => {
+
+            //res.status(200).send({"result" : results});      
+
+        }).catch((error) => {
+
+          console.log(err); 
+          res.status(400).send({"result" : "error", "" : err});
+
+        });*/
+
+    });
+
+    var StatusByGateway = async function (gateway, urls) {
+      
+        var options = {
+          method: 'POST',
+          uri: urls.url_base_remote + '/backend/gateway/status',
+          body: {
+            data: {
+              gateway: gateway,            
+              url : urls.url_domain + urls.url_status,
+              autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+            }
+          },
+          json: true 
+        };    
+
+        rp(options).then(function (body) {               
+
+
+          //return res.status(200).send({"response" :body});
+
+
+        }).catch(function (err) {           
+          return err;
+        });  
+
+        console.log(JSON.stringify(options));
+  
+        rp(options).then(function (body) {               
+          return res.status(200).send({"response" :body});
+        }).catch(function (err) {           
+          return res.status(400).send({"error" :err});
+        });    
+
+
+    };
+
+    var UsingAll = async function () {
+
+      var gatewaysRef = firestore.collection('gateways');      
+
+      var urlObj  = {};     
+      var cards   = [];
+
+      await gatewaysRef.get().then( async (querySnapshot) => {     
+          querySnapshot.forEach( async (doc) => {                      
+
+            if (doc.id=="urls") {             
+              
+              console.log("cards: " + JSON.stringify(cards));
+              urlObj.url_domain      = doc.data().url_domain;   
+              urlObj.url_using       = doc.data().url_using;   
+              urlObj.url_base        = doc.data().url_base;   
+              urlObj.url_management = doc.data().url_management;   
+              urlObj.url_base        = doc.data().url_base;   
+              urlObj.url_switch      = doc.data().url_switch;   
+              urlObj.url_base_remote = doc.data().url_base_remote;  
+              urlObj.url_base_local  = doc.data().url_base_local;  
+              urlObj.parmas_using    = doc.data().parmas_using; 
+
+            } else {
+
+              let icard =  {
+                gateway : doc.data().gateway,   
+                number : doc.data().number,   
+                position : doc.data().position,
+                id : doc.id
+              };
+  
+              cards.push(icard);
+            }
+
+          });
+      });
+
+      var ps = [];
+
+      await cards.forEach( async (card) => {    
+
+          let uri_remote = urlObj.url_base_remote + urlObj.parmas_using;
+          let url_gateway = urlObj.url_domain + urlObj.url_using;              
+
+          let options = {
+            method: 'POST',
+            uri: uri_remote,
+            body: {
+              data: {
+                gateway: card.number,            
+                url : url_gateway,                    
+                autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+              }
+            },
+            json: true 
+          }; 
+          ps.push(rp(options)); 
+
+      }); 
+      
+      var promises_sims = [];
+
+      var promises =  Promise.all(ps)
+        .then((results) => {
+      
+            var promises_gateway = [];
+
+            results.forEach( async (result) => {
+
+              let response  = result.response;
+              let gateway   = "S" + response.gateway;
+              let channels  = response.channels;
+              let ports     = response.ports;               
+              
+              response.sims.forEach( async (obj) => {                 
+                var portName = "port" + obj.port;                                                                     
+                var jsonCards = `{`;
+                var countAdded=0;                
+                obj.channel.forEach( async (channel) => {
+                  
+                  jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;                                                                                                                             
+                  if (countAdded === 3) {
+                      jsonCards += `}`;                     
+                      let jsonPorts = JSON.parse(jsonCards);
+                      countAdded=0;
+                      promises_sims.push(firestore.collection('gateways').doc(gateway)
+                      .collection("sims").doc(portName).set(jsonPorts,{merge:true}));
+                  } else {
+                    jsonCards += `,`;
+                    countAdded++;
+                  }
+
+                });
+              });   
+
+              promises_gateway.push(
+                firestore.collection('gateways').doc(gateway)
+                .set({channels : channels, ports: ports},{merge:true})
+              );  
+              
+            });
+
+            return Promise.all(promises_gateway);  
+
+            //return promises_gateway;
+
+        }).catch((error) => {
+      
+          console.log("error: " + error);
+          return error;           
+  
+        });
+
+        return urlObj;
+
+    };
+
+
+    var SwitchByGatewayAndChannel = async function (gateway, channel) {
+
+      var channelstatus = channel + ".status";
+      var promise_switch = []; 
+
+      var gatewaysRef = firestore.collectionGroup('sims')
+      .where(channelstatus, "in", ["Exist", "Using"]);      
+
+        await gatewaysRef.get().then( async (querySnapshot) => {     
+          querySnapshot.forEach( async (doc) => {         
+
+            let parent = doc.ref.parent.parent;         
+            
+            if ( parent.id === gateway ) {
+
+                var gateway_number = parent.id.replace( /^\D+/g, '');
+                var port_number = doc.id.replace( /^\D+/g, '');
+                
+                //console.log("port_number: " +port_number);
+
+                var num;
+                switch (channel) {
+                  case "A":
+                    position = num = 0;
+                    break;
+                  case "B":
+                    position = num = 1;
+                    break;
+                  case "C":
+                    position = num = 2;
+                    break;
+                  case "D":
+                    position = num = 3;
+                    break;
+                }
+
+                //cambiar esta posicion
+                var info = (parseInt(port_number) -1) + ":" + position;                        
+
+                var options = {
+                  method: 'POST',
+                  uri: "http://s" + gateway_number + ".notimation.com/5-9-2SIMSwitch.php",
+                  headers : {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+                    'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+                  },
+                  form: {
+                    action: 'SIMSwitch',
+                    info: info //'0:0'
+                  }             
+                };               
+
+                /*console.log("gateway.id: " + gateway.id);
+                console.log("channel: " + channel);
+                console.log("**********************************");
+                console.log("");*/
+
+                /*switch (num) {
+                  case 0: a_promise_switch.push(rp(options)); break;
+                  case 0: b_promise_switch.push(rp(options)); break;
+                  case 0: c_promise_switch.push(rp(options)); break;
+                  case 0: d_promise_switch.push(rp(options)); break;
+                }*/  
+
+                promise_switch.push(rp(options));
+            }     
+          });     
+        });
+
+        return promise_switch;         
+    };
     
     //exports.scheduledFunction = functions.pubsub.schedule('* * * * * sleep 30').onRun((context) => {
       
-    exports.schedule = functions.https.onRequest( async (req, res) => {             
+    /*exports.schedule = functions.https.onRequest( async (req, res) => {             
 
-        var gatewaysRef = firestore.collection('gateways');
-        var _autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
+        var gatewaysRef = firestore.collection('gateways');      
 
         var urlObj = {};     
         var cards = [];
@@ -414,7 +745,7 @@
                 urlObj.url_domain      = doc.data().url_domain;   
                 urlObj.url_using       = doc.data().url_using;   
                 urlObj.url_base        = doc.data().url_base;   
-                urlObj.url_consumption = doc.data().url_consumption;   
+                urlObj.url_management = doc.data().url_management;   
                 urlObj.url_base        = doc.data().url_base;   
                 urlObj.url_switch      = doc.data().url_switch;   
                 urlObj.url_base_remote = doc.data().url_base_remote;  
@@ -454,7 +785,7 @@
                 }
               },
               json: true 
-            };    
+            }; 
 
             ps.push(rp(options));         
 
@@ -523,11 +854,7 @@
 
         });
            
-     });
-
-    
-          
-
+     });*/
          
 
     var OPTION_ACTION           = 'action';
@@ -537,7 +864,7 @@
     var OPTION_EXPORT           = 'export';
     var OPTION_IMPORT           = 'import';
 
-    var OPTION_COMPSUMPTION     = 'consumption';
+    //var OPTION_MANAGMENT        = 'managment';
     var OPTION_STATUS           = 'status';
     var OPTION_SEND             = 'send';
     var OPTION_SIMS_RECEIVED    = 'simsreceived';
@@ -581,17 +908,106 @@
 
           res.status(401).send("Invalid authorization");  
 
-        }         
+        }        
 
     });
+
+    const action = async function(req, res) { 
+
+      let option = req.path.split('/')[2]; 
+      var collection = req.body.data.collection; 
+      
+      console.log("option: " +option);
+  
+      switch (option) {
+  
+        case OPTION_EXPORT:          
+           
+            //http://localhost:5000/export/cobranzas
+            //https://noti.ms/export/cobranzas                 
+  
+            try {
+  
+              firestoreService
+              .backup(collection)
+              .then(data => {  
+                return res.status(200).send(data);          
+              }).catch((error) => {                
+                console.log('Error getting sertvice backup');
+                return res.status(400).send(error);                
+              });  
+              
+            } catch (e) {
+                console.error(e);
+                return res.status(400).send(error);                
+            }
+  
+          break;
+  
+          case OPTION_IMPORT: 
+            
+              //http://localhost:5000/import/cobranzas
+              //https://noti.ms/import/cobranzas
+  
+              try {
+  
+                let _collection = pathParams[2];   
+                let _json_file = _collection + ".json";            
+                let data = require("./imports/"  + _json_file );                    
+  
+                var collName, docName;                               
+                var collObj, docObj;
+                var level = 0;
+  
+                const iterate = (obj, level) => {
+                  Object.keys(obj).forEach(key => {        
+                    //console.log('key: '+ key + ', value: '+ obj[key]);
+                    if (level===0) {              
+                      collName = key;
+                      collObj = obj[key];
+                    } else if (level===1) { 
+                      docName = key;
+                      docObj = obj[key];
+                    }                      
+                    if (typeof obj[key] === 'object') {
+                      level++;
+                      iterate(obj[key], level);
+                    }
+                  });
+                }
+  
+                iterate(data, 0);              
+  
+                firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
+                  return res.status(200).send(res);                
+                }).catch((error) => {        
+                  return res.status(400).send(error);
+                });
+  
+            } catch (e) {
+              console.error(e);
+              return e;
+            }  
+  
+          break;
+          
+  
+        default:  
+          res.status(402).send("Option not found");
+        break;
+      }   
+      
+    };
 
     var OPTION_GET_SIM_NUMBERS  = 'simnumber';
 
     var OPTION_USING            = 'using';
     var OPTION_SWITCH           = 'switch';
 
+    var OPTION_STATUS           = 'status';
+
     /*var OPTION_SWITCH_SIM       = 'switchsim';    
-    var OPTION_COMPSUMPTION     = 'consumption';
+    var OPTION_MANAGMENT     = 'managment';
     var OPTION_STATUS           = 'status';
     var OPTION_SEND             = 'send';
     var OPTION_SIMS_RECEIVED    = 'simsreceived';
@@ -610,11 +1026,40 @@
         }
         
         case OPTION_SWITCH: switchsim(req, res); break;
-        case OPTION_COMPSUMPTION: consumption(req, res); break;
+        //case OPTION_MANAGMENT: managment(req, res); break;
         default: noti(req, res);
       } 
 
-    };
+    };    
+   
+
+    /*const status = async function(req, res, url) {  
+
+      console.log(">>>>>>>>>>>>>>>>>>>> POST <<<<<<<<<<<<<<<<<<<<<<<<");
+  
+      var options = {
+        method: 'POST',
+        uri: url,
+        body: {
+          data: {
+            gateway: req.body.data.gateway,            
+            url : req.body.data.url,
+            autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+          }
+        },
+        json: true 
+      };    
+
+      console.log(JSON.stringify(options));
+ 
+      rp(options).then(function (body) {               
+        return res.status(200).send({"response" :body});
+      }).catch(function (err) {           
+        return res.status(400).send({"error" :err});
+      });    
+       
+    };*/
+    
 
     const using = async function(req, res, url) {  
 
@@ -643,8 +1088,6 @@
        
     };  
    
-
-
     const switchsim = async function(req, res, url) { 
       
       console.log("entra");
@@ -676,8 +1119,6 @@
       });    
        
     };  
-   
-
 
     var ACTION_OBTAIN_TELCO = "action_obtain_telco";
 
@@ -847,92 +1288,7 @@
 
 
 
-  const action = async function(req, res) { 
-
-    let option = req.path.split('/')[2]; 
-    var collection = req.body.data.collection; 
-    
-    console.log("option: " +option);
-
-    switch (option) {
-
-      case OPTION_EXPORT:          
-         
-          //http://localhost:5000/export/cobranzas
-          //https://noti.ms/export/cobranzas                 
-
-          try {
-
-            firestoreService
-            .backup(collection)
-            .then(data => {  
-              return res.status(200).send(data);          
-            }).catch((error) => {                
-              console.log('Error getting sertvice backup');
-              return res.status(400).send(error);                
-            });  
-            
-          } catch (e) {
-              console.error(e);
-              return res.status(400).send(error);                
-          }
-
-        break;
-
-        case OPTION_IMPORT: 
-          
-            //http://localhost:5000/import/cobranzas
-            //https://noti.ms/import/cobranzas
-
-            try {
-
-              let _collection = pathParams[2];   
-              let _json_file = _collection + ".json";            
-              let data = require("./imports/"  + _json_file );                    
-
-              var collName, docName;                               
-              var collObj, docObj;
-              var level = 0;
-
-              const iterate = (obj, level) => {
-                Object.keys(obj).forEach(key => {        
-                  //console.log('key: '+ key + ', value: '+ obj[key]);
-                  if (level===0) {              
-                    collName = key;
-                    collObj = obj[key];
-                  } else if (level===1) { 
-                    docName = key;
-                    docObj = obj[key];
-                  }                      
-                  if (typeof obj[key] === 'object') {
-                    level++;
-                    iterate(obj[key], level);
-                  }
-                });
-              }
-
-              iterate(data, 0);              
-
-              firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
-                return res.status(200).send(res);                
-              }).catch((error) => {        
-                return res.status(400).send(error);
-              });
-
-          } catch (e) {
-            console.error(e);
-            return e;
-          }  
-
-        break;
-        
-
-      default:  
-        res.status(402).send("Option not found");
-      break;
-    }   
-    
-  };
+ 
 
 
 

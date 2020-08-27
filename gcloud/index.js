@@ -45,8 +45,8 @@
 
 	var OPTION_SWITCH_SIM    		= 'switchsim';
 	var OPTION_USING 			    = 'using';
-	var OPTION_COMPSUMPTION 		= 'consumption';
-	var OPTION_STATUS 				= 'status';
+	var OPTION_STATUS	 			= 'status';
+	var OPTION_MANAGMENT 			= 'managment';
 	var OPTION_SEND 				= 'send';
 	var OPTION_SIMS_RECEIVED    	= 'simsreceived';
 	var OPTION_REBOOT		    	= 'reboot';
@@ -60,11 +60,10 @@
 		console.log("gateway: " + gateway);  
 		console.log("option: " + option);  		
 		
-		switch (option) {					
-			
+		switch (option) {								
 
 			case OPTION_USING: 											 
-			case OPTION_COMPSUMPTION: 
+			case OPTION_MANAGMENT: 
 			case OPTION_STATUS: 
 			case OPTION_REBOOT: 								 
 				let url = "http://s" + gateway + req.body.data.url;
@@ -242,37 +241,37 @@
 						}	
 
 					break;
-
 					
 
-					case OPTION_COMPSUMPTION: 
+					case OPTION_MANAGMENT: 
 
 						try { 
 
 							const crows = await page.$$('.wid1 > tbody > tr');
 							var total = crows.length;						
 
-							var ujson = `{"ports":${total},"consumption":[`;
+							var ujson = `{"ports":${total},"managment":[`;
 
 							await new Promise((resolve, reject) => {
 								crows.forEach(async (row, i) => {  
 
-								  var td = (await row.$x('td'))[4];
-								  var text = await page.evaluate(td => td.textContent, td);  
+								  var td_used = (await row.$x('td'))[4];
+								  var text_used = await page.evaluate(td_used => td_used.textContent, td_used);
+
+								  console.log("text_used: " + text_used);  
 								  
-								  let spl = text.split("[");        
+								  let spl = text_used.split("[");        
 								  let a = parseInt(spl[1].split("]")[0]);
 								  let b = parseInt(spl[2].split("]")[0]);
 								  let c = parseInt(spl[3].split("]")[0]);
 								  let d = parseInt(spl[4].split("]")[0]); 
 
-								  ujson += `{"port":"${i+1}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           
+								  var td_clear = (await row.$x('td'))[5];
+								  var text_clear = await page.evaluate(td_clear => td_clear.textContent, td_clear);  
 
-								  console.log("text: " + text);
-								  console.log("a: " + a);
-								  console.log("b: " + b);
-								  console.log("c: " + c);
-								  console.log("d: " + d);    
+								  ujson += `{"port":"${i+1}","clear_sms_count":"${text_clear}","channel":{"A":${a},"B":${b},"C":${c},"D":${d}}}`;           								  
+
+								  console.log("td_clear: " + td_clear);								  
 								  
 								  if (i==(crows.length-1)) { 
 								    ujson += "]}";
@@ -301,7 +300,7 @@
 							const srows = await page.$$('.wid1 > tbody > tr');
 							var total = srows.length;					
 
-							var sjson = `{"ports":${total},"consumption":[`;
+							var sjson = `{"ports":${total},"managment":[`;
 
 							await new Promise((resolve, reject) => {
 								srows.forEach(async (row, i) => {  
