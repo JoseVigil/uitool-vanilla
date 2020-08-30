@@ -427,83 +427,62 @@
     });
 
 
-    exports.status = functions.https.onRequest( async (req, res) => {  
+    exports.send = functions.https.onRequest( async (req, res) => {       
+
+    });    
 
 
+    exports.exist = functions.runWith({ memory: '2GB', timeoutSeconds: 1000 })
+    .https.onRequest( async (req, res) => {  
       
-
-    });
-
-    exports.exist = functions.https.onRequest( async (req, res) => {  
+      var urls = await UsingAll();  
       
-      var channel = "A";
-      var position;
-
-      //var a_promise_switch = []; 
-      //var b_promise_switch = [];  
-      //var c_promise_switch = []; 
-      //var d_promise_switch = []; 
+      var send_promise = [];
       
-      //var a_promise_switch = await SwitchByGatewayAndChannel("S1","A");
+      let a_switch_prmise = await SwitchChannel("S1","A");
 
-      
-      var urls = await UsingAll();     
-    
-      console.log("url_domain: " + urls.url_domain);
-      console.log("url_using: " + urls.url_using );
-      console.log("url_base: " + urls.url_base  );
-      console.log("");    
-      
-      StatusByGateway(1);
+      Promise.all(a_switch_prmise)
+      .then((results_switch) => {  
+        
+        console.log("results_switch: " + JSON.stringify(results_switch));
 
-      Promise.all(save_all_promises)
-      .then(( rAll ) => {
+        return StatusByGateway(1, urls);
 
-          console.log("rAll: " + rAll);   
+      }).then((results_status_send) => {   
+        
+        console.log("results_status_send: " + results_status_send.length);
+        
+        let promises_status = results_status_send[0];
+        send_promise = results_status_send[1];
 
-          return rAll;
-          
-          /*Promise.all(a_promise_switch)
-          .then((rA) => {
+        //console.log("send_promise:::: " + JSON.stringify(send_promise));
 
-            return rA;
+        return Promise.all(promises_status);      
 
-          }).catch((error) => {
-            res.status(400).send({"result" : "error", "" : err});
-          });*/
+      }).then((results) => {  
 
-      }).then((results) => {
+        console.log("DALEEE:::: " + JSON.stringify(results));
+        
+        //return Promise.all(send_promise);   
 
-        //console.log("error: " + error);
+      }).then((results) => {  
 
-        res.status(200).send({"result" : results});          
+        console.log("results: " + JSON.stringify(results));
 
       }).catch((error) => {
-        
-        //console.log("error: " + error);
-        res.status(400).send({"result" : "error", "" : error});
+      
+        console.log("error: " + error);
+        //res.status(200).send({"error" :error});        
 
-      });      
-
-      /*Promise.all(a_promise_switch)
-        .then((results) => {
-
-            //res.status(200).send({"result" : results});      
-
-        }).catch((error) => {
-
-          console.log(err); 
-          res.status(400).send({"result" : "error", "" : err});
-
-        });*/
+      });        
 
     });
 
-    var StatusByGateway = async function (gateway, urls) {
-      
-        var options = {
+    var StatusByGateway = async function (gateway, urls) {              
+       
+       var option_status = {
           method: 'POST',
-          uri: urls.url_base_remote + '/backend/gateway/status',
+          uri: urls.url_base_remote + urls.params_status,
           body: {
             data: {
               gateway: gateway,            
@@ -512,26 +491,107 @@
             }
           },
           json: true 
-        };    
+        };  
+        
+        Promise.resolve(rp(option_status))
+        .then( async (results_status) => {
+          
+          var send_promise = [];
+          var promises_status = [];
 
-        rp(options).then(function (body) {               
+          var length = results_status.managment.length;
+          var count = 0;
 
+          console.log("length:- " + length);
 
-          //return res.status(200).send({"response" :body});
+          var gateway   = "S" + results_status.gateway;
+          await results_status.managment.forEach( async (obj) => {    
+            
+            let port  = obj.port;
+            let portname = "port" + port;
+            let operator  = obj.operator;
+            let signal    = obj.signal;
 
+            console.log("*****************************************");
+            console.log("operator: " + operator);
 
-        }).catch(function (err) {           
-          return err;
-        });  
+            console.log("portname:- " + portname);
+            
+            var using;              
+            switch (parseInt(obj.using)) {
+              case 0:
+                using = "A";
+                break;
+              case 1:
+                using = "B";
+                break;
+              case 2:
+                using = "C";
+                break;
+              case 3:
+                using = "D";
+                break;
+            }
 
-        console.log(JSON.stringify(options));
+            let jsonStatus = JSON.parse(`{"${using}":{"operator":"${operator}","signal":"${signal}"}}`);                                                                                           
+       
+            promises_status.push(firestore.collection('gateways').doc(gateway)
+            .collection("sims").doc(portname).set(jsonStatus,{merge:true}));
+
+            //send promise
+            var recipient, message;
+            
+            switch (operator) {
+              case "Personal":
+                recipient = "321";
+                message   = "Linea"; 
+                break;
+              case "Movistar":
+                recipient = "264";
+                message   = "Numero"; 
+                break;
+              case "Claro":
+                recipient = "686";
+                message   = "NUMERO"; 
+                break;
+            }         
+            
+            var url = urls.url_base_remote + urls.params_send;
+            var channel = port-1;
+
+            var options_send = `{
+              "method": "POST",
+              "uri": "${url}", 
+              "timeout": "10000",
+              "body": {
+                "data" : {
+                  "gateway" : "${results_status.gateway}",
+                  "channel" : "${channel}",
+                  "recipient" : "${recipient}",
+                  "message" : "${message}",
+                  "url": "${urls.url_domain + urls.url_send}", 
+                  "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                 }
+              },
+              "json": true 
+            }`;                            
+            
+            let opt = JSON.parse(options_send);
+            send_promise.push(rp(opt));                    
+
+            if (count == (length-1)) {
+              //console.log("PORONGA:::: " + JSON.stringify(send_promise));
+              return [promises_status, send_promise];
+            }
+            count++;
+          });   
+       
+        }).catch((error) => {
+      
+          console.log("error: " + error);
+          return error;          
   
-        rp(options).then(function (body) {               
-          return res.status(200).send({"response" :body});
-        }).catch(function (err) {           
-          return res.status(400).send({"error" :err});
-        });    
-
+        });  
 
     };
 
@@ -547,16 +607,20 @@
 
             if (doc.id=="urls") {             
               
-              console.log("cards: " + JSON.stringify(cards));
+              console.log("cards: "  + JSON.stringify(cards));
               urlObj.url_domain      = doc.data().url_domain;   
               urlObj.url_using       = doc.data().url_using;   
               urlObj.url_base        = doc.data().url_base;   
-              urlObj.url_management = doc.data().url_management;   
+              urlObj.url_management  = doc.data().url_management;   
               urlObj.url_base        = doc.data().url_base;   
               urlObj.url_switch      = doc.data().url_switch;   
               urlObj.url_base_remote = doc.data().url_base_remote;  
               urlObj.url_base_local  = doc.data().url_base_local;  
               urlObj.parmas_using    = doc.data().parmas_using; 
+              urlObj.url_status      = doc.data().url_status; 
+              urlObj.params_status   = doc.data().params_status;               
+              urlObj.url_send        = doc.data().url_send;               
+              urlObj.params_send     = doc.data().params_send;               
 
             } else {
 
@@ -638,9 +702,7 @@
               
             });
 
-            return Promise.all(promises_gateway);  
-
-            //return promises_gateway;
+            return Promise.all(promises_gateway);              
 
         }).catch((error) => {
       
@@ -654,7 +716,7 @@
     };
 
 
-    var SwitchByGatewayAndChannel = async function (gateway, channel) {
+    var SwitchChannel = async function (gateway, channel) {
 
       var channelstatus = channel + ".status";
       var promise_switch = []; 
@@ -670,9 +732,7 @@
             if ( parent.id === gateway ) {
 
                 var gateway_number = parent.id.replace( /^\D+/g, '');
-                var port_number = doc.id.replace( /^\D+/g, '');
-                
-                //console.log("port_number: " +port_number);
+                var port_number = doc.id.replace( /^\D+/g, '');         
 
                 var num;
                 switch (channel) {

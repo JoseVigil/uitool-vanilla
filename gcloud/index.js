@@ -300,10 +300,13 @@
 							const srows = await page.$$('.wid1 > tbody > tr');
 							var total = srows.length;					
 
-							var sjson = `{"ports":${total},"managment":[`;
+							var sjson = `{"gateway":${params.gateway},"ports":${total},"managment":[`;
 
 							await new Promise((resolve, reject) => {
 								srows.forEach(async (row, i) => {  
+
+								  var tdport = (await row.$x('td'))[0];   
+								  var port = await page.evaluate(tdport => tdport.textContent, tdport);   
 
 								  var tdstatus = (await row.$x('td'))[7];          
 								  const stat = await (await tdstatus.getProperty('title')).jsonValue();                   
@@ -315,9 +318,16 @@
 								  let d = spl[4].split("]")[0];                    
 								 
 								  var tdop = (await row.$x('td'))[13];
-								  var operator = await page.evaluate(tdop => tdop.textContent, tdop);                             
+								  var operator = await page.evaluate(tdop => tdop.textContent, tdop);   
+
+								  var tdsignal = (await row.$x('td'))[10];
+								  var signal = await page.evaluate(tdsignal => tdsignal.textContent, tdsignal);   
+								  signal = signal.replace(/[{()}]/g, '');
 								  
-								  sjson += `{"port":"${i+1}","operator":"${operator}","channel":{"A":"${a}","B":"${b}","C":"${c}","D":"${d}"}}`;           
+								  let charr = [a,b,c,d];
+								  let using = charr.indexOf("Using");									  
+								  
+								  sjson += `{"port":"${port}","operator":"${operator}","signal":"${signal}","using":"${using}","channels":{"A":"${a}","B":"${b}","C":"${c}","D":"${d}"}}`;           
 								  
 								  if (i==(srows.length-1)) { 
 								    sjson += "]}";							    
