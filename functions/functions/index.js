@@ -441,7 +441,7 @@
       
       var send_promise = [];
       
-      let a_switch_prmise = await SwitchChannel("S1","B");
+      let a_switch_prmise = await SwitchChannel("S1","C");
 
       Promise.all(a_switch_prmise)
       .then( async (results_switch) => {  
@@ -495,6 +495,11 @@
 
       
     };  
+
+
+
+   
+
 
     var SendPromises = async function (promises) {        
       
@@ -888,12 +893,11 @@
 
     var OPTION_ACTION           = 'action';
     var OPTION_GATEWAY          = 'gateway';
-    var OPTION_COMPOSER         = 'composer';
-    
+    var OPTION_COMPOSER         = 'composer';    
     var OPTION_EXPORT           = 'export';
+    
     var OPTION_IMPORT           = 'import';
 
-    //var OPTION_MANAGMENT        = 'managment';
     var OPTION_STATUS           = 'status';
     var OPTION_SEND             = 'send';
     
@@ -983,9 +987,10 @@
 
     var OPTION_GET_SIM_NUMBERS  = 'simnumber';
 
-    var OPTION_USING            = 'using';
-    var OPTION_SWITCH           = 'switch';
-    var OPTION_SMS_RECEIVED     = 'smsreceived';
+    var OPTION_USING                = 'using';
+    var OPTION_SWITCH               = 'switch';
+    var OPTION_SMS_RECEIVED         = 'received';
+    var OPTION_SMS_SEND_AND_RECEIVE = 'sendreceive';
 
     //var OPTION_STATUS           = 'status';
 
@@ -998,18 +1003,133 @@
   
     var gateway = async function(req, res) {
       
-      console.log("gateway: " + req.path.split('/')[2]);
-      console.log("url_remote: " + req.body.data.url_remote);     
+      console.log("gateway: " + req.path.split('/')[2]);      
       
       switch (req.path.split('/')[2]) {      
 
         case OPTION_USING: {           
+          console.log("url_remote: " + req.body.data.url_remote);     
           let uurl = req.body.data.url_remote; //'https://us-central1-notims.cloudfunctions.net/backend/gateway/using';          
           return using(req, res, uurl);          
         }
         
-        case OPTION_SWITCH: switchsim(req, res); break;
-        //case OPTION_MANAGMENT: managment(req, res); break;
+        case OPTION_SWITCH: 
+          switchsim(req, res); 
+        break;        
+
+        case OPTION_SMS_SEND_AND_RECEIVE:        
+
+          let gateway = req.body.data.gateway;
+          let channel = req.body.data.channel;
+          let recipient = req.body.data.recipient;
+          let message = req.body.data.message;
+          let url = req.body.data.url;
+          let card = req.body.data.card;
+
+          var options_send_and_receive = `{
+            "method": "POST",
+            "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/send", 
+            "timeout": "10000",
+            "body": {
+              "data" : {
+                "gateway" : "${gateway}",
+                "channel" : "${channel}",
+                "recipient" : "${recipient}",
+                "message" : "${message}",
+                "url": "${url}", 
+                "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
+               }
+            },
+            "json": true 
+          }`;       
+          
+          let sar_json = JSON.parse(options_send_and_receive);
+
+          var current = new Date();
+
+          await rp(sar_json)
+          .then( async (response_sent) => {
+            
+            var resutl = response_sent.result;            
+            let sent = resutl.sent;
+            let sentlength = sent.length;
+            let last = sent[sentlength-1];
+            
+            console.log("last.time: "+ last.time);
+            
+            const timereceived = new Date(last.day + " " + last.time);
+
+            console.log("current: " + JSON.stringify(current));
+            console.log("timereceived: " + JSON.stringify(timereceived));
+
+            if ( (last.status === "Success") && 
+                 (last.number === "264") &&
+                 (current.getTime() < timereceived.getTime()) ) {
+
+              return {
+                gateway : resutl.gateway,                 
+                channel : resutl.channel,     
+                card : card
+              };
+
+            } else {
+              console.log("FAAAIIILLLLL");
+              res.status(500).send("fail");
+            }           
+
+          }).then( async (response_send) => {       
+
+            //console.log("results_sends :::: " + JSON.stringify(response_send));                             
+            var option_received = `{
+              "method": "POST",
+              "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
+              "body": {
+                "data": {
+                  "gateway": "${response_send.gateway}",            
+                  "url" : ".notimation.com/en/5-3-1SMSinfo.php?ch=",
+                  "channel" : "${response_send.channel}",
+                  "card" : "${response_send.card}",
+                  "pagenumber" : "1",
+                  "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                }
+              },
+              "json" : true 
+            }`;       
+
+            let receive_json = JSON.parse(option_received);
+            
+            return rp(receive_json);                        
+
+          }).then( async (response_receive) => {   
+            
+            console.log("results_sent: " + JSON.stringify(response_receive));
+
+            let sim_number = response_receive.sim_numbers[0].sim_number;
+            let remote_number = response_receive.sim_numbers[0].remote_number;
+
+            console.log("sim_number: " + sim_number);
+            console.log("remote_number: " + remote_number);
+
+            let response = {
+              number : {
+                sim_number: sim_number,
+                remote_number : remote_number
+              }
+            }
+
+            res.status(200).send(response);            
+
+            return response;
+
+          
+          }).catch((error) => {
+      
+            console.log("error: " + error);
+            return error;           
+    
+          });
+
+        break;
 
         case OPTION_SMS_RECEIVED:
 
@@ -1088,6 +1208,7 @@
       } 
 
     };    
+    
    
 
     /*const status = async function(req, res, url) {  

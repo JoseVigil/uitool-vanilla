@@ -351,7 +351,19 @@
 
 					case OPTION_SEND:
 
-						try {      							
+						try {    							
+
+							/*let all = (req.body.data.sendall === "true");
+							let waitfor = 5000;
+
+							console.log("all: " + all);
+
+							if (all) {
+								await page.waitFor(200);
+								console.log("click all");
+								await page.click('.btn4');
+								waitfor=5000;
+							}*/						 						
 
 							const phoneInput = 'textarea[name=sendtoPhoneNumber]';
 					        const recipient = req.body.data.recipient;
@@ -373,7 +385,7 @@
 					        await page.click('#send');     
 					      
 					        await page.waitForFunction('document.getElementById("SMSResult").value != ""');
-					        await page.waitFor(5000);
+					        await page.waitFor(6000);
 					        var el = await page.$("#SMSResult");
 					        var resutl = await page.evaluate(el => el.value, el);
 
@@ -424,7 +436,7 @@
 								    }								    
 								}
 							}
-					        return res.status(200).send({"restult":JSON.parse(sjson)}); 				
+					        return res.status(200).send({"result":JSON.parse(sjson)}); 				
 
 						} catch (e) {							
 							return res.status(500).send({"error":e});							
