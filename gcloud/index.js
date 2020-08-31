@@ -48,7 +48,7 @@
 	var OPTION_STATUS	 			= 'status';
 	var OPTION_MANAGMENT 			= 'managment';
 	var OPTION_SEND 				= 'send';
-	var OPTION_SIMS_RECEIVED    	= 'simsreceived';
+	var OPTION_SMS_RECEIVED    		= 'smsreceived';
 	var OPTION_REBOOT		    	= 'reboot';
 	
 	const gateway = async function(req, res) {
@@ -65,7 +65,7 @@
 			case OPTION_USING: 											 
 			case OPTION_MANAGMENT: 
 			case OPTION_STATUS: 
-			case OPTION_REBOOT: 								 
+			case OPTION_REBOOT: 										 
 				let url = "http://s" + gateway + req.body.data.url;
 				let params = { "option" : option, "url" : url, "gateway" : gateway };
 				return browse(req, res, params);
@@ -84,8 +84,9 @@
 				return browse(req, res, separams);
 				break;	
 
-			case OPTION_SIMS_RECEIVED: 								 
-				let reurl = "http://s" + gateway + req.body.data.url + req.body.data.channel + "&type=r&card=T&page=" + req.body.data.pagenumber;
+			case OPTION_SMS_RECEIVED: 	
+
+				let reurl = "http://s" + gateway + req.body.data.url + req.body.data.channel + "&type=r&card=" + req.body.data.card + "&page=" + req.body.data.pagenumber;
 				let reparams = { "option" : option, "url" : reurl };
 				return browse(req, res, reparams);
 				break;		
@@ -431,7 +432,7 @@
 
 					break;
 
-					case OPTION_SIMS_RECEIVED:
+					case OPTION_SMS_RECEIVED:
 					
           				try {   
 

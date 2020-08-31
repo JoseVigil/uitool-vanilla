@@ -11,6 +11,7 @@
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
     var htmlToPdfmake = require("html-to-pdfmake");
     var rp = require('request-promise');    
+    var sleep = require('sleep');
 
     //const readXlsxFile = require('read-excel-file/node');
 
@@ -25,6 +26,7 @@
     
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
     const { parse } = require('path');
+
 
     var db_url = "https://notims.firebaseio.com";
     var _payloadUrl = "http://noti.ms/";    
@@ -432,53 +434,136 @@
     });    
 
 
-    exports.exist = functions.runWith({ memory: '2GB', timeoutSeconds: 1000 })
+    exports.exist = functions.runWith({ memory: '2GB', timeoutSeconds: 540 })
     .https.onRequest( async (req, res) => {  
       
       var urls = await UsingAll();  
       
       var send_promise = [];
       
-      let a_switch_prmise = await SwitchChannel("S1","A");
+      let a_switch_prmise = await SwitchChannel("S1","B");
 
       Promise.all(a_switch_prmise)
-      .then((results_switch) => {  
+      .then( async (results_switch) => {  
         
         console.log("results_switch: " + JSON.stringify(results_switch));
 
-        return StatusByGateway(1, urls);
+        console.log("");
+        console.log("");
 
-      }).then((results_status_send) => {   
+        var status_send = await StatusByGateway(1, urls); 
         
-        console.log("results_status_send: " + results_status_send.length);
+        console.log("  SALEEE  ");        
+
+        //console.log("  status_send  " + JSON.stringify(status_send));  
         
-        let promises_status = results_status_send[0];
-        send_promise = results_status_send[1];
+        let statuses = status_send[0];
+        let sends = status_send[1];     
+       
+       send_promise = sends;
 
-        //console.log("send_promise:::: " + JSON.stringify(send_promise));
+       console.log(" :::: status_promises.length :::: " + statuses.length);            
+       console.log(" :::: send_promise.length :::: " + sends.length);            
 
-        return Promise.all(promises_status);      
+       return Promise.all(statuses);     
 
-      }).then((results) => {  
-
-        console.log("DALEEE:::: " + JSON.stringify(results));
+      }).then( async (results_statuses) => {          
+        
+        console.log("results_statuses :::: " + JSON.stringify(results_statuses));  
         
         //return Promise.all(send_promise);   
+        
+        await SendPromises(send_promise);
+      
+      }).then( async (results_sends) => {          
 
-      }).then((results) => {  
+        console.log("results_sends :::: " + JSON.stringify(results_sends));  
 
-        console.log("results: " + JSON.stringify(results));
-
+        return true;
+      
       }).catch((error) => {
       
         console.log("error: " + error);
-        //res.status(200).send({"error" :error});        
+        res.status(200).send({"error" :error}); 
 
       });        
 
     });
 
-    var StatusByGateway = async function (gateway, urls) {              
+    var SendMessage = async function (promises) {        
+
+
+      
+    };  
+
+    var SendPromises = async function (promises) {        
+      
+      var posting = true;
+
+      var length_promises =  promises.length;
+      var countSent = 0;
+
+      let responses = [];
+
+      for (var i=0; i<length_promises; i++) {
+
+        sleep(function() {   
+
+          posting = true;
+
+          let promise = promises[i];
+
+          console.log("POST: " + i + " " + JSON.stringify(promise) );
+
+          rp(promise)          
+          .then( async (response) => {  
+
+            console.log("STATUS RESPONSE: " + JSON.stringify(response));
+
+            let status = response[length_promises-1].status;
+
+            console.log("STATUS: " + status);
+
+            responses.push(response);
+
+            if (countSent == (length_promises-1)){              
+
+              return await SmsReceived();
+            }
+            posting = false;
+            countSent++;
+
+          })
+          .catch(function (err) {
+              // Crawling failed...
+              posting = false;
+              console.log("ERROR SendPromises:" + err);
+          });
+
+        });
+
+      }  
+
+      function sleep(callback) {
+          var stop = new Date().getTime();
+          //while(new Date().getTime() < stop + time) {
+          while( posting === false ) {
+              ;
+          }
+          callback();
+      }
+
+    };
+
+    var SmsReceived = async function (gateway, urls) {  
+      
+      
+
+    };
+
+    var StatusByGateway = async function (gateway, urls) {       
+
+      var promises_status_send = [];
        
        var option_status = {
           method: 'POST',
@@ -491,13 +576,15 @@
             }
           },
           json: true 
-        };  
-        
-        Promise.resolve(rp(option_status))
-        .then( async (results_status) => {
-          
+        };          
+  
+       await rp(option_status)
+        .then(function (results_status) { 
+
           var send_promise = [];
           var promises_status = [];
+          
+          //console.log(" ------ results_status ------- " + JSON.stringify(results_status))
 
           var length = results_status.managment.length;
           var count = 0;
@@ -505,7 +592,7 @@
           console.log("length:- " + length);
 
           var gateway   = "S" + results_status.gateway;
-          await results_status.managment.forEach( async (obj) => {    
+          results_status.managment.forEach( async (obj) => {                
             
             let port  = obj.port;
             let portname = "port" + port;
@@ -543,11 +630,11 @@
             
             switch (operator) {
               case "Personal":
-                recipient = "321";
+                recipient = "264";             
                 message   = "Linea"; 
                 break;
               case "Movistar":
-                recipient = "264";
+                recipient = "321";  
                 message   = "Numero"; 
                 break;
               case "Claro":
@@ -577,21 +664,29 @@
             }`;                            
             
             let opt = JSON.parse(options_send);
-            send_promise.push(rp(opt));                    
+            send_promise.push(opt);                    
 
-            if (count == (length-1)) {
+            if (count === (length-1)) {
               //console.log("PORONGA:::: " + JSON.stringify(send_promise));
-              return [promises_status, send_promise];
+              console.log("PORONGA:::: 1 " + promises_status.length + " " + send_promise.length);
+
+              promises_status_send[0] = promises_status;
+              promises_status_send[1] = send_promise;              
+
+              //return promises_status_send;
             }
             count++;
-          });   
-       
-        }).catch((error) => {
+          }); 
       
-          console.log("error: " + error);
+        }).catch((error) => {
+
+          console.log("error carajo: " + error);
           return error;          
   
-        });  
+        });     
+
+        console.log("FONDDOOOOO:");
+        return promises_status_send;
 
     };
 
@@ -605,9 +700,9 @@
       await gatewaysRef.get().then( async (querySnapshot) => {     
           querySnapshot.forEach( async (doc) => {                      
 
-            if (doc.id=="urls") {             
+            if (doc.id === "urls") {             
               
-              console.log("cards: "  + JSON.stringify(cards));
+              //console.log("cards: "  + JSON.stringify(cards));
               urlObj.url_domain      = doc.data().url_domain;   
               urlObj.url_using       = doc.data().url_using;   
               urlObj.url_base        = doc.data().url_base;   
@@ -635,6 +730,8 @@
             }
 
           });
+
+          return {};
       });
 
       var ps = [];
@@ -712,7 +809,6 @@
         });
 
         return urlObj;
-
     };
 
 
@@ -725,7 +821,7 @@
       .where(channelstatus, "in", ["Exist", "Using"]);      
 
         await gatewaysRef.get().then( async (querySnapshot) => {     
-          querySnapshot.forEach( async (doc) => {         
+          querySnapshot.forEach( async (doc) => {        
 
             let parent = doc.ref.parent.parent;         
             
@@ -782,139 +878,12 @@
                 promise_switch.push(rp(options));
             }     
           });     
+
+          return {};
         });
 
         return promise_switch;         
-    };
-    
-    //exports.scheduledFunction = functions.pubsub.schedule('* * * * * sleep 30').onRun((context) => {
-      
-    /*exports.schedule = functions.https.onRequest( async (req, res) => {             
-
-        var gatewaysRef = firestore.collection('gateways');      
-
-        var urlObj = {};     
-        var cards = [];
-
-        var result = await gatewaysRef.get().then( async (querySnapshot) => {     
-            querySnapshot.forEach( async (doc) => {                      
-
-              if (doc.id=="urls") {             
-                
-                console.log("cards: " + JSON.stringify(cards));
-                urlObj.url_domain      = doc.data().url_domain;   
-                urlObj.url_using       = doc.data().url_using;   
-                urlObj.url_base        = doc.data().url_base;   
-                urlObj.url_management = doc.data().url_management;   
-                urlObj.url_base        = doc.data().url_base;   
-                urlObj.url_switch      = doc.data().url_switch;   
-                urlObj.url_base_remote = doc.data().url_base_remote;  
-                urlObj.url_base_local  = doc.data().url_base_local;  
-                urlObj.parmas_using    = doc.data().parmas_using; 
-
-              } else {
-
-                let icard =  {
-                  gateway : doc.data().gateway,   
-                  number : doc.data().number,   
-                  position : doc.data().position,
-                  id : doc.id
-                };
-    
-                cards.push(icard);
-              }
-
-            });
-        });
-
-        var ps = [];
-
-        await cards.forEach( async (card) => {    
-
-            let uri_remote = urlObj.url_base_remote + urlObj.parmas_using;
-            let url_gateway = urlObj.url_domain + urlObj.url_using;              
-
-            let options = {
-              method: 'POST',
-              uri: uri_remote,
-              body: {
-                data: {
-                  gateway: card.number,            
-                  url : url_gateway,                    
-                  autorization:"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                }
-              },
-              json: true 
-            }; 
-
-            ps.push(rp(options));         
-
-        }); 
-
-        var _results;
-        var promises_sims = [];
-
-        Promise.all(ps)
-        .then((results) => {
-
-            _results = results;        
-            return results;
-
-        }).then((results) => {
-
-            var promises_gateway = [];
-
-            results.forEach( async (result) => {
-
-              let response  = result.response;
-              let gateway   = "S" + response.gateway;
-              let channels  = response.channels;
-              let ports     = response.ports;               
-              
-              response.sims.forEach( async (obj) => {                 
-                var portName = "port" + obj.port;                                                                     
-                var jsonCards = `{`;
-                var countAdded=0;                
-                obj.channel.forEach( async (channel) => {
-                  jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;                                                                                                             
-                  if (countAdded === 3) {
-                      jsonCards += `}`;                     
-                      let jsonPorts = JSON.parse(jsonCards);
-                      countAdded=0;
-                      promises_sims.push(firestore.collection('gateways').doc(gateway)
-                      .collection("sims").doc(portName).set(jsonPorts,{merge:true}));
-                  } else {
-                    jsonCards += `,`;
-                    countAdded++;
-                  }                                        
-                });
-              });   
-
-              promises_gateway.push(
-                firestore.collection('gateways').doc(gateway)
-                .set({channels : channels, ports: ports},{merge:true})
-              );  
-              
-            });
-
-            return Promise.all(promises_gateway);  
-
-        }).then((documents) => {
-          
-          return Promise.all(promises_sims); 
-
-        }).then((documents) => {
-
-          res.status(200).send({"result":"success"});            
-
-        }).catch((error) => {
-
-          console.log(err); 
-          res.status(400).send({"result" : "error", "" : err});
-
-        });
-           
-     });*/
+    };  
          
 
     var OPTION_ACTION           = 'action';
@@ -927,7 +896,7 @@
     //var OPTION_MANAGMENT        = 'managment';
     var OPTION_STATUS           = 'status';
     var OPTION_SEND             = 'send';
-    var OPTION_SIMS_RECEIVED    = 'simsreceived';
+    
     var OPTION_REBOOT           = 'reboot';
   
     exports.server = functions.https.onRequest((req, res) => {        
@@ -960,7 +929,7 @@
           switch (req.path.split('/')[1]) {                        
             case OPTION_GATEWAY: gateway(req, res); break;
             case OPTION_COMPOSER: composer(req, res); break;
-            case OPTION_ACTION: action(req, res); break;
+            case OPTION_ACTION: action(req, res); break;            
             default: noti(req, res);
           } 
 
@@ -1002,55 +971,8 @@
                 return res.status(400).send(error);                
             }
   
-          break;
-  
-          case OPTION_IMPORT: 
-            
-              //http://localhost:5000/import/cobranzas
-              //https://noti.ms/import/cobranzas
-  
-              try {
-  
-                let _collection = pathParams[2];   
-                let _json_file = _collection + ".json";            
-                let data = require("./imports/"  + _json_file );                    
-  
-                var collName, docName;                               
-                var collObj, docObj;
-                var level = 0;
-  
-                const iterate = (obj, level) => {
-                  Object.keys(obj).forEach(key => {        
-                    //console.log('key: '+ key + ', value: '+ obj[key]);
-                    if (level===0) {              
-                      collName = key;
-                      collObj = obj[key];
-                    } else if (level===1) { 
-                      docName = key;
-                      docObj = obj[key];
-                    }                      
-                    if (typeof obj[key] === 'object') {
-                      level++;
-                      iterate(obj[key], level);
-                    }
-                  });
-                }
-  
-                iterate(data, 0);              
-  
-                firestore.collection(collName).doc(docName).set(docObj).then((res) => {          
-                  return res.status(200).send(res);                
-                }).catch((error) => {        
-                  return res.status(400).send(error);
-                });
-  
-            } catch (e) {
-              console.error(e);
-              return e;
-            }  
-  
-          break;
-          
+          break;        
+                   
   
         default:  
           res.status(402).send("Option not found");
@@ -1063,8 +985,9 @@
 
     var OPTION_USING            = 'using';
     var OPTION_SWITCH           = 'switch';
+    var OPTION_SMS_RECEIVED     = 'smsreceived';
 
-    var OPTION_STATUS           = 'status';
+    //var OPTION_STATUS           = 'status';
 
     /*var OPTION_SWITCH_SIM       = 'switchsim';    
     var OPTION_MANAGMENT     = 'managment';
@@ -1087,6 +1010,80 @@
         
         case OPTION_SWITCH: switchsim(req, res); break;
         //case OPTION_MANAGMENT: managment(req, res); break;
+
+        case OPTION_SMS_RECEIVED:
+
+              var gatewaysRef = firestore.collection('gateways')
+              .doc("urls").get().then( async (document) => {   
+                
+                  let url_send = document.data().url_send;
+
+                  console.log("url_send: " +url_send);
+
+                  let gateway = req.body.data.gateway;                  
+                  let channel = req.body.data.channel;
+                  let pagenumber = req.body.data.pagenumber;
+                  let card = req.body.data.card;
+                  let url = req.body.data.url;
+
+                  console.log("gateway: "+ gateway);
+                  console.log("channel: "+ channel);
+                  console.log("pagenumber: "+ pagenumber);
+
+                  var option_received = `{
+                    "method": "POST",
+                    "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
+                    "body": {
+                      "data": {
+                        "gateway": "${gateway}",            
+                        "url" : "${url}",
+                        "channel" : "${channel}",
+                        "card" : "${card}",
+                        "pagenumber" : "${pagenumber}",
+                        "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                      }
+                    },
+                    "json" : true 
+                  }`;       
+                  
+                  console.log("option_received: " + option_received);
+
+                  let receive_json = JSON.parse(option_received);
+            
+                  await rp(receive_json)
+                      .then( async (results_sent) => {
+                        
+                        console.log("results_sent: " + JSON.stringify(results_sent));
+
+                        let sim_number = results_sent.sim_numbers[0].sim_number;
+                        let remote_number = results_sent.sim_numbers[0].remote_number;
+
+                        console.log("sim_number: " + sim_number);
+                        console.log("remote_number: " + remote_number);
+
+                        let response = {
+                          number : {
+                            sim_number: sim_number,
+                            remote_number : remote_number
+                          }
+                        }
+
+                        res.status(200).send(response);
+                        return {};
+
+                  }).catch((error) => {
+      
+                    console.log("error: " + error);
+
+                    res.status(400).send({"error":error});
+                    return {};
+            
+                  });
+
+              });                  
+
+          break; 
+
         default: noti(req, res);
       } 
 

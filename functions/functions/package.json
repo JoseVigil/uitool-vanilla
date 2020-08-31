@@ -27,6 +27,7 @@
     "puppeteer": "^5.2.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
+    "sleep": "^6.3.0",
     "url": "^0.11.0"
   },
   "devDependencies": {
