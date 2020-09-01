@@ -25,7 +25,7 @@
     //var createObjectURL = require('create-object-url');   
     
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
-    const { parse } = require('path');
+    const { parse, join } = require('path');
 
 
     var db_url = "https://notims.firebaseio.com";
@@ -435,7 +435,7 @@
       
       //var send_promise = [];
       
-      let a_switch_prmise = await SwitchChannel(gateway_number, card);
+      let a_switch_prmise = await SwitchCard(gateway_number, card);
 
       Promise.all(a_switch_prmise)
       .then( async (results_switch) => { 
@@ -761,10 +761,12 @@
     };
 
 
-    var SwitchChannel = async function (gateway_number, card) {
+    var SwitchCard = async function (gateway_number, card) {
 
       var channelstatus = card + ".status";
+      
       var promise_switch = []; 
+
       var gateway = "S" + gateway_number;
 
       var gatewaysRef = firestore.collectionGroup('sims')
@@ -826,6 +828,104 @@
         return promise_switch;         
     };  
          
+    var SwitchRandom = async function (req, res) { // (gateway_number_sting) {            
+
+        let promise_random = [];
+        let randomarray = [];
+        let ports = [];       
+        
+        let gateway_number_sting  = req.body.data.gateway;
+
+        var gateway_number = parseInt(gateway_number_sting);
+        var gateway = "S"+gateway_number;
+
+        let ref = await firestore.collection('gateways').doc(gateway);
+       await ref.collection("sims").get().then(snapshot => {
+
+          var temparray = new Array();   
+
+          snapshot.forEach(doc => {
+
+            //let parent = doc.ref.parent; 
+            let port = doc.id;
+            var port_number = doc.id.replace( /^\D+/g, '');
+            ports.push(port_number);
+
+            if (doc.data().A.status !== "Empty") {
+                temparray.push({doc:doc, id:0});
+            } 
+            if (doc.data().B.status !== "Empty") {
+              temparray.push({doc:doc, id:1});
+            } 
+            if (doc.data().C.status !== "Empty") {
+              temparray.push({doc:doc, id:2});
+            } 
+            if (doc.data().D.status !== "Empty") {
+              temparray.push({doc:doc, id:3});
+            }                  
+            randomarray[port_number]  = temparray;  
+            temparray = new Array();                
+
+          });          
+
+
+        }).catch(err => {
+          console.log("Error getting sub-collection documents", err);
+        });
+    
+        for ( var i=0; i < ports.length; i++) {
+                    
+          let p = ports[i];         
+          console.log("p: " + p);          
+          let temp = randomarray[p];          
+          let rnd = Math.floor((Math.random() * temp.length) + 0);
+          let position = temp[rnd].id;         
+          let doc = temp[rnd].doc;         
+
+          console.log("posiotion: " + position );
+
+          var port_number = doc.id.replace( /^\D+/g, '');   
+          var info = (parseInt(port_number) -1) + ":" + position;                        
+
+          var options = {
+            method: 'POST',
+            uri: "http://s" + gateway_number_sting  + ".notimation.com/5-9-2SIMSwitch.php",
+            headers : {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+              'Cookie': 'PHPSESSID=3duuuba087srnotdfkda9d8to3'
+            },
+            form: {
+              action: 'SIMSwitch',
+              info: info 
+            }             
+          };
+
+          console.log("options: " + JSON.stringify(options));
+
+          promise_random.push(rp(options));
+
+        }      
+
+        Promise.all(promise_random)
+        .then( async (results_random) => {                      
+
+            res.status(200).send({resutl:"success"});
+            return results_random;
+      
+        }).catch((error) => {
+      
+            console.log("error: " + error);
+            res.status(400).send({"error" :error}); 
+            return error;
+
+        });
+
+        
+   
+        return {};         
+    };
+
 
     var OPTION_ACTION           = 'action';
     var OPTION_GATEWAY          = 'gateway';
@@ -921,12 +1021,12 @@
       
     };
 
-    var OPTION_GET_SIM_NUMBERS  = 'simnumber';
-
+    var OPTION_GET_SIM_NUMBERS      = 'simnumber';
     var OPTION_USING                = 'using';
     var OPTION_SWITCH               = 'switch';
+    var OPTION_SWITCH_RANDOM        = 'switchradom';
     var OPTION_SMS_RECEIVED         = 'received';
-    var OPTION_SMS_SEND_AND_RECEIVE = 'sendreceive';
+    var OPTION_SMS_SEND_AND_RECEIVE = 'sendreceive';       
 
     //var OPTION_STATUS           = 'status';
 
@@ -1139,6 +1239,10 @@
               });                  
 
           break; 
+
+          case OPTION_SWITCH_RANDOM:            
+            await SwitchRandom(req, res);
+          break;
 
         default: noti(req, res);
       } 
