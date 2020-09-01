@@ -121,74 +121,7 @@
       }
 
     });
-
-    /**
-     * WebApp Push Notification
-     * https://www.freecodecamp.org/news/how-to-add-push-notifications-to-a-web-app-with-firebase-528a702e13e1/#:~:text=Notifications%20with%20Firebase,any%20device%20using%20HTTP%20requests.
-     */
-
-     /**
-      * Backup and restore
-      * https://levelup.gitconnected.com/firebase-import-json-to-firestore-ed6a4adc2b57
-      */
-
-    /**
-     * Download Image 
-     * https://firebase.google.com/docs/storage/web/download-files
-     */      
-
-    /**
-     * Indexa tus datos
-     * https://firebase.google.com/docs/database/security/indexing-data?hl=es
-     */ 
-
-     /**
-      * Storage API AUDIT LOG
-      * https://cloud.google.com/storage/docs/json_api/v1/buckets/get?authuser=6&apix_params=%7B%22bucket%22%3A%22notims.appspot.com%22%2C%22projection%22%3A%22full%22%2C%22userProject%22%3A%22notims%22%2C%22alt%22%3A%22json%22%2C%22fields%22%3A%22sipef%22%2C%22prettyPrint%22%3Atrue%7D      
-      *
-      * LOGGING LIBRARY
-      * https://cloud.google.com/logging/docs/reference/libraries#client-libraries-install-nodejs
-      * 
-      * CONFIGURAR LOGGIN PARA API
-      * https://cloud.google.com/logging/docs/setup/nodejs?hl=es-419
-      */
-
-      /**
-       * Logging 
-       * https://www.npmjs.com/package/@google-cloud/logging-winston#samples
-       */
-
-      /** 
-      * Log Node
-      * https://cloud.google.com/functions/docs/monitoring/logging#viewing_logs 
-      * /
-
-       /**
-        * HTML OPEN GRAPH
-        * https://gist.github.com/alnguyenngoc/7635341
-        */
-
-      /**
-       * 
-       * EDITOR
-       * https://www.tiny.cloud/
-       * 
-       * CUSTOM FORM
-       * https://www.martyfriedel.com/blog/tinymce-5-creating-a-plugin-with-a-dialog-and-custom-icons
-       * https://tinymce.martyfriedel.com/
-       * 
-       */
-
-        /**
-        * HTML TO PDF
-        * https://www.npmjs.com/package/html-to-pdfmake
-        * 
-        */
-
-        /**
-         * RESPONSE ERRRORS API
-         * https://developer.amazon.com/docs/amazon-drive/ad-restful-api-response-codes.html
-         */
+   
 
     /**
      * Post SMS
@@ -420,7 +353,7 @@
     });
 
 
-    exports.exist = functions.runWith({ memory: '2GB', timeoutSeconds: 540 })
+    exports.execute = functions.runWith({ memory: '2GB', timeoutSeconds: 540 })
     .https.onRequest( async (req, res) => {  
       
       var gateway_number = parseInt(req.body.data.gateway);
@@ -449,14 +382,14 @@
           return Promise.all(promises_status);     
       
       }).then( async (results_sends) => {  
-
+          
           res.status(200).send({"copleted" :true}); 
+          return results_sends;
 
       }).catch((error) => {
     
         console.log("error: " + error);
         res.status(200).send({"error" :error}); 
-
         return error;
 
       });
@@ -620,7 +553,9 @@
 
             //send_promise.push(opt);                    
            
-          });  
+          }); 
+          
+          return {};
       
         }).catch((error) => {
 
@@ -822,7 +757,7 @@
             }     
           });     
 
-          //return {};
+          return {};
         });
 
         return promise_switch;         
@@ -866,7 +801,9 @@
             randomarray[port_number]  = temparray;  
             temparray = new Array();                
 
-          });          
+          });      
+          
+          return {};
 
 
         }).catch(err => {
@@ -1016,7 +953,7 @@
   
         default:  
           res.status(402).send("Option not found");
-        break;
+        //break;
       }   
       
     };
@@ -1053,121 +990,123 @@
           switchsim(req, res); 
         break;        
 
-        case OPTION_SMS_SEND_AND_RECEIVE:        
+        case OPTION_SMS_SEND_AND_RECEIVE: {     
 
-          let gateway = req.body.data.gateway;
-          let channel = req.body.data.channel;
-          let recipient = req.body.data.recipient;
-          let message = req.body.data.message;
-          let url = req.body.data.url;
-          let card = req.body.data.card;
+            let gateway = req.body.data.gateway;
+            let channel = req.body.data.channel;
+            let recipient = req.body.data.recipient;
+            let message = req.body.data.message;
+            let url = req.body.data.url;
+            let card = req.body.data.card;
 
-          var options_send_and_receive = `{
-            "method": "POST",
-            "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/send", 
-            "timeout": "10000",
-            "body": {
-              "data" : {
-                "gateway" : "${gateway}",
-                "channel" : "${channel}",
-                "recipient" : "${recipient}",
-                "message" : "${message}",
-                "url": "${url}", 
-                "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
-               }
-            },
-            "json": true 
-          }`;       
-          
-          let sar_json = JSON.parse(options_send_and_receive);
-
-          var current = new Date();
-
-          await rp(sar_json)
-          .then( async (response_sent) => {
-            
-            var resutl = response_sent.result;            
-            let sent = resutl.sent;
-            let sentlength = sent.length;
-            let last = sent[sentlength-1];
-            
-            console.log("last.time: "+ last.time);
-            
-            const timereceived = new Date(last.day + " " + last.time);
-
-            console.log("current: " + JSON.stringify(current));
-            console.log("timereceived: " + JSON.stringify(timereceived));
-
-            if ( (last.status === "Success") && 
-                 (last.number === "264") &&
-                 (current.getTime() < timereceived.getTime()) ) {
-
-              return {
-                gateway : resutl.gateway,                 
-                channel : resutl.channel,     
-                card : card
-              };
-
-            } else {
-              console.log("FAAAIIILLLLL");
-              res.status(500).send("fail");
-            }           
-
-          }).then( async (response_send) => {       
-
-            //console.log("results_sends :::: " + JSON.stringify(response_send));                             
-            var option_received = `{
+            var options_send_and_receive = `{
               "method": "POST",
-              "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
+              "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/send", 
+              "timeout": "10000",
               "body": {
-                "data": {
-                  "gateway": "${response_send.gateway}",            
-                  "url" : ".notimation.com/en/5-3-1SMSinfo.php?ch=",
-                  "channel" : "${response_send.channel}",
-                  "card" : "${response_send.card}",
-                  "pagenumber" : "1",
-                  "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                "data" : {
+                  "gateway" : "${gateway}",
+                  "channel" : "${channel}",
+                  "recipient" : "${recipient}",
+                  "message" : "${message}",
+                  "url": "${url}", 
+                  "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
                 }
               },
-              "json" : true 
+              "json": true 
             }`;       
-
-            let receive_json = JSON.parse(option_received);
             
-            return rp(receive_json);                        
+            let sar_json = JSON.parse(options_send_and_receive);
 
-          }).then( async (response_receive) => {   
-            
-            console.log("results_sent: " + JSON.stringify(response_receive));
+            var current = new Date();
 
-            let sim_number = response_receive.sim_numbers[0].sim_number;
-            let remote_number = response_receive.sim_numbers[0].remote_number;
+            await rp(sar_json)
+            .then( async (response_sent) => {
+              
+              var resutl = response_sent.result;            
+              let sent = resutl.sent;
+              let sentlength = sent.length;
+              let last = sent[sentlength-1];
+              
+              console.log("last.time: "+ last.time);
+              
+              const timereceived = new Date(last.day + " " + last.time);
 
-            console.log("sim_number: " + sim_number);
-            console.log("remote_number: " + remote_number);
+              console.log("current: " + JSON.stringify(current));
+              console.log("timereceived: " + JSON.stringify(timereceived));
 
-            let response = {
-              number : {
-                sim_number: sim_number,
-                remote_number : remote_number
+              if ( (last.status === "Success") && 
+                  (last.number === "264") &&
+                  (current.getTime() < timereceived.getTime()) ) {
+
+                return {
+                  gateway : resutl.gateway,                 
+                  channel : resutl.channel,     
+                  card : card
+                };
+
+              } else {
+                console.log("FAAAIIILLLLL");
+                res.status(500).send("fail");
+              }  
+              
+              return {};
+
+            }).then( async (response_send) => {       
+
+              //console.log("results_sends :::: " + JSON.stringify(response_send));                             
+              var option_received = `{
+                "method": "POST",
+                "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
+                "body": {
+                  "data": {
+                    "gateway": "${response_send.gateway}",            
+                    "url" : ".notimation.com/en/5-3-1SMSinfo.php?ch=",
+                    "channel" : "${response_send.channel}",
+                    "card" : "${response_send.card}",
+                    "pagenumber" : "1",
+                    "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                  }
+                },
+                "json" : true 
+              }`;       
+
+              let receive_json = JSON.parse(option_received);
+              
+              return rp(receive_json);                        
+
+            }).then( async (response_receive) => {   
+              
+              console.log("results_sent: " + JSON.stringify(response_receive));
+
+              let sim_number = response_receive.sim_numbers[0].sim_number;
+              let remote_number = response_receive.sim_numbers[0].remote_number;
+
+              console.log("sim_number: " + sim_number);
+              console.log("remote_number: " + remote_number);
+
+              let response = {
+                number : {
+                  sim_number: sim_number,
+                  remote_number : remote_number
+                }
               }
-            }
 
-            res.status(200).send(response);            
+              res.status(200).send(response);            
 
-            return response;
+              return response;
 
-          
-          }).catch((error) => {
+            
+            }).catch((error) => {
+        
+              console.log("error: " + error);
+              return error;           
       
-            console.log("error: " + error);
-            return error;           
-    
-          });
+            });
+        }  
+        break;      
 
-        break;
-
-        case OPTION_SMS_RECEIVED:
+        case OPTION_SMS_RECEIVED: {
 
               var gatewaysRef = firestore.collection('gateways')
               .doc("urls").get().then( async (document) => {   
@@ -1236,15 +1175,17 @@
             
                   });
 
-              });                  
+                  return {};
 
+              }); 
+          }                 
           break; 
 
           case OPTION_SWITCH_RANDOM:            
             await SwitchRandom(req, res);
           break;
 
-        default: noti(req, res);
+          default: noti(req, res);
       } 
 
     };    
@@ -1512,7 +1453,7 @@
 
   var SendPromises = async function (promises) {        
       
-    var posting = true;
+    /*var posting = true;
 
     var length_promises =  promises.length;
     var countSent = 0;
@@ -1540,12 +1481,14 @@
 
           responses.push(response);
 
-          if (countSent == (length_promises-1)){              
+          if (countSent === (length_promises-1)){              
 
             return await SmsReceived();
           }
           posting = false;
           countSent++;
+
+          return {};
 
         })
         .catch(function (err) {
@@ -1562,16 +1505,10 @@
         var stop = new Date().getTime();
         //while(new Date().getTime() < stop + time) {
         while( posting === false ) {
-            ;
+            
         }
         callback();
-    }
-
-  };
-
-  var SmsReceived = async function (gateway, urls) {  
-    
-    
+    }*/
 
   };
 
