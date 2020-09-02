@@ -368,9 +368,9 @@
       
       //var send_promise = [];
       
-      let a_switch_prmise = await SwitchCard(gateway_number, card);
+      let switch_prmise = await SwitchCard(gateway_number, card);
 
-      Promise.all(a_switch_prmise)
+      Promise.all(switch_prmise)
       .then( async (results_switch) => { 
 
           console.log("results_switch. " + JSON.stringify(results_switch));
@@ -750,8 +750,8 @@
                   }             
                 }; 
                 
-                //console.log("options: " + JSON.stringify(options));
-                //console.log("-------");
+                console.log("options: " + JSON.stringify(options));
+                console.log("-------");
 
                 promise_switch.push(rp(options));
             }     
