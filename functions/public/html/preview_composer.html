@@ -66,7 +66,7 @@
     <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
 
     <div id="login">
-      Web Composer - Not Logged
+      Preview composer - Not Logged
     </div>  
     
     <div class="container-fluid">
@@ -76,10 +76,10 @@
             <div class="tabbable" id="tabs-381741">
               <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link active" href="#tab1" data-toggle="tab">Basico</a>
+                  <a class="nav-link active" href="#tab1" data-toggle="tab">Section 1</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#tab2" data-toggle="tab"></a>
+                  <a class="nav-link" href="#tab2" data-toggle="tab">Section 2</a>
                 </li>
               </ul>
               <div class="tab-content">
@@ -152,7 +152,9 @@
                         </div>                        
                     </div>                                                          
                       <p class="help-block">Medio de pago</p>
-                    </div>                   
+                    </div>
+
+                   
 
                   <div class="form-group draggable">
                     <label for="color" ><b>Color de fondo</b></label>                   
@@ -171,13 +173,7 @@
               </div>
             </div>
 
-            <button id="save-web" type="button" class="btn btn-success">
-              Guardar Diseño Web
-            </button>
-            
-          </div> 
-          
-          
+          </div>          
         </div>
         <div class="col-md-5">
 
@@ -236,8 +232,6 @@
 
     $(document).ready(function () {  
 
-      var client = "kairos";
-
       var active_saludo = false;
       var active_cuerpo = false;
       var active_from_button = false;
@@ -283,10 +277,11 @@
 
         firebase.auth()
         .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
-        .then(function(user) {   
+        .then(function(user) {    
+          
+          console.log(user.id);
 
-            console.log(user.id);
-            window.location.reload();     
+          window.location.reload();  
 
         }).catch( function(error) {                         
             var errorMessage = error.message;  
@@ -299,72 +294,19 @@
 
         if (user) { 
 
-          $("#login").text("Web Composer - Logged");
+          $("#login").text("Logged");
 
-          var documentId = getUrlParameter('id');         
+          var documentId = getUrlParameter('id'); 
 
-          db.collection('clients')
-            .doc(client)
-            .collection("campaigns")
-            .doc(client).get()
+          db.collection("cobranzas").doc(documentId)
+            .get()
             .then(function(doc) {
 
               var name =  doc.data().name;                
-              //var code =  doc.data().code;
-              //var contact =  doc.data().contact;                
-
-              var fields =  doc.data().fields;   
-
-              let json = `{`;
-
-              var count = 0;
-              var length = fields.length;
+              var code =  doc.data().code;
+              var contact =  doc.data().contact;                
               
-              for (var i=0; i<length; i++) {
-
-                  let field = fields[i];
-                  //consolog.log("field: " + field);
-                  let name = field.name;
-                  let value = field.value;
-
-                  var button;
-                  switch (i) {
-                    case 0:
-                      button = "btn-primary";
-                    break;
-                    case 1:
-                      button = "btn-secondary";
-                    break;
-                    case 2:
-                      button = "btn-success";
-                    break;
-                    case 3:
-                      button = "btn-warning";
-                    break;
-                    case 4:
-                      button = "btn-info";
-                    break;
-                    default:
-                      button = "btn-dark";
-                      break;
-                  }
-
-                  json += ` "${name}" :  { 
-                      "datos" : "${value}", 
-                      "boton" : "${button}"
-                  }`;
-
-                  if (count === (length-1)) {
-                    json += `}`;
-                  } else {
-                    json += `,`;
-                  }
-                  count++;
-               } 
-
-               data = JSON.parse(json);
-              
-              /*data = { 
+              data = { 
                 "nombre" :  { 
                   "datos" : name, 
                   "boton" : "btn-primary" 
@@ -377,7 +319,7 @@
                   "datos" : contact, 
                   "boton" : "btn-success" 
                 }               
-              };*/
+              };
 
               for (var key of Object.keys(data)) {
                 
@@ -390,7 +332,6 @@
                 $("#composer").append(_html);
 
                 $("#" + nombre).on('click', function (e) {                     
-                  
                   e.preventDefault();
 
                   active_from_button = true;
@@ -400,15 +341,13 @@
                     var id = $(e.target).attr('id'); 
                     var variable;
 
-                    variable = "{" + nombre + "}";
-
-                    /*if (id=="nombre") {
+                    if (id=="nombre") {
                       variable = "{nombre}";                     
                     } else if (id=="codigo") {
                       variable = "{codigo}";  
                     } else if (id=="contacto") {
                       variable = "{contacto}";
-                    }*/
+                    }
 
                     if (active_saludo) {
 
@@ -427,17 +366,8 @@
                   }, 1000);
 
                 });
-
               }
-
           });            
-
-          $("#save-web").on('click', function() {             
-
-            let _html = getHTML();
-
-
-          });
        
           $( ".draggable" ).draggable({
             appendTo: "body",
@@ -645,7 +575,7 @@
 
                   $("#preview").html(replaceVariables(_html));                 
 
-                  return _html;
+                  return false;
                }
 
 
@@ -762,9 +692,7 @@
           $(this).parent().parent().remove();
           count_drop--;
         });
-        
-
-          $("#login").text("Logged");
+                  
 
           function initTinyEMC() {  
 

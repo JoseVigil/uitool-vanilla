@@ -26,6 +26,7 @@
     
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
     const { parse, join } = require('path');
+const { url } = require('inspector');
 
 
     var db_url = "https://notims.firebaseio.com";
@@ -59,6 +60,240 @@
 
     const settings = {timestampsInSnapshots: true};          
     firestore.settings(settings);
+
+    /**
+     * SERVER ALL INCOMING
+     */
+
+    var OPTION_ACTION           = 'action';
+    var OPTION_GATEWAY          = 'gateway';
+    var OPTION_COMPOSER         = 'composer';    
+    var OPTION_EXPORT           = 'export';    
+    //var OPTION_IMPORT           = 'import';
+    //var OPTION_STATUS           = 'status';
+    //var OPTION_SEND             = 'send';    
+    //var OPTION_REBOOT           = 'reboot';
+  
+    exports.server = functions.https.onRequest((req, res) => {        
+        
+        console.log("<<<<<<<<<<<<<<<<<<<<======================");
+
+        console.log("req.path:", req.path); 
+        
+        var path = req.path.split('/')[1];
+
+        var user, pass;
+
+        if ( path == OPTION_GATEWAY || path == OPTION_ACTION ) {          
+
+            var autorization = req.body.data.autorization;      
+      
+            var buff = Buffer.from(autorization, 'base64'); 
+            let key = buff.toString('ascii');
+
+            var keys = key.split(":");   
+
+            user = keys[0];
+            pass = keys[1];
+
+        } else {
+
+          user = "admin";
+          pass = "Notimation2020";
+
+        }
+
+        console.log("user: " + user);
+        console.log("pass: " + pass); 
+
+        if ( (user === "admin") && (pass === "Notimation2020") ) {
+
+          console.log("req.path.split('/')[1]:" + path);
+
+          switch (path) {                        
+            case OPTION_GATEWAY: GatewayOperations(req, res); break;
+            case OPTION_ACTION: Action(req, res); break;  
+            case OPTION_COMPOSER: Composer(req, res); break;                      
+            default: noti(req, res);
+          } 
+
+        } else {
+
+          res.status(401).send("Invalid authorization");  
+
+        }        
+
+    });
+
+
+    // NOTI
+    const noti = async function(req, res) {
+
+        // SHOW CARD  
+        
+        console.log("LLLEEEGGAAAAA");
+        
+        const postId = req.path.split('/')[1];
+                
+        if (!postId) {
+          return res.status(400).send('No se encontro el Id');
+        }             
+
+        return firestore.collection("cobranzas").doc(postId)
+                        .get()
+                        .then( (document) => {        
+            
+          if (document.exists) {
+
+            let docId = document.id;
+            let name = document.data().name;          
+          
+            let preview_image = document.data().preview_image;          
+            let title = "Mensaje para " + name;
+            const htmlString = buildHTMLForPage(docId, title, name, preview_image);
+
+            console.log("_________________________");
+            console.log(htmlString);
+            
+            return res.status(200).send(htmlString);
+          
+          } else {
+            return res.status(403).send("Document do not exit");
+          }        
+
+        }).catch((error) => {    
+            console.log("Error getting document:", error);
+            return res.status(404).send(error);
+        });
+
+        function buildHTMLForPage (docId, title, nombre, image) {      
+          var _html = '<!DOCTYPE html><head>' +          
+          '<meta property="og:title" content="' + nombre + '">' +                    
+          '<meta property="og:image" content="' + image + '"/>' +
+          '<title>' + title + '</title>';                
+          let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
+          var _script;                
+          _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
+          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
+          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
+          _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
+          _script += `<script>${_javascript}</script>`;
+          _html = _html + _script + '</head>';        
+          return _html;
+        } 
+      
+    };  
+    
+    const Composer = async function(req, res) {       
+
+      const pathParams = req.path.split('/');
+      var module = pathParams[2];
+
+      var url = req.url;
+
+      var urlParams;
+      
+      if (url.indexOf('?') !== -1){
+        let params = url.split("?");
+        urlParams = getJsonFromUrl(params[1]);        
+      }
+
+      console.log("url: " + JSON.stringify(urlParams) );
+
+      //, {token: client_cred_access_token}
+      
+      //console.log("params: " + params);
+      //console.log("module: "  + module );
+      //console.log("");      
+      
+      if ( module === "campaign") {
+
+        return res.status(200).sendFile( 
+          
+          path.join(__dirname + '/../public/html/campaign_composer.html', urlParams)
+          
+        );
+
+      } else if (module === "web") { 
+
+        return res.status(200).sendFile( 
+          
+          path.join(__dirname + '/../public/html/web_composer.html', urlParams)
+        );
+
+      } else if (module === "preview") {
+
+        return res.status(200).sendFile( 
+          
+          path.join(__dirname + '/../public/html/preview_composer.html', urlParams)
+          
+        );
+
+      } else {
+      
+        return res.status(200).sendFile( 
+          
+          path.join(__dirname + '/../public/html/composer.html', urlParams)
+        
+        );            
+
+      } 
+
+      function getJsonFromUrl(url) {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function(part) {
+          var item = part.split("=");
+          result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+      }
+
+    };
+
+    
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     exports.processXml = functions.storage.object().onFinalize(async (object) => {  
     
@@ -705,9 +940,9 @@
       var gateway = "S" + gateway_number;
 
       var gatewaysRef = firestore.collectionGroup('sims')
-      .where(channelstatus, "in", ["Exist", "Using"]);      
-
-        await gatewaysRef.get().then( async (querySnapshot) => {     
+               .where(channelstatus, "in", ["Exist", "Using"])   
+               .get().then( async (querySnapshot) => {    
+                  
           await querySnapshot.forEach( async (doc) => {        
 
             let parent = doc.ref.parent.parent;         
@@ -864,59 +1099,36 @@
     };
 
 
-    var OPTION_ACTION           = 'action';
-    var OPTION_GATEWAY          = 'gateway';
-    var OPTION_COMPOSER         = 'composer';    
-    var OPTION_EXPORT           = 'export';
-    
-    var OPTION_IMPORT           = 'import';
+    exports.html = functions.https.onRequest( async (req, res) => {  
 
-    var OPTION_STATUS           = 'status';
-    var OPTION_SEND             = 'send';
-    
-    var OPTION_REBOOT           = 'reboot';
-  
-    exports.server = functions.https.onRequest((req, res) => {        
+      var html = req.body.data.html;
+      var card = req.body.data.card;
+
+      let params = {  
+        html: html,
+
+
+      };
+
+      var buildhtml = firebase.functions().httpsCallable('buildhtml');  
+
+      buildhtml(params).then(function(result) {    
+          
+          var sanitizedMessage = result.data.text;
         
-        console.log("<<<<<<<<<<<<<<<<<<<<======================");
-
-        console.log("req.path:", req.path); 
-        var autorization = req.body.data.autorization;
-        
-        //var _url = req.body.data.url;        
-        //console.log("ENTRA BACKEND");         
-        //console.log("req.body.data.autorization:" + autorization);         
-        //console.log("req.body.data.url:" + _url);         
-    
-        var buff = Buffer.from(autorization, 'base64'); 
-        let key = buff.toString('ascii');
-
-        var keys = key.split(":"); 
-      
-        let user = keys[0];
-        let pass = keys[1];
-
-        console.log("user: " +user);
-        console.log("pass: " + pass); 
-
-        if ( (user === "admin") && (pass === "Notimation2020") ) {
-
-          console.log("req.path.split('/')[1]:" +req.path.split('/')[1]);
-
-          switch (req.path.split('/')[1]) {                        
-            case OPTION_GATEWAY: GatewayOperations(req, res); break;
-            case OPTION_COMPOSER: Composer(req, res); break;
-            case OPTION_ACTION: Action(req, res); break;            
-            default: noti(req, res);
-          } 
-
-        } else {
-
-          res.status(401).send("Invalid authorization");  
-
-        }        
-
+      });
+   
     });
+
+
+
+
+
+
+
+
+
+
 
     const Action = async function(req, res) { 
 
@@ -1188,7 +1400,9 @@
           default: noti(req, res);
       } 
 
-    };    
+    };  
+    
+    
     
    
 
@@ -1330,26 +1544,7 @@
     };
 
 
-    const Composer = async function(req, res) {  
-      
-      var _gateway = req.body.data.gateway;   
-      
-      if (pathParams[2] === "campaign") {
-
-        return res.status(200).sendFile( path.join(__dirname + '/../public/html/campaign_composer.html' ));
-
-      } else if (pathParams[2] === "web") {
-
-        return res.status(200).sendFile( path.join(__dirname + '/../public/html/web_composer.html' ));
-
-      } else {
-      
-        return res.status(200).sendFile( path.join(__dirname + '/../public/html/composer.html'));            
-
-      }    
-
-    };
-
+   
     
     const send = async function(req, res) {  
       
@@ -1388,62 +1583,7 @@
 
     
     
-  // NOTI
-
-  const noti = async function(req, res) {
-
-    // SHOW CARD          
-    
-    const postId = req.path.split('/')[1];
-             
-    if (!postId) {
-      return res.status(400).send('No se encontro el Id');
-    }             
-
-    return firestore.collection("cobranzas").doc(postId)
-                    .get()
-                    .then( (document) => {        
-        
-      if (document.exists) {
-
-        let docId = document.id;
-        let name = document.data().name;          
-      
-        let preview_image = document.data().preview_image;          
-        let title = "Mensaje para " + name;
-        const htmlString = buildHTMLForPage(docId, title, name, preview_image);
-
-        console.log("_________________________");
-        console.log(htmlString);
-        
-        return res.status(200).send(htmlString);
-      
-      } else {
-        return res.status(403).send("Document do not exit");
-      }        
-
-    }).catch((error) => {    
-        console.log("Error getting document:", error);
-        return res.status(404).send(error);
-    });
-
-    function buildHTMLForPage (docId, title, nombre, image) {      
-     var _html = '<!DOCTYPE html><head>' +          
-     '<meta property="og:title" content="' + nombre + '">' +                    
-     '<meta property="og:image" content="' + image + '"/>' +
-     '<title>' + title + '</title>';                
-     let _javascript = `<!DOCTYPE html><head><meta property="og:title" content="Jose Vigil"><meta property="og:image" content="https://storage.googleapis.com/notims.appspot.com/cobranzas/sipef/43YjVa_5205172.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=jbrD3iGC%2FbVaHDcfyUS2ipgfmpc2Czdi6ePG8HdcFmcMZ%2F3WaIpHUN%2BSWXU9tMOJfOm6aSJDfJPrQpXb5B9gzTzzrITXYRRElbLF1bJGtIzGbh48G9018DepMHWgEFzY6hTrGjFGuK9GPFBBu0FruHHYJgxRcEhnBGosJshOUCsddvVR%2Bh8eVvLJlMgMMaAV%2F2Aam0Z9MnUIFUDACX19NFqCEReiy1gFiWTLM15iyvoegQNgCwzX67dAKQfyfI3MeCQDvEDYKiP6Nbpgz%2F0oZOxl7XbvUQxToUc41R2sw%2FtFf8w3qh3uXUa%2FNijO5h7iiWunw98Y0FU%2Bjb5rw%2FRN6Q%3D%3D"/><title>Mensaje para Jose Vigil</title><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script><script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script><script>$(document).ready(function(){console.log("ENTRAAAAAA");const e={apiKey:"AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",authDomain:"notims.firebaseapp.com",databaseURL:"https://notims.firebaseio.com",projectId:"notims",storageBucket:"notims.appspot.com",messagingSenderId:"79471870593",appId:"1:79471870593:web:ef29a72e1b1866b2bb4380",measurementId:"G-8T5N81L78J"};return firebase.initializeApp(e),firebase.firestore().collection("cobranzas").doc(` + docId + `).get().then(e=>{if(console.log("____1____"),e.exists){var o=0;if(console.log("____2____"),e.data().previewed){o=parseInt(e.data().previewed)+1}else o++;e.ref.update({previewed:o}).then(e=>(console.log("____3____"),e.id)).catch(e=>{console.log("Error saving preview "+e)})}return e.id}).then(e=>(console.log("____4____"),e.id)).catch(e=>(console.log("Error getting document:",e),res.status(404).send(e)))});</script></head>`;
-     var _script;                
-     _script =  `<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>`;
-     _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>`;
-     _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>`;        
-     _script += `<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>`;  
-     _script += `<script>${_javascript}</script>`;
-     _html = _html + _script + '</head>';        
-     return _html;
-   } 
-    
-  };     
+  
 
 
 

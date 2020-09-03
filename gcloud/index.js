@@ -2,6 +2,9 @@
 	const {Storage} = require('@google-cloud/storage');		
 	const chromium = require("chrome-aws-lambda");	
 	const {Logging} = require('@google-cloud/logging');
+	
+
+	const htmlFunctions = require('./build_html.js');
 
 	const logging = new Logging();	
 	const storage = new Storage();
@@ -565,7 +568,7 @@
 	};
 
 
-	const convertHtmlToImage = async function(req, res) {
+	const buildhtml = async function(req, res) {
 
 		const _value = req.body.data;	   
 		let name = _value.name;
@@ -577,35 +580,39 @@
 
 		console.log('image_name:' + image_name);
 
-		let _html = ""; //buildHTMLForImage(name, message).toString();    
+		var _html = _value.html; 
+		var _style = _value.style; 
+
+		//let _html = ""; //buildHTMLForImage(name, message).toString();    
+		//let _html = htmlFunctions.buildHTMLForImage(name, message).toString();
 
 		var screenshotBuffer = null;
 		var browser = null;
 
 		try {        
 
-		browser = await chromium.puppeteer.launch({
-		  args: chromium.args,
-		  defaultViewport: chromium.defaultViewport,
-		  executablePath: await chromium.executablePath,
-		  headless: chromium.headless,
-		  ignoreHTTPSErrors: true,
-		});	    
+			browser = await chromium.puppeteer.launch({
+			  args: chromium.args,
+			  defaultViewport: chromium.defaultViewport,
+			  executablePath: await chromium.executablePath,
+			  headless: chromium.headless,
+			  ignoreHTTPSErrors: true,
+			});	    
 
-		const page = await browser.newPage();      
-		await page.setViewport({
-		          width: 1200,
-		          height: 630,
-		          deviceScaleFactor: 1,
-		        });
-		await page.setContent(_html);       
-		screenshotBuffer = await page.screenshot({encoding: "binary"});
-		//screenshotBuffer = await page.screenshot({encoding: "base64"});
-		await browser.close(); 
+			const page = await browser.newPage();      
+			await page.setViewport({
+			          width: 1200,
+			          height: 630,
+			          deviceScaleFactor: 1,
+			        });
+			await page.setContent(_html);       
+			screenshotBuffer = await page.screenshot({encoding: "binary"});
+			//screenshotBuffer = await page.screenshot({encoding: "base64"});
+			await browser.close(); 
 
 		} catch (e) {
-		console.error(e);
-		return e;
+			console.error(e);
+			return e;
 		}    
 
 		var imageBuffer;
@@ -621,8 +628,8 @@
 		  });
 
 		} catch (e) {
-		console.error(e);
-		return e;
+			console.error(e);
+			return e;
 		}  
 
 		try {           

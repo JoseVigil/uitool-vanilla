@@ -14,6 +14,14 @@
      <title>Noti Campaigns</title>    
     
       <style>  
+
+      #rcard {
+        border-radius: 25px;
+        background: #73AD21;
+        padding: 20px;
+        width: 200px;
+        height: 150px;
+      }
     
        
      </style>
@@ -44,11 +52,14 @@
        
     
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
-          <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-dark bg-dark">
+
+
+      <div class="row" style="padding-left: 50px;">
+        <div class="col-md-12">          
+          
+          <!--<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-dark bg-dark">
              
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
               <span class="navbar-toggler-icon"></span>
             </button> <a class="navbar-brand" href="#">Brand</a>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -88,14 +99,17 @@
                 </li>
               </ul>
             </div>
-          </nav>
+          </nav>-->
 
           <br>
 
           <div class="row">
             <div id="login">
-              Not Logged
+              Campoaign composer - Not Logged
             </div>  
+            <div id="logout">
+              Logout
+            </div>
             <div class="col-md-4">
             </div>
             <div class="col-md-4">
@@ -212,7 +226,7 @@
                             </span>
                         </th>
                         <th>Nombre</th>
-                        <th>Actualizada</th>,.                        
+                        <th>Actualizada</th>                 
                         <th></th>                        
                     </tr>
                     </thead>
@@ -224,33 +238,60 @@
               </div>
             </div>
           </div>
+          
+          <br>
+
           <div class="row">
             <div class="col-md-12">
-              <h3>
-                Campañas
+              <h3 class="text-center">
+                Noti Designer
               </h3>
-              <div class="row">
-                <div class="col-md-4">
+              <div class="row float-left">
+                <span class="badge badge-default"><h5>Nuevo diseño</h5></span>
+                <button id="add-field" type="button" class="btn btn-success ">
+                  +
+                </button>
+              </div>
+              <br><br>
+              <div class="row">                
+                <div class="col-md-4">                  
                   <div class="row">
-                    <div class="col-md-12">
+
+                    <div class="col-md-12" style="background-color:#E8F0FE;">
+                      
                       <div class="row">
                         <div class="col-md-8">
                         </div>
-                        <div class="col-md-4">
-                           
-                          <button type="button" class="btn btn-success">
-                            Cerrar
-                          </button>
+                        <div class="col-md-4">                           
+                          <button type="button" class="float-right btn btn-success">X</button>
                         </div>
                       </div>
-                      <h3>
-                        h3. Lorem ipsum dolor sit amet.
-                      </h3><img alt="Bootstrap Image Preview" src="https://www.layoutit.com/img/sports-q-c-140-140-3.jpg" />
+
+                      <button id="preview" class="card border round" style="width: 18rem;">                        
+                        <div class="card-body">
+                         Preview
+                        </div>
+                      </button>  
+                      
+                      <br>
+                      
+                      <button id="web" class="card border rounded h-100" style="width: 18rem;">                        
+                        <div class="card-body">
+                         Web Page
+                        </div>
+                      </button> 
+                      
+                      
+                      
+                      
+
                       <div class="row">
                         <div class="col-md-12">
-                        </div>
-                      </div><img alt="Bootstrap Image Preview" src="https://www.layoutit.com/img/sports-q-c-140-140-3.jpg" />
-                    </div>
+                      </div>
+                      
+                    
+
+
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -313,7 +354,7 @@
 
     $(document).ready(function () {  
 
-      var client = "sipef";
+      var client = "kairos";
 
       var active_saludo = false;
       var active_cuerpo = false;
@@ -360,21 +401,49 @@
     
       $( "#login" ).click(function() {       
 
-        firebase.auth().signInWithEmailAndPassword("josemanuelvigil@gmail.com", "temporary").then(function(user) {                      
+        firebase.auth()
+        .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
+        .then(function(user) {                      
+
+          console.log(user.id);
+
           window.location.reload();            
+
+
         }).catch( function(error) {                         
             var errorMessage = error.message;  
             console.log(errorMessage);
         });
 
       });
+
+       $( "#logout" ).click(function() {       
+
+        firebase
+          .auth()
+          .signOut()
+          .then(function () {
+            
+
+            window.location.reload();  
+
+          }).catch(function (error) {
+            // An error happened.
+            var errorMessage = error.message;  
+            console.log(errorMessage);
+          });
+
+      });     
+      
       
       
       firebase.auth().onAuthStateChanged(function (user) {
 
         if (user) { 
 
-          var documentId = getUrlParameter('id'); 
+          $( "#login" ).text("Campoaign composer - Logged");
+
+          var campaignId = getUrlParameter('id');             
           
           db.collection('clients')
           .doc(client)
@@ -386,7 +455,10 @@
               changes.forEach(change => {
                   
                   let document = change.doc;
-                  let id = document.id;                  
+                  let id = document.id;    
+
+                  window.documentId = id;              
+
                   let last_update = document.data().last_update;                  
                   
                   let item = `<tr data-id="${document.id}">
@@ -408,6 +480,25 @@
 
       });  
 
+      $("#preview").on('click', function() {       
+
+        let preview = "http://localhost:5000/composer/preview";
+
+        let url = composer + "&id=" + window.documentId;
+
+        var win = window.open(url, '_blank');
+
+      }); 
+
+      $("#web").on('click', function() {       
+
+        let composer = "http://localhost:5000/composer/web";
+
+        let url = composer + "&id=" + window.documentId;
+
+        var win = window.open(url, '_blank');
+
+      }); 
 
       $("#add-field").on('click', function() {  
 
@@ -462,17 +553,33 @@
 
         var _time =  new Date();
         
-        db.collection('clients')
+       var campaign =  db.collection('clients')
           .doc(client)
           .collection("campaigns")
-          .doc(cname)
-          .set({        
+          .doc(cname);
+
+          campaign.set({        
             name: campaign_name,
             last_update: _time,      
             time_created: _time,
             fields:fields_array            
-          },{ merge:true }).then(docRefSet => {                
+          },{ merge:true }).then(docRefSet => {              
+            
+            return campaign.collection("preview")
+                .doc("defauls").set({
+                  name: "default",
+                  created_date: _time                                         
+                },{ merge:true });
+
+          }).then(docRefSet => { 
+
+            return campaign.collection("web")
+                .doc("defauls").set({
+                  name: "default",
+                  created_date: _time                                       
+                },{ merge:true });
               
+          }).then(docRefSet => {       
 
               let _files = document.getElementById("excel-file").files;
 
@@ -515,8 +622,7 @@
                       // Handle unsuccessful uploads
                     }, function() { 
 
-
-                      
+                      //Crear                       
                       $('#alertModal').modal('show');                      
                    });
 

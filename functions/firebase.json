@@ -11,7 +11,7 @@
     ],
     "rewrites": [ { 
       "source": "/**", 
-      "function": "backend" 
+      "function": "server" 
       }    
     ]
   },
@@ -32,7 +32,7 @@
       "port": 5000
     },
     "pubsub": {
-      "port": 8085
+      "port": 8086
     },
     "ui": {
       "enabled": true
