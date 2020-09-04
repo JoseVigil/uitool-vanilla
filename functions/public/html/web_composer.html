@@ -99,13 +99,7 @@
                       <label for="cuerpo" ><b>Cuerpo</b></label>  
                       <input type="text" class="form-control">
                       <p>Crea el cuerpo del mensaje</p>                        
-                    </div>  
-                    
-                    <!--<div id="imagen" class="form-group draggable">
-                      <label for="imagen" ><b>Imagen</b></label>
-                      <input id="inimagen" type="file" name="files[]">
-                      <p class="help-block">Agregar imagen</p>
-                    </div>-->
+                    </div>     
 
                     <div class="form-group draggable">
                       <label for="contacto" ><b>Contacto</b></label>
@@ -234,9 +228,7 @@
      * https://bbbootstrap.com/snippets/modal-dialog-multi-step-form-wizard-29726524
      * */
 
-    $(document).ready(function () {  
-
-      var client = "kairos";
+    $(document).ready(function () {            
 
       var active_saludo = false;
       var active_cuerpo = false;
@@ -301,12 +293,13 @@
 
           $("#login").text("Web Composer - Logged");
 
+          var client = getUrlParameter('client');         
           var documentId = getUrlParameter('id');         
 
           db.collection('clients')
             .doc(client)
             .collection("campaigns")
-            .doc(client).get()
+            .doc(documentId).get()
             .then(function(doc) {
 
               var name =  doc.data().name;                

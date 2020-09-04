@@ -6,11 +6,16 @@
     const request = require('request');  
     var firestoreService = require('firestore-export-import');      
     var path = require('path');       
+    
     var pdfMake = require("pdfmake/build/pdfmake");
     var pdfFonts = require("pdfmake/build/vfs_fonts");
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
     var htmlToPdfmake = require("html-to-pdfmake");
-    var rp = require('request-promise');    
+    
+    var rp = require('request-promise');       
+
+    const express = require('express');
+    var engines = require('consolidate');
     
 
     //const readXlsxFile = require('read-excel-file/node');
@@ -26,7 +31,7 @@
     
     var serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
     const { parse, join } = require('path');
-const { url } = require('inspector');
+    const { url } = require('inspector');
 
 
     var db_url = "https://notims.firebaseio.com";
@@ -73,8 +78,13 @@ const { url } = require('inspector');
     //var OPTION_STATUS           = 'status';
     //var OPTION_SEND             = 'send';    
     //var OPTION_REBOOT           = 'reboot';
+
+    const app = express();
+    app.engine('html', engines.hogan);
   
-    exports.server = functions.https.onRequest((req, res) => {        
+    //exports.server = functions.https.onRequest((req, res) => {     
+      
+    app.get('*', (req, res) => {
         
         console.log("<<<<<<<<<<<<<<<<<<<<======================");
 
@@ -84,7 +94,7 @@ const { url } = require('inspector');
 
         var user, pass;
 
-        if ( path == OPTION_GATEWAY || path == OPTION_ACTION ) {          
+        if ( path === OPTION_GATEWAY || path === OPTION_ACTION ) {          
 
             var autorization = req.body.data.autorization;      
       
@@ -125,6 +135,7 @@ const { url } = require('inspector');
 
     });
 
+    exports.app = functions.https.onRequest(app);
 
     // NOTI
     const noti = async function(req, res) {
@@ -151,9 +162,6 @@ const { url } = require('inspector');
             let preview_image = document.data().preview_image;          
             let title = "Mensaje para " + name;
             const htmlString = buildHTMLForPage(docId, title, name, preview_image);
-
-            console.log("_________________________");
-            console.log(htmlString);
             
             return res.status(200).send(htmlString);
           
@@ -188,56 +196,26 @@ const { url } = require('inspector');
 
       const pathParams = req.path.split('/');
       var module = pathParams[2];
-
       var url = req.url;
-
       var urlParams;
       
       if (url.indexOf('?') !== -1){
         let params = url.split("?");
         urlParams = getJsonFromUrl(params[1]);        
-      }
+      }     
 
-      console.log("url: " + JSON.stringify(urlParams) );
-
-      //, {token: client_cred_access_token}
-      
-      //console.log("params: " + params);
-      //console.log("module: "  + module );
-      //console.log("");      
-      
-      if ( module === "campaign") {
-
-        return res.status(200).sendFile( 
-          
-          path.join(__dirname + '/../public/html/campaign_composer.html', urlParams)
-          
-        );
-
-      } else if (module === "web") { 
-
-        return res.status(200).sendFile( 
-          
-          path.join(__dirname + '/../public/html/web_composer.html', urlParams)
-        );
-
+      var url;
+      if ( module === "campaign") {        
+        url = path.join(__dirname + '/../public/html/campaign_composer.html');
+      } else if (module === "web") {         
+        url = path.join(__dirname + '/../public/html/web_composer.html');        
       } else if (module === "preview") {
-
-        return res.status(200).sendFile( 
-          
-          path.join(__dirname + '/../public/html/preview_composer.html', urlParams)
-          
-        );
-
-      } else {
-      
-        return res.status(200).sendFile( 
-          
-          path.join(__dirname + '/../public/html/composer.html', urlParams)
-        
-        );            
-
+        url = path.join(__dirname + '/../public/html/preview_composer.html');        
+      } else {                 
+        url = path.join(__dirname + '/../public/html/composer.html');
       } 
+
+      return res.render(url, urlParams); 
 
       function getJsonFromUrl(url) {
         if(!url) url = location.search;
@@ -250,51 +228,10 @@ const { url } = require('inspector');
         return result;
       }
 
+
     };
-
     
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
     exports.processXml = functions.storage.object().onFinalize(async (object) => {  
     
       const filePath = object.name;
@@ -559,7 +496,7 @@ const { url } = require('inspector');
     }); 
 
 
-    exports.test = functions.https.onRequest( async (req, res) => {   
+    /*exports.test = functions.https.onRequest( async (req, res) => {   
       
       await cards.forEach( async (card) => {    
 
@@ -581,11 +518,11 @@ const { url } = require('inspector');
 
         ps.push(rp(options));         
 
-    }); 
+      }); 
 
       return null;
     
-    });
+    });*/
 
 
     exports.execute = functions.runWith({ memory: '2GB', timeoutSeconds: 540 })
@@ -1115,7 +1052,15 @@ const { url } = require('inspector');
       buildhtml(params).then(function(result) {    
           
           var sanitizedMessage = result.data.text;
+
+
+          return sanitizedMessage;
         
+      }).catch((error) => {
+        
+        console.log("error: " + error);
+        return error;           
+
       });
    
     });

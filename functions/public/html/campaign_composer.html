@@ -21,8 +21,27 @@
         padding: 20px;
         width: 200px;
         height: 150px;
+      }    
+
+      .table-layout {
+          text-align: center;
+          border: 1px solid black;
+          border-collapse: collapse;
+          font-family:"Trebuchet MS";
+          margin: 0 auto 0;
       }
-    
+      .table-layout td, .table-layout th {
+          border: 1px solid grey;
+          padding: 5px 5px 0;
+      }
+      .table-layout td {
+          text-align: left;
+      }
+      .selected {
+          color: red;
+          background-color: yellow;
+      }
+          
        
      </style>
 
@@ -177,14 +196,14 @@
                               </tr>
                             </thead>
                             <tbody>
-                              <tr id="field1">
+                              <tr id="field0">
                                 <td>
                                   <span class="glyphicon glyphicon-envelope"></span>                                </td>
                                 <td>
-                                  <input id="name_1" type="text" class="form-control">
+                                  <input id="name_0" type="text" class="form-control">
                                 </td>
                                 <td>
-                                  <input id="value_1" type="text" class="form-control">
+                                  <input id="value_0" type="text" class="form-control">
                                 </td>                               
                               </tr>                              
                             </tbody>
@@ -253,18 +272,23 @@
                 </button>
               </div>
               <br><br>
+              
               <div class="row">                
                 <div class="col-md-4">                  
                   <div class="row">
 
                     <div class="col-md-12" style="background-color:#E8F0FE;">
-                      
-                      <div class="row">
+
+                      <div class="row mt-3 mb-3 ml-3">
+                        
                         <div class="col-md-8">
+                          <h3 class="float-left">Diseño A</h3>   
                         </div>
+                        
                         <div class="col-md-4">                           
                           <button type="button" class="float-right btn btn-success">X</button>
                         </div>
+
                       </div>
 
                       <button id="preview" class="card border round" style="width: 18rem;">                        
@@ -279,21 +303,14 @@
                         <div class="card-body">
                          Web Page
                         </div>
-                      </button> 
+                      </button>                    
                       
-                      
-                      
-                      
-
                       <div class="row">
                         <div class="col-md-12">
                       </div>
-                      
-                    
-
 
                   </div>
-                </div>
+
                 <div class="col-md-4">
                 </div>
                 <div class="col-md-4">
@@ -315,8 +332,6 @@
             </div>
         </div>
 
-
-          
         </div>
       </div>
     </div>
@@ -355,6 +370,8 @@
     $(document).ready(function () {  
 
       var client = "kairos";
+
+      
 
       var active_saludo = false;
       var active_cuerpo = false;
@@ -406,9 +423,7 @@
         .then(function(user) {                      
 
           console.log(user.id);
-
           window.location.reload();            
-
 
         }).catch( function(error) {                         
             var errorMessage = error.message;  
@@ -435,8 +450,6 @@
 
       });     
       
-      
-      
       firebase.auth().onAuthStateChanged(function (user) {
 
         if (user) { 
@@ -452,14 +465,19 @@
             
               let size = snapshot.size;            
               let changes = snapshot.docChanges();
+
+              var count=0;
+
               changes.forEach(change => {
                   
                   let document = change.doc;
                   let id = document.id;    
 
-                  window.documentId = id;              
+                  window.documentId = id;
 
-                  let last_update = document.data().last_update;                  
+                  let last = document.data().last_update.toDate();              
+
+                  let last_update = formatDate(last);                  
                   
                   let item = `<tr data-id="${document.id}">
                   <td>
@@ -469,23 +487,85 @@
                       </span>
                   </td>
                   <td>${document.data().name}</td>
-                  <td>${document.data().last_update}</td>               
+                  <td>${last_update}</td>               
                   <td><a href="#" id="menu_${document.id}"><i class="fal fa-ellipsis-v"></i></a></td>        
                   </tr>`;
                   $('#campaign-table').append(item);
+
+                  let fields = document.data().fields;
+
+                  if ( fields.length>0 ) { 
+
+                    
+
+                    $("#field0").remove(); 
+                    
+                    for (var i=0; i<fields.length; i++) {              
+
+                      let field = fields[i];                  
+                      let name = field.name;
+                      let value = field.value;
+
+                      let item = `<tr id="field${i}">
+                        <td>
+                          <span class="glyphicon glyphicon-envelope"></span>                                </td>
+                        <td>
+                          <input id="name_${i}" value="${name}" type="text" class="form-control">
+                        </td>
+                        <td>
+                          <input id="value_${i}" value="${value}" type="text" class="form-control">
+                        </td>                               
+                      </tr>`;   
+                      $('#field-table').append(item); 
+
+                    }                  
+
+                  }
+
+                  /**
+                   * TODO: Cuando se hace un click en la tabla campaign-table
+                   * se debaria seleccionar el row y cargar los diseños que 
+                   * deberian ser creados como un array dentro de 
+                   * estaba tratando de tomar este modelo se select
+                   * https://jsfiddle.net/armaandhir/f04tyoz7/
+                   * */ 
+
+
+                  /*if (count===(size-1)){
+                    $('#campaign-table tr').click();
+                  }*/
+                  count++;
                  
               });
           });
         }
 
-      });  
+        $("#campaign-table tr").click(function(){
+          $(this).addClass('selected').siblings().removeClass('selected');    
+          var value=$(this).find('td:first').html();
+          alert(value);    
+        });
+
+        function formatDate(date) {
+            var d = new Date(date),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();        
+            if (month.length < 2) 
+                month = '0' + month;
+            if (day.length < 2) 
+                day = '0' + day;        
+            return [day, month, year].join('-');
+        }
+
+      }); 
+      
+     
 
       $("#preview").on('click', function() {       
 
         let preview = "http://localhost:5000/composer/preview";
-
-        let url = composer + "&id=" + window.documentId;
-
+        let url = composer + "?&id=" + window.documentId;
         var win = window.open(url, '_blank');
 
       }); 
@@ -493,9 +573,7 @@
       $("#web").on('click', function() {       
 
         let composer = "http://localhost:5000/composer/web";
-
-        let url = composer + "&id=" + window.documentId;
-
+        let url = composer + "?&id=" + window.documentId;
         var win = window.open(url, '_blank');
 
       }); 
