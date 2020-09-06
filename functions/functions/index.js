@@ -80,9 +80,9 @@
     //var OPTION_REBOOT           = 'reboot';
 
     const app = express();
-    app.engine('html', engines.hogan);
-  
-    //exports.server = functions.https.onRequest((req, res) => {     
+    app.engine('html', engines.hogan);    
+    const cors = require('cors')({origin: true});
+    app.use(cors);  
       
     app.get('*', (req, res) => {
         
@@ -138,11 +138,8 @@
     exports.app = functions.https.onRequest(app);
 
     // NOTI
-    const noti = async function(req, res) {
-
-        // SHOW CARD  
+    const noti = async function(req, res) {     
         
-        console.log("LLLEEEGGAAAAA");
         
         const postId = req.path.split('/')[1];
                 
