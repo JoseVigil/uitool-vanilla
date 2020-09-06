@@ -82,7 +82,7 @@
     const app = express();
     app.engine('html', engines.hogan);    
     const cors = require('cors')({origin: true});
-    app.use(cors);  
+    app.use(cors);   
       
     app.get('*', (req, res) => {
         
