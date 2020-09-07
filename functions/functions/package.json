@@ -23,6 +23,7 @@
     "firebase-functions": "^3.6.1",
     "firestore-export-import": "^0.6.1",
     "hogan": "^1.0.2",
+    "html-minifier": "^4.0.0",
     "html-to-pdfmake": "^2.0.10",
     "mustache": "^4.0.1",
     "node-blob": "0.0.2",

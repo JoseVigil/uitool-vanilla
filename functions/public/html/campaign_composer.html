@@ -580,9 +580,7 @@
 
       $("#add-field").on('click', function() {  
 
-          count_field++;
-
-          let item = `<tr id="field${count_field+1}">
+          let item = `<tr id="field${count_field}">
             <td>
               <span class="glyphicon glyphicon-envelope"></span>                                </td>
             <td>
@@ -593,6 +591,7 @@
             </td>                               
           </tr>`;   
           $('#field-table').append(item); 
+          count_field++;
 
       });   
 
@@ -605,8 +604,7 @@
        var _break = false;
         
         $("#field-table tr").each(function() {
-          if (_break==false) {
-            count++;
+          if (_break==false) {            
             let _name = $("#name_"+count).val();
             let _value = $("#value_"+count).val(); 
             let _field = {
@@ -614,10 +612,11 @@
               "value":_value
             };   
             fields_array.push(_field);
-            if (count == _table_size) {
+            if (count == (_table_size-1)) {
               saveCampaig(fields_array);
               _break = true;
             } 
+            count++;
           }
         });      
       
@@ -644,7 +643,7 @@
           },{ merge:true }).then(docRefSet => {              
             
             return campaign.collection("preview")
-                .doc("defauls").set({
+                .doc("default").set({
                   name: "default",
                   created_date: _time                                         
                 },{ merge:true });
@@ -652,7 +651,7 @@
           }).then(docRefSet => { 
 
             return campaign.collection("web")
-                .doc("defauls").set({
+                .doc("default").set({
                   name: "default",
                   created_date: _time                                       
                 },{ merge:true });

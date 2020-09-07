@@ -15,8 +15,7 @@
     var rp = require('request-promise');       
 
     const express = require('express');
-    var engines = require('consolidate');
-    
+    var engines = require('consolidate');   
 
     //const readXlsxFile = require('read-excel-file/node');
 
@@ -74,6 +73,7 @@
     var OPTION_GATEWAY          = 'gateway';
     var OPTION_COMPOSER         = 'composer';    
     var OPTION_EXPORT           = 'export';    
+    
     //var OPTION_IMPORT           = 'import';
     //var OPTION_STATUS           = 'status';
     //var OPTION_SEND             = 'send';    
@@ -123,14 +123,12 @@
           switch (path) {                        
             case OPTION_GATEWAY: GatewayOperations(req, res); break;
             case OPTION_ACTION: Action(req, res); break;  
-            case OPTION_COMPOSER: Composer(req, res); break;                      
+            case OPTION_COMPOSER: Composer(req, res); break;                
             default: noti(req, res);
           } 
 
         } else {
-
           res.status(401).send("Invalid authorization");  
-
         }        
 
     });
@@ -138,8 +136,7 @@
     exports.app = functions.https.onRequest(app);
 
     // NOTI
-    const noti = async function(req, res) {     
-        
+    const noti = async function(req, res) {            
         
         const postId = req.path.split('/')[1];
                 
@@ -225,70 +222,66 @@
         return result;
       }
 
-
-    };
+    }; 
     
+
+    exports.buildimage = functions.https.onRequest( async (request, response) => {
+
+      console.log("ENTRA : BuildImage");
     
-    exports.processXml = functions.storage.object().onFinalize(async (object) => {  
-    
-      const filePath = object.name;
-      const customMetadata = object.metadata;      
-
-      if (customMetadata.type === "xls") {
-
-        var _path = customMetadata.path;
-        var _documentId = customMetadata.documentId;
-
-        const bucket = admin.storage().bucket(object.bucket);
-
-        const file = bucket.file(filePath);
-        const contentType = object.contentType; // This is the image MIME type
-        const fileDir = path.dirname(filePath);
-        const fileName = path.basename(filePath);
-
-        const xlsFilePath = path.normalize(path.join(fileDir, `${THUMB_PREFIX}${fileName}`));
-
-        const _file = bucket.file(xlsFilePath);
-
-        var rowNumber=0;
-
-        /*readXlsxFile(_file).then(async (rows) => {                             
-          
-          if (rowNumber===0) { 
+      response.set('Access-Control-Allow-Origin', '*');
+      response.set('Access-Control-Allow-Credentials', 'true'); // vital
+  
+      try {
+  
+        if (request.method === 'OPTIONS') {
             
-            let l = rows[0].length;
-            var _row = rows[0];
-            var columns = [];
+            // Send response to OPTIONS requests
+            response.set('Access-Control-Allow-Methods', 'GET');
+            response.set('Access-Control-Allow-Headers', 'Content-Type');
+            response.set('Access-Control-Max-Age', '3600');
+            response.status(204).send('');
+        
+          } else {
+
+            const data = request.body;                                   
+            const type = data.type;            
+            data.autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";            
             
-            for (var i=0; i<l; i++) {
-              let col = _row[i];
-              columns.push(col);
-            }
-
-            let _time = admin.firestore.FieldValue.serverTimestamp();
-
-            let campaignRef = firestore.collection(_path).doc(_documentId);
-
-            await campaignRef.update({
-              columns: columns,              
-              updated_time:_time                  
+            var build_image_web = `{
+              "method": "POST",
+              "uri": "https://us-central1-notims.cloudfunctions.net/backend/buildimage/${type}", 
+              "timeout": "10000",
+              "body": {
+                "data" : ${JSON.stringify(data)}                  
+              },
+              "json": true 
+            }`;       
+            
+            let _json = JSON.parse(build_image_web);                 
+  
+            await rp(_json)
+            .then( async (response_image) => {
+  
+              console.log("response: " + JSON.stringify(response_image));
+              response.status(200).send(response_image);
+              return response_image;
+  
             }).catch((error) => {
-              console.log('Error updating document:', error);
-              return error;
-            });             
+        
+              console.log("error: " + error);
+              response.status(500).send({error:error});
+              return error;           
+      
+            });
 
-          }
-
-          return rows; 
-
-
-        }).catch((error) => {
-          console.log('Error reading xml:', error);
-          return error;
-        });*/
-
-      }
-
+        }   
+  
+      } catch (e) {
+        console.error(e);
+        return e;
+      } 
+  
     });
    
 
@@ -491,6 +484,69 @@
       }    
 
     }); 
+
+
+    exports.processXml = functions.storage.object().onFinalize(async (object) => {  
+    
+      const filePath = object.name;
+      const customMetadata = object.metadata;      
+
+      if (customMetadata.type === "xls") {
+
+        var _path = customMetadata.path;
+        var _documentId = customMetadata.documentId;
+
+        const bucket = admin.storage().bucket(object.bucket);
+
+        const file = bucket.file(filePath);
+        const contentType = object.contentType; // This is the image MIME type
+        const fileDir = path.dirname(filePath);
+        const fileName = path.basename(filePath);
+
+        const xlsFilePath = path.normalize(path.join(fileDir, `${THUMB_PREFIX}${fileName}`));
+
+        const _file = bucket.file(xlsFilePath);
+
+        var rowNumber=0;
+
+        /*readXlsxFile(_file).then(async (rows) => {                             
+          
+          if (rowNumber===0) { 
+            
+            let l = rows[0].length;
+            var _row = rows[0];
+            var columns = [];
+            
+            for (var i=0; i<l; i++) {
+              let col = _row[i];
+              columns.push(col);
+            }
+
+            let _time = admin.firestore.FieldValue.serverTimestamp();
+
+            let campaignRef = firestore.collection(_path).doc(_documentId);
+
+            await campaignRef.update({
+              columns: columns,              
+              updated_time:_time                  
+            }).catch((error) => {
+              console.log('Error updating document:', error);
+              return error;
+            });             
+
+          }
+
+          return rows; 
+
+
+        }).catch((error) => {
+          console.log('Error reading xml:', error);
+          return error;
+        });*/
+
+      }
+
+    });
 
 
     /*exports.test = functions.https.onRequest( async (req, res) => {   
@@ -1025,42 +1081,12 @@
             res.status(400).send({"error" :error}); 
             return error;
 
-        });
-
-        
+        });        
    
         return {};         
-    };
+    };    
 
-
-    exports.html = functions.https.onRequest( async (req, res) => {  
-
-      var html = req.body.data.html;
-      var card = req.body.data.card;
-
-      let params = {  
-        html: html,
-
-
-      };
-
-      var buildhtml = firebase.functions().httpsCallable('buildhtml');  
-
-      buildhtml(params).then(function(result) {    
-          
-          var sanitizedMessage = result.data.text;
-
-
-          return sanitizedMessage;
-        
-      }).catch((error) => {
-        
-        console.log("error: " + error);
-        return error;           
-
-      });
    
-    });
 
 
 

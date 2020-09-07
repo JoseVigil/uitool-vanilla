@@ -70,9 +70,11 @@
     </div>  
     
     <div class="container-fluid">
+      
       <div class="row">
         <div class="col-md-3">
-          <div class="column-background">
+
+          <div id="html-preview" class="column-background">
             <div class="tabbable" id="tabs-381741">
               <ul class="nav nav-tabs">
                 <li class="nav-item">
@@ -148,7 +150,7 @@
                       <p class="help-block">Medio de pago</p>
                     </div>                   
 
-                  <div class="form-group draggable">
+                  <div id="color" class="form-group draggable">
                     <label for="color" ><b>Color de fondo</b></label>                   
                     <input type="text" value="rgb(255, 128, 0)" />
                     <p class="help-block">Cambiar color de fondo</p>                    
@@ -180,7 +182,7 @@
             <div class="row" id="composer"></div>
             <hr/>
             <div class="row form-body">
-              <div class="col-md-12 droppable sortable">
+              <div id="drop-area" class="col-md-12 droppable sortable">
               </div>              
             </div>
 
@@ -293,13 +295,16 @@
 
           $("#login").text("Web Composer - Logged");
 
-          var client = getUrlParameter('client');         
-          var documentId = getUrlParameter('id');         
+          //var client = getUrlParameter('client');         
+          //var documentId = getUrlParameter('id');       
+
+          window.camapignId = "DEUDA_345_ASF";
+          window.client = "kairos";
 
           db.collection('clients')
             .doc(client)
             .collection("campaigns")
-            .doc(documentId).get()
+            .doc(camapignId).get()
             .then(function(doc) {
 
               var name =  doc.data().name;                
@@ -425,9 +430,64 @@
 
           });            
 
-          $("#save-web").on('click', function() {             
+          $("#save-web").on('click', async function() {                                  
+            
+              //var _css  = getComputedStyle(document.getElementById("html-preview"));            
 
-            let _html = getHTML();
+              let _html_ = await getHTML();                
+              let background_color = $("#color").data("data-color");             
+
+              var _html = `<div class="row">
+                <div class="col-xs-12 style="background-color: ${background_color};">
+                ${_html_}</div></div>`;   
+                
+              _html = _html.replace(/\n|\t/g, ' '); //break    
+              _html = _html.replace(/\>[\t ]+\</g, "><");  // whitespace between tags       
+              
+              var image_width         = $("#html-preview").width();
+              var image_height        = $("#html-preview").height();
+              var image_name          = "default";
+              var image_storage_path  = `clients/${client}/campaigns/${window.camapignId}`;           
+              var type = "web";
+
+              let post_params = { 
+                html: _html,  
+                background_color: background_color,             
+                image_width: image_width,
+                image_height: image_height,
+                image_name: image_name,
+                image_storage_path: image_storage_path,
+                client: window.client,
+                campaign: window.camapignId,
+                type: type,
+                design: image_name                                             
+              };
+
+              var urdl = "http://localhost:5001/notims/us-central1/buildimage";
+              //var urdr = "https://us-central1-notims.cloudfunctions.net/buildimage";       
+
+              var params = JSON.stringify(post_params);
+
+              console.log("params: " + params);
+
+              var settings = {
+              "url": urdl,
+              "method": "POST",
+              "timeout": 0,
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "data": params,
+            };
+
+            $.ajax(settings).done(function (response) {
+              
+              console.log(response);
+              if (response.data.result) {        
+
+              }             
+
+            });            
 
 
           });
@@ -501,7 +561,9 @@
                   $el.find("input").attr('id', 'incolor');                 
                   $('#incolor').colorpicker();                        
                   $('#incolor').on('colorpickerChange', function(event) {
-                    $('#preview').css('background-color', event.color.toString());
+                    let c = event.color.toString();
+                    $( "#color" ).data( "data-color", c );
+                    $('#preview').css('background-color', c);
                   });
                 }
 
@@ -559,96 +621,127 @@
             }
           }).sortable();
 
-          function getHTML() {
+          var getHTML = async function () {           
 
-            var count = 0;
-            var _html = "";
+            $("#preview").empty();      
+            
+            const myPromise = new Promise(async (resolve, reject) => {  
 
-            $("#preview").empty(); 
+              var count = 0;
+              var _html = "";
 
-            $('.draggable').each(function(index, value) { 
+               $('#drop-area').children('div').each(function(index, value) { 
+                  
+                  try {
+                  
+                    console.log(`div${index}: ${this.id}`);     
+
+                    switch (this.id) {
+                      case "saludo":
+                        count++;
+                        let insaludo = $("#insaludo").val();
+                        let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
+                                      ${insaludo}</p></h3>`;
+                        _html += saludo;
+                        break;
+                      case "cuerpo":
+                        count++;
+                        let inscuerpo = tinymce.activeEditor.getContent();
+                        let cuerpo =  `<div style="margin-bottom: 40px;">
+                                    ${inscuerpo}</div>`;
+                        _html += cuerpo;
+                        break;
+                      case "pagos":
+                        count++;                
+                        //let inMercado = $('#inMercado').prop('checked');
+                        //let inRapi = $('#inRapi').prop('checked');
+                        //let inFacil = $('#inFacil').prop('checked');
+                        let inpagos = getPagos();
+                        if (inpagos!=undefined) {
+                            _html += inpagos;
+                        } 
+                        break;
+                      case "color":
+                        count++;  
+                        break;
+                    }             
 
 
-              try {
-              
-                console.log(`div${index}: ${this.id}`);              
+                    if (count_drop == count) {               
 
-                if (this.id == "saludo") {
-                  count++;
-                  let insaludo = $("#insaludo").val();
-                  let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
-                                ${insaludo}</p></h3>`;
-                  _html += saludo;
-                } 
-                
-                if (this.id=="cuerpo") {                              
-                  count++;
-                  let inscuerpo = tinymce.activeEditor.getContent();
-                  let cuerpo =  `<div style="margin-bottom: 40px;">
-                              ${inscuerpo}</div>`;
-                  _html += cuerpo;
-                } 
-                
-                /*if (this.id=="imagen") {
-                  count++;
-                  if ($("#inimagen").val()!=undefined) {
-                    let inimagen =  `<div style="width:100%; height:100%">
-                                    <img style="margin-left: auto;  margin-right: auto; display: block; width: 50%;"
-                                    src="${target_result}"></div>`;
-                    _html += inimagen;
-                  }
-                }*/ 
-
-                if (this.id=="pagos") {
-                  count++;                
-                  //let inMercado = $('#inMercado').prop('checked');
-                  //let inRapi = $('#inRapi').prop('checked');
-                  //let inFacil = $('#inFacil').prop('checked');
-                  let inpagos = getPagos();
-                  if (inpagos!=undefined) {
-                      _html += inpagos;
-                  }                
-                } 
-
-                if (count_drop == count) {               
-
-                  let comupulsory = `
-                  <footer class="footer">
-                    <div class="container">
-                      <hr>
-                      <div class="row">
-                        <div class="col-sm-2"/>                        
-                        <div class="col-sm-8">
-                          <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
+                      let comupulsory = `
+                      <footer class="footer">
+                        <div class="container">` +
+                          /*<hr>
+                          <div class="row">
+                            <div class="col-sm-2"/>                        
+                            <div class="col-sm-8">
+                              <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
+                            </div>
+                            <div class="col-sm-2"/>
+                          </div>*/
+                          `<hr>              
+                          <div class="row">
+                            <div class="col-sm-2"/>                        
+                            <div class="col-sm-8">
+                              <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
+                            </div>
+                            <div class="col-sm-2"/>
+                          </div>
+                          <br>
                         </div>
-                        <div class="col-sm-2"/>
-                      </div>     
-                      <hr>              
-                      <div class="row">
-                        <div class="col-sm-2"/>                        
-                        <div class="col-sm-8">
-                          <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
-                        </div>
-                        <div class="col-sm-2"/>
-                      </div>
-                    </div>
-                  </footer>`;
+                      </footer>`;
 
-                  _html += comupulsory;
+                      _html += comupulsory;
+                      _html = replaceVariables(_html);
+                      $("#preview").html(_html);                          
+                      resolve(_html);
 
-                  $("#preview").html(replaceVariables(_html));                 
+                    }         
+             
+                } catch (e) {
+                    console.error(e);
+                    reject(e);
+                }
 
-                  return _html;
-               }
-
-
-              } catch (e) {
-                  console.error(e);
-                  return e;
-              }
+              });
 
             });
+
+
+            return myPromise;
           };
+
+          /*function getCSS(element) { 
+            var css_data = '{'; 
+            var css_obj = getComputedStyle(document.getElementById(element)); 
+            var count = 0;
+            for (var i = 0; i < css_obj.length; i++) { 
+                css_data += `"${css_obj[i]}":${css_obj.getPropertyValue(css_obj[i])}"`;                    
+                if (count === (css_obj.length-1)) {
+                  css_data += `}`;
+                } else {
+                  css_data += `,`;
+                }
+                count++;
+            }             
+            return css_obj; 
+          }*/ 
+
+          function getCSS(element) { 
+              var css_data = ''; 
+              var css_obj = getComputedStyle(document.getElementById(element)); 
+    
+              for (var i = 0; i < css_obj.length; i++) { 
+                  css_data += 
+                      css_obj[i] + ':' +  
+                      css_obj.getPropertyValue(css_obj[i]) 
+                      + ';<br>'; 
+              } 
+              //document.getElementById('resDiv') 
+              //        .innerHTML = css_data; 
+              return css_data; 
+          } 
 
           function getPagos() {
 

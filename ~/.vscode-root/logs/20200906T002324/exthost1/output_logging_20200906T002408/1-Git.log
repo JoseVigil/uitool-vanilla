@@ -1,0 +1,305 @@
+Looking for git in: git
+Using git 1.9.1 from git
+> git rev-parse --show-toplevel
+> git rev-parse --git-dir
+> git config --get commit.template
+Open repository: /home/jose/repos/noti-ms
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git check-ignore -v -z --stdin
+> git check-ignore -v -z --stdin
+> git show :functions/functions/index.js
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/functions/package.json
+> git show :functions/functions/index.js
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git check-ignore -v -z --stdin
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :gcloud/package.json
+> git show :gcloud/index.js
+> git show :functions/functions/index.js
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/firebase.json
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/functions/index.js
+> git show :functions/firebase.json
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/functions/index.js
+> git show :functions/firebase.json
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/functions/index.js
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/firebase.json
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/functions/index.js
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/firebase.json
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git show :functions/functions/index.js
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse telco
+> git rev-parse --symbolic-full-name telco@{u}
+> git rev-list --left-right telco...refs/remotes/origin/telco
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose

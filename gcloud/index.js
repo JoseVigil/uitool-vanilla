@@ -13,9 +13,12 @@
 	const firestore = new Firestore({
 	  projectId: PROJECTID,
 	  timestampsInSnapshots: true,
-	});		
+	});
 
-	const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }	
+
+
+	var MODULE_GATEWAY		= 'gateway';
+	var MODULE_BUILD_IMAGE	= 'buildimage';
 
  	exports.backend = async (req, res) => {	
 
@@ -35,8 +38,8 @@
 		if ( (user === "admin") && (pass === "Notimation2020") ) {
 
 			switch (req.url.split('/')[1]) {							
-				case 'gateway': gateway(req, res); break;
-				case 'convert': convertHtmlToImage(req, res); break;
+				case MODULE_BUILD_IMAGE: 	buildimage(req, res); break;
+				case MODULE_GATEWAY: 		gateway(req, res); break;				
 				default: getDefault(req, res);
 			}	
 
@@ -46,13 +49,146 @@
 		}
 	};
 
+	const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }	
+
+
+
+	var BUILD_IMAGE_WEB			= 'web';
+	var BUILD_IMAGE_PREVIEW		= 'preview';
+
+	const buildimage = async function(req, res) {
+
+		let option = req.url.split('/')[2];	
+
+		var html, image_width, image_height, image_path, documentRef; 
+
+		switch (option) {	
+
+			case BUILD_IMAGE_WEB:
+										
+				let image_name 			= req.body.data.image_name;	
+				let _image_ 			= image_name + ".png";
+				let image_storage_path 	= req.body.data.image_storage_path;	
+				let client 				= req.body.data.client;				
+				let campaign 			= req.body.data.campaign;					
+				let design 				= req.body.data.design;	
+
+				html 				= req.body.data.html;
+				image_width 		= req.body.data.image_width;	
+				image_height 		= req.body.data.image_height;	
+				image_path = `${image_storage_path}/${_image_}`;
+
+				console.log('image_path: ' + image_path);
+
+				documentRef = firestore.collection("clients").doc(client)
+		      	.collection("campaigns").doc(campaign).collection(option).doc(design);
+		      	
+				break;
+
+			case BUILD_IMAGE_PREVIEW:
+			
+				break;
+
+		}		
+		
+		var screenshotBuffer = null;
+		var browser = null;
+
+		try {        
+
+			browser = await chromium.puppeteer.launch({
+			  args: chromium.args,
+			  defaultViewport: chromium.defaultViewport,
+			  executablePath: await chromium.executablePath,
+			  headless: chromium.headless,
+			  ignoreHTTPSErrors: true,
+			});	    
+
+			const page = await browser.newPage();      
+			await page.setViewport({
+			          width: image_width, //1200,
+			          height: image_height, //630,
+			          deviceScaleFactor: 1,
+			        });
+			await page.setContent(html); 
+
+			screenshotBuffer = await page.screenshot({encoding: "binary"});
+			//screenshotBuffer = await page.screenshot({encoding: "base64"});
+			await browser.close(); 
+
+		} catch (e) {
+			console.error(e);
+			return e;
+		}    
+
+		var imageBuffer, file;		
+
+		try {  
+
+		  const bucket = storage.bucket("notims.appspot.com");
+		  imageBuffer = new Uint8Array(screenshotBuffer);
+		  file = bucket.file(image_path, {
+		      uploadType: {resumable: false}
+		  });
+
+		} catch (e) {
+			console.error(e);
+			return e;
+		}  
+
+		try {           
+
+		  await file.save(imageBuffer).then( async (response) => {		    
+
+			  const config = {
+		        action: 'read',
+		        expires: '03-01-2500',
+		      };   
+
+		      const imageUrl = await file.getSignedUrl(config); 
+
+		      var image_url = imageUrl[0].toString();		      
+		      
+			  await documentRef.update({ 		        
+		        preview_image: image_url, 
+		        html: html        
+		      }).then((document) => {
+
+		      	var dataString = `{
+		          "data" : {		           
+		           "image_path":"${image_path}",
+				   "image_url":"${image_url}"			           		           
+		          }
+		         }`;
+		      	
+		      	res.status(200).send(dataString);
+		        return document;
+
+		      }).catch((error) => {
+		        
+		        console.log('Error updating:', error);
+		        res.status(404).send(error);
+		        return error;
+
+		      });	
+
+		  });
+
+		} catch (e) {
+			console.error(e);
+			return e;
+		}     
+	};
+
+
+
 	var OPTION_SWITCH_SIM    		= 'switchsim';
 	var OPTION_USING 			    = 'using';
 	var OPTION_STATUS	 			= 'status';
 	var OPTION_MANAGMENT 			= 'managment';
 	var OPTION_SEND 				= 'send';
 	var OPTION_SMS_RECEIVED    		= 'smsreceived';
-	var OPTION_REBOOT		    	= 'reboot';
+	var OPTION_REBOOT		    	= 'reboot';		
 	
 	const gateway = async function(req, res) {
 
@@ -93,6 +229,10 @@
 				let reparams = { "option" : option, "url" : reurl };
 				return browse(req, res, reparams);
 				break;		
+
+			case OPTION_BUILD_IMAGE:
+				return buildimage(req, res);
+				break;
 
 			default: 	
 				res.status(402).send("Option not found");
@@ -568,111 +708,6 @@
 	};
 
 
-	const buildhtml = async function(req, res) {
-
-		const _value = req.body.data;	   
-		let name = _value.name;
-		let message = _value.message;
-		let sms_id = _value.sms_id;
-		let cobranzasId = _value.cobranzasId;       
-
-		var image_name = cobranzasId + "_" + sms_id + ".png";       
-
-		console.log('image_name:' + image_name);
-
-		var _html = _value.html; 
-		var _style = _value.style; 
-
-		//let _html = ""; //buildHTMLForImage(name, message).toString();    
-		//let _html = htmlFunctions.buildHTMLForImage(name, message).toString();
-
-		var screenshotBuffer = null;
-		var browser = null;
-
-		try {        
-
-			browser = await chromium.puppeteer.launch({
-			  args: chromium.args,
-			  defaultViewport: chromium.defaultViewport,
-			  executablePath: await chromium.executablePath,
-			  headless: chromium.headless,
-			  ignoreHTTPSErrors: true,
-			});	    
-
-			const page = await browser.newPage();      
-			await page.setViewport({
-			          width: 1200,
-			          height: 630,
-			          deviceScaleFactor: 1,
-			        });
-			await page.setContent(_html);       
-			screenshotBuffer = await page.screenshot({encoding: "binary"});
-			//screenshotBuffer = await page.screenshot({encoding: "base64"});
-			await browser.close(); 
-
-		} catch (e) {
-			console.error(e);
-			return e;
-		}    
-
-		var imageBuffer;
-		var file;
-		var image_path = `cobranzas/sipef/${image_name}`;
-
-		try {  
-
-		  const bucket = storage.bucket("notims.appspot.com");
-		  imageBuffer = new Uint8Array(screenshotBuffer);
-		  file = bucket.file(image_path, {
-		      uploadType: {resumable: false}
-		  });
-
-		} catch (e) {
-			console.error(e);
-			return e;
-		}  
-
-		try {           
-
-		  await file.save(imageBuffer).then( async (response) => {		    
-
-			  const config = {
-		        action: 'read',
-		        expires: '03-01-2500',
-		      };   
-
-		      const imageUrl = await file.getSignedUrl(config); 
-
-		      var _img = imageUrl[0].toString();			  	       	      
-
-		      await firestore.collection("cobranzas").doc(cobranzasId).update(                  
-		        {preview_image: _img, update:true}
-		      ).then((document) => {
-
-		      	var dataString = `{
-		          "data" : {		           
-		           "image_path":"${image_path}"		           
-		          }
-		         }`;
-		      	
-		      	res.status(200).send(dataString);
-		        return document;
-
-		      }).catch((error) => {
-		        
-		        console.log('Error updating:', error);
-		        res.status(404).send(error);
-		        return error;
-
-		      });	
-
-		  });
-
-		} catch (e) {
-			console.error(e);
-			return e;
-		}     
-
-	};			
+				
 
 
