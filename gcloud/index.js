@@ -151,7 +151,10 @@
 		      
 			  await documentRef.update({ 		        
 		        preview_image: image_url, 
-		        html: html        
+		        image_height: image_height,
+		        //html: html,
+		        image_width: image_width,
+		        image_height: image_height        
 		      }).then((document) => {
 
 		      	var dataString = `{

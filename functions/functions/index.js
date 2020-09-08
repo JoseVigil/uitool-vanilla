@@ -199,15 +199,24 @@
       }     
 
       var url;
-      if ( module === "campaign") {        
-        url = path.join(__dirname + '/../public/html/campaign_composer.html');
-      } else if (module === "web") {         
-        url = path.join(__dirname + '/../public/html/web_composer.html');        
-      } else if (module === "preview") {
-        url = path.join(__dirname + '/../public/html/preview_composer.html');        
-      } else {                 
-        url = path.join(__dirname + '/../public/html/composer.html');
-      } 
+
+      switch(module) {
+        case "campaign":
+          url = path.join(__dirname + '/../public/html/campaign_composer.html');
+          break;
+        case "web":
+          url = path.join(__dirname + '/../public/html/web_composer.html');        
+          break;
+        case "preview":
+          url = path.join(__dirname + '/../public/html/preview_composer.html');        
+          break;  
+        case "thumbnail":
+          url = path.join(__dirname + '/../public/html/noti.html');
+          break;
+        default:
+          url = path.join(__dirname + '/../public/html/composer.html');
+          break;
+      }      
 
       return res.render(url, urlParams); 
 

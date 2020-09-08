@@ -241,6 +241,8 @@
       var data;
       var count_drop = 0;
 
+      var noti_html;
+
       const firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
         authDomain: "notims.firebaseapp.com",
@@ -271,7 +273,17 @@
                   return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
               }
           }
-      };           
+      };   
+      
+      $.get('noti.html').then(function (data) {
+        console.log(data);
+
+        noti_html = data;
+
+      }).fail(function (error) {
+               
+
+      });
     
       $( "#login" ).click(function() {       
 
@@ -300,133 +312,108 @@
 
           window.camapignId = "DEUDA_345_ASF";
           window.client = "kairos";
-
+          
           db.collection('clients')
-            .doc(client)
+            .doc(window.client)
             .collection("campaigns")
-            .doc(camapignId).get()
-            .then(function(doc) {
+            .doc(window.camapignId).get()
+            .then(function(doc) {              
 
-              var name =  doc.data().name;                
-              //var code =  doc.data().code;
-              //var contact =  doc.data().contact;                
+                var name =  doc.data().name;                
+                var fields =  doc.data().fields;   
 
-              var fields =  doc.data().fields;   
+                let json = `{`;
 
-              let json = `{`;
-
-              var count = 0;
-              var length = fields.length;
-              
-              for (var i=0; i<length; i++) {
-
-                  let field = fields[i];
-                  //consolog.log("field: " + field);
-                  let name = field.name;
-                  let value = field.value;
-
-                  var button;
-                  switch (i) {
-                    case 0:
-                      button = "btn-primary";
-                    break;
-                    case 1:
-                      button = "btn-secondary";
-                    break;
-                    case 2:
-                      button = "btn-success";
-                    break;
-                    case 3:
-                      button = "btn-warning";
-                    break;
-                    case 4:
-                      button = "btn-info";
-                    break;
-                    default:
-                      button = "btn-dark";
-                      break;
-                  }
-
-                  json += ` "${name}" :  { 
-                      "datos" : "${value}", 
-                      "boton" : "${button}"
-                  }`;
-
-                  if (count === (length-1)) {
-                    json += `}`;
-                  } else {
-                    json += `,`;
-                  }
-                  count++;
-               } 
-
-               data = JSON.parse(json);
-              
-              /*data = { 
-                "nombre" :  { 
-                  "datos" : name, 
-                  "boton" : "btn-primary" 
-                }, 
-                "codigo" :  { 
-                  "datos" : code, 
-                  "boton" : "btn-secondary" 
-                }, 
-                "contacto" :  { 
-                  "datos" : contact, 
-                  "boton" : "btn-success" 
-                }               
-              };*/
-
-              for (var key of Object.keys(data)) {
+                var count = 0;
+                var length = fields.length;
                 
-                let nombre = key;
-                let datos = data[key]["datos"];
-                let boton = data[key]["boton"];
+                for (var i=0; i<length; i++) {
 
-                let _html = `&nbsp;&nbsp<button data-field="${datos}" style="color:white" class="botones btn ${boton}" type="button" id="${nombre}">${nombre}</button>&nbsp;&nbsp`;
-           
-                $("#composer").append(_html);
+                    let field = fields[i];                      
+                    let name = field.name;
+                    let value = field.value;
 
-                $("#" + nombre).on('click', function (e) {                     
+                    var button;
+                    switch (i) {
+                      case 0:
+                        button = "btn-primary";
+                      break;
+                      case 1:
+                        button = "btn-secondary";
+                      break;
+                      case 2:
+                        button = "btn-success";
+                      break;
+                      case 3:
+                        button = "btn-warning";
+                      break;
+                      case 4:
+                        button = "btn-info";
+                      break;
+                      default:
+                        button = "btn-dark";
+                        break;
+                    }
+
+                    json += ` "${name}" :  { 
+                        "datos" : "${value}", 
+                        "boton" : "${button}"
+                    }`;
+
+                    if (count === (length-1)) {
+                      json += `}`;
+                    } else {
+                      json += `,`;
+                    }
+                    count++;
+                } 
+
+                data = JSON.parse(json);            
+
+                for (var key of Object.keys(data)) {
                   
-                  e.preventDefault();
+                  let nombre = key;
+                  let datos = data[key]["datos"];
+                  let boton = data[key]["boton"];
 
-                  active_from_button = true;
+                  let _html = `&nbsp;&nbsp<button data-field="${datos}" style="color:white" class="botones btn ${boton}" type="button" id="${nombre}">${nombre}</button>&nbsp;&nbsp`;
+            
+                  $("#composer").append(_html);
 
-                  var timer_click = setTimeout(function() {                                                           
-                  
-                    var id = $(e.target).attr('id'); 
-                    var variable;
+                  $("#" + nombre).on('click', function (e) {                     
+                    
+                    e.preventDefault();
 
-                    variable = "{" + nombre + "}";
+                    active_from_button = true;
 
-                    /*if (id=="nombre") {
-                      variable = "{nombre}";                     
-                    } else if (id=="codigo") {
-                      variable = "{codigo}";  
-                    } else if (id=="contacto") {
-                      variable = "{contacto}";
-                    }*/
+                    var timer_click = setTimeout(function() {                                                           
+                    
+                      var id = $(e.target).attr('id'); 
+                      var variable;
 
-                    if (active_saludo) {
+                      variable = "{" + nombre + "}";                      
 
-                      var cursorPos = $('#insaludo').prop('selectionStart');
-                      var v = $('#insaludo').val();
-                      var textBefore = v.substring(0,  cursorPos );
-                      var textAfter  = v.substring( cursorPos, v.length );
-                      $('#insaludo').val( textBefore + variable + textAfter ); 
+                      if (active_saludo) {
 
-                    } else if (active_cuerpo) {                                                      
-                      tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
-                    }  
+                        var cursorPos = $('#insaludo').prop('selectionStart');
+                        var v = $('#insaludo').val();
+                        var textBefore = v.substring(0,  cursorPos );
+                        var textAfter  = v.substring( cursorPos, v.length );
+                        $('#insaludo').val( textBefore + variable + textAfter ); 
 
-                    clearTimeout(timer_click);
+                      } else if (active_cuerpo) {                                                      
+                        
+                        tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
 
-                  }, 1000);
+                      }  
 
-                });
+                      clearTimeout(timer_click);
 
-              }
+                    }, 1000);
+
+                  });
+
+                }
 
           });            
 
@@ -435,59 +422,82 @@
               //var _css  = getComputedStyle(document.getElementById("html-preview"));            
 
               let _html_ = await getHTML();                
-              let background_color = $("#color").data("data-color");             
-
-              var _html = `<div class="row">
-                <div class="col-xs-12 style="background-color: ${background_color};">
-                ${_html_}</div></div>`;   
+              let background_color = $("#color").data("data-color");               
                 
               _html = _html.replace(/\n|\t/g, ' '); //break    
               _html = _html.replace(/\>[\t ]+\</g, "><");  // whitespace between tags       
+
+              var _time =  new Date();
               
-              var image_width         = $("#html-preview").width();
-              var image_height        = $("#html-preview").height();
-              var image_name          = "default";
-              var image_storage_path  = `clients/${client}/campaigns/${window.camapignId}`;           
-              var type = "web";
+              var webRef = db.collection('clients')
+              .doc(window.client)
+              .collection("campaigns")
+              .doc(window.camapignId)
+              .collection("web").doc("default");
 
-              let post_params = { 
-                html: _html,  
-                background_color: background_color,             
-                image_width: image_width,
-                image_height: image_height,
-                image_name: image_name,
-                image_storage_path: image_storage_path,
-                client: window.client,
-                campaign: window.camapignId,
-                type: type,
-                design: image_name                                             
-              };
 
-              var urdl = "http://localhost:5001/notims/us-central1/buildimage";
-              //var urdr = "https://us-central1-notims.cloudfunctions.net/buildimage";       
 
-              var params = JSON.stringify(post_params);
 
-              console.log("params: " + params);
 
-              var settings = {
-              "url": urdl,
-              "method": "POST",
-              "timeout": 0,
-              "headers": {
-                "Content-Type": "application/json"
-              },
-              "data": params,
-            };
 
-            $.ajax(settings).done(function (response) {
               
-              console.log(response);
-              if (response.data.result) {        
+              webRef.set({        
+                html: _html,
+                last_update: _time,                      
+                fields:fields_array            
+              },{ merge:true }).then(docRefSet => {
 
-              }             
+                  var image_width         = $("#html-preview").width();
+                  var image_height        = $("#html-preview").height();
+                  var image_name          = "default";
+                  var image_storage_path  = `clients/${client}/campaigns/${window.camapignId}`;           
+                  var type = "web";
 
-            });            
+                  let post_params = { 
+                    html: _html,  
+                    background_color: background_color,             
+                    image_width: image_width,
+                    image_height: image_height,
+                    image_name: image_name,
+                    image_storage_path: image_storage_path,
+                    client: window.client,
+                    campaign: window.camapignId,
+                    type: type,
+                    design: image_name                                             
+                  };
+
+                  var urdl = "http://localhost:5001/notims/us-central1/buildimage";
+                  //var urdr = "https://us-central1-notims.cloudfunctions.net/buildimage";       
+
+                  var params = JSON.stringify(post_params);
+
+                  console.log("params: " + params);
+
+                  var settings = {
+                  "url": urdl,
+                  "method": "POST",
+                  "timeout": 0,
+                  "headers": {
+                    "Content-Type": "application/json"
+                  },
+                  "data": params,
+                };
+
+                $.ajax(settings).done(function (response) {
+                  
+                  console.log(response);
+                  if (response.data.result) {        
+
+                  }             
+
+                });                     
+                               
+                
+              }).catch((error) => {     
+                console.error("Error adding document: ", error);           
+              });  
+              
+                     
 
 
           });
@@ -630,23 +640,30 @@
               var count = 0;
               var _html = "";
 
+              var _html = `<div class="row">
+                <div class="col-xs-12 background">`;  
+
+              var _json = `{`;
+
                $('#drop-area').children('div').each(function(index, value) { 
                   
                   try {
                   
-                    console.log(`div${index}: ${this.id}`);     
+                    console.log(`div${index}: ${this.id}`);  
+                    
+                    var value;
 
                     switch (this.id) {
                       case "saludo":
                         count++;
-                        let insaludo = $("#insaludo").val();
+                        let insaludo = value = $("#insaludo").val();
                         let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
                                       ${insaludo}</p></h3>`;
-                        _html += saludo;
+                        _html += saludo;                        
                         break;
                       case "cuerpo":
                         count++;
-                        let inscuerpo = tinymce.activeEditor.getContent();
+                        let inscuerpo = value = tinymce.activeEditor.getContent();
                         let cuerpo =  `<div style="margin-bottom: 40px;">
                                     ${inscuerpo}</div>`;
                         _html += cuerpo;
@@ -656,18 +673,23 @@
                         //let inMercado = $('#inMercado').prop('checked');
                         //let inRapi = $('#inRapi').prop('checked');
                         //let inFacil = $('#inFacil').prop('checked');
-                        let inpagos = getPagos();
+                        let inpagos = value = getPagos();
                         if (inpagos!=undefined) {
                             _html += inpagos;
                         } 
                         break;
                       case "color":
                         count++;  
+                        let color = value = $("#color").find("input").value();
                         break;
-                    }             
+                    }       
+                    
+                    _json += `{"id" : "${this.id}", "value" : "${value}"}`;
 
 
                     if (count_drop == count) {               
+
+                      _html += `</div></div>`;
 
                       let comupulsory = `
                       <footer class="footer">
@@ -694,7 +716,7 @@
 
                       _html += comupulsory;
                       _html = replaceVariables(_html);
-                      $("#preview").html(_html);                          
+                      $("#preview").html(_html); 
                       resolve(_html);
 
                     }         
@@ -708,40 +730,9 @@
 
             });
 
-
             return myPromise;
-          };
 
-          /*function getCSS(element) { 
-            var css_data = '{'; 
-            var css_obj = getComputedStyle(document.getElementById(element)); 
-            var count = 0;
-            for (var i = 0; i < css_obj.length; i++) { 
-                css_data += `"${css_obj[i]}":${css_obj.getPropertyValue(css_obj[i])}"`;                    
-                if (count === (css_obj.length-1)) {
-                  css_data += `}`;
-                } else {
-                  css_data += `,`;
-                }
-                count++;
-            }             
-            return css_obj; 
-          }*/ 
-
-          function getCSS(element) { 
-              var css_data = ''; 
-              var css_obj = getComputedStyle(document.getElementById(element)); 
-    
-              for (var i = 0; i < css_obj.length; i++) { 
-                  css_data += 
-                      css_obj[i] + ':' +  
-                      css_obj.getPropertyValue(css_obj[i]) 
-                      + ';<br>'; 
-              } 
-              //document.getElementById('resDiv') 
-              //        .innerHTML = css_data; 
-              return css_data; 
-          } 
+          };        
 
           function getPagos() {
 
@@ -842,12 +833,8 @@
             return false;
           });*/
 
-        });
+        });       
         
-        $(document).on("click", ".remove-link", function(ev) {
-          $(this).parent().parent().remove();
-          count_drop--;
-        });
         
 
           $("#login").text("Logged");
