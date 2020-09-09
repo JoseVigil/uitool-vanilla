@@ -52,7 +52,6 @@
 	const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }	
 
 
-
 	var BUILD_IMAGE_WEB			= 'web';
 	var BUILD_IMAGE_PREVIEW		= 'preview';
 
@@ -60,28 +59,35 @@
 
 		let option = req.url.split('/')[2];	
 
-		var html, image_width, image_height, image_path, documentRef; 
+		var public_url, update, image_width, image_height, image_storage_path, page_url, documentRef; 
 
 		switch (option) {	
 
 			case BUILD_IMAGE_WEB:
-										
-				let image_name 			= req.body.data.image_name;	
-				let _image_ 			= image_name + ".png";
-				let image_storage_path 	= req.body.data.image_storage_path;	
-				let client 				= req.body.data.client;				
-				let campaign 			= req.body.data.campaign;					
-				let design 				= req.body.data.design;	
+				
+				let url_path 			= req.body.data.url_path;
+				documentRef 			= firestore.doc(url_path);
 
-				html 				= req.body.data.html;
-				image_width 		= req.body.data.image_width;	
-				image_height 		= req.body.data.image_height;	
-				image_path = `${image_storage_path}/${_image_}`;
+				//accounts/kairos/campaigns/DEUDA_345_FDG/designs/sample
 
-				console.log('image_path: ' + image_path);
+				let paths = url_path.split("/");	
 
-				documentRef = firestore.collection("clients").doc(client)
-		      	.collection("campaigns").doc(campaign).collection(option).doc(design);
+				let image_name 			= paths[5];				
+				let _image_ 			= image_name + "_web.png";
+				var image_storage  		= url_path.split(paths[4])[0];							
+				image_width 			= req.body.data.image_width;	
+				image_height 			= req.body.data.image_height;					
+				image_storage_path		= `${image_storage}${_image_}`;
+				update 					= "web_update";				
+ 
+				public_url = "https://noti.ms/composer/thumbnail?&path=/" + url_path;
+
+				console.log('image_storage_path: ' + image_storage_path);				
+				console.log('url_path: ' + url_path);
+				console.log('public_url: ' + public_url);				
+
+				//documentRef = firestore.collection("clients").doc(client)
+		      	//.collection("campaigns").doc(campaign).collection(option).doc(design);
 		      	
 				break;
 
@@ -102,15 +108,25 @@
 			  executablePath: await chromium.executablePath,
 			  headless: chromium.headless,
 			  ignoreHTTPSErrors: true,
-			});	    
+			});	   
+
 
 			const page = await browser.newPage();      
 			await page.setViewport({
-			          width: image_width, //1200,
-			          height: image_height, //630,
-			          deviceScaleFactor: 1,
-			        });
-			await page.setContent(html); 
+	          width: image_width, //1200,
+	          height: image_height, //630,
+	          deviceScaleFactor: 1,
+	        });
+
+			switch (option) {				
+				case BUILD_IMAGE_WEB:					
+					await page.goto(public_url, {waitUntil: 'load', timeout: 0});	
+					await timeout(5000);			
+				break;
+				case BUILD_IMAGE_PREVIEW:
+					await page.setContent(html); 
+				break;
+			}
 
 			screenshotBuffer = await page.screenshot({encoding: "binary"});
 			//screenshotBuffer = await page.screenshot({encoding: "base64"});
@@ -127,7 +143,7 @@
 
 		  const bucket = storage.bucket("notims.appspot.com");
 		  imageBuffer = new Uint8Array(screenshotBuffer);
-		  file = bucket.file(image_path, {
+		  file = bucket.file(image_storage_path, {
 		      uploadType: {resumable: false}
 		  });
 
@@ -147,19 +163,21 @@
 
 		      const imageUrl = await file.getSignedUrl(config); 
 
-		      var image_url = imageUrl[0].toString();		      
+		      var image_url = imageUrl[0].toString();   
+
+		      let image_field = "preview_image_" + option;
+
+		      var json_update = `{
+				"public_image_web": "${image_url}",
+				"image_storage_path" : "${image_storage_path}",
+				"${update}": false
+			  }`;	
 		      
-			  await documentRef.update({ 		        
-		        preview_image: image_url, 
-		        image_height: image_height,
-		        //html: html,
-		        image_width: image_width,
-		        image_height: image_height        
-		      }).then((document) => {
+			  await documentRef.update(JSON.parse(json_update)).then((document) => {
 
 		      	var dataString = `{
 		          "data" : {		           
-		           "image_path":"${image_path}",
+		           "image_storage_path":"${image_storage_path}",
 				   "image_url":"${image_url}"			           		           
 		          }
 		         }`;
@@ -183,6 +201,9 @@
 		}     
 	};
 
+	async function timeout(ms) {
+	  return new Promise(resolve => setTimeout(resolve, ms));
+	};
 
 
 	var OPTION_SWITCH_SIM    		= 'switchsim';

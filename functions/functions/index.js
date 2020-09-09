@@ -69,18 +69,12 @@
      * SERVER ALL INCOMING
      */
 
-    var OPTION_ACTION           = 'action';
-    var OPTION_GATEWAY          = 'gateway';
-    var OPTION_COMPOSER         = 'composer';    
-    var OPTION_EXPORT           = 'export';    
     
-    //var OPTION_IMPORT           = 'import';
-    //var OPTION_STATUS           = 'status';
-    //var OPTION_SEND             = 'send';    
-    //var OPTION_REBOOT           = 'reboot';
+    var OPTION_COMPOSER         = 'composer';           
 
     const app = express();
-    app.engine('html', engines.hogan);    
+    app.engine('html', engines.hogan); 
+    app.set('views', path.join(__dirname, 'views'));   
     const cors = require('cors')({origin: true});
     app.use(cors);   
       
@@ -92,45 +86,13 @@
         
         var path = req.path.split('/')[1];
 
-        var user, pass;
+        console.log("req.path.split('/')[1]:" + path);
 
-        if ( path === OPTION_GATEWAY || path === OPTION_ACTION ) {          
-
-            var autorization = req.body.data.autorization;      
-      
-            var buff = Buffer.from(autorization, 'base64'); 
-            let key = buff.toString('ascii');
-
-            var keys = key.split(":");   
-
-            user = keys[0];
-            pass = keys[1];
-
-        } else {
-
-          user = "admin";
-          pass = "Notimation2020";
-
-        }
-
-        console.log("user: " + user);
-        console.log("pass: " + pass); 
-
-        if ( (user === "admin") && (pass === "Notimation2020") ) {
-
-          console.log("req.path.split('/')[1]:" + path);
-
-          switch (path) {                        
-            case OPTION_GATEWAY: GatewayOperations(req, res); break;
-            case OPTION_ACTION: Action(req, res); break;  
-            case OPTION_COMPOSER: Composer(req, res); break;                
-            default: noti(req, res);
-          } 
-
-        } else {
-          res.status(401).send("Invalid authorization");  
-        }        
-
+        switch (path) {                                  
+          case OPTION_COMPOSER: Composer(req, res); break;                
+          default: noti(req, res);
+        } 
+       
     });
 
     exports.app = functions.https.onRequest(app);
@@ -193,35 +155,52 @@
       var url = req.url;
       var urlParams;
       
-      if (url.indexOf('?') !== -1){
+      if (url.indexOf('?') !== -1) {
         let params = url.split("?");
         urlParams = getJsonFromUrl(params[1]);        
       }     
 
-      var url;
-
-      switch(module) {
+      var static_url;
+      /*switch(module) {
         case "campaign":
-          url = path.join(__dirname + '/../public/html/campaign_composer.html');
+          static_url = path.join(__dirname + '/../public/html/campaign_composer.html');
           break;
         case "web":
-          url = path.join(__dirname + '/../public/html/web_composer.html');        
+          static_url = path.join(__dirname + '/../public/html/web_composer.html');        
           break;
         case "preview":
-          url = path.join(__dirname + '/../public/html/preview_composer.html');        
+          static_url = path.join(__dirname + '/../public/html/preview_composer.html');        
           break;  
         case "thumbnail":
-          url = path.join(__dirname + '/../public/html/noti.html');
+          static_url = path.join(__dirname + '/../public/html/noti.html');
           break;
         default:
-          url = path.join(__dirname + '/../public/html/composer.html');
+          static_url = path.join(__dirname + '/../public/html/composer.html');
           break;
-      }      
+      }*/
+      
+      switch(module) {
+        case "campaign":
+          static_url = 'campaign_composer.html';
+          break;
+        case "web":
+          static_url = 'web_composer.html';        
+          break;
+        case "preview":
+          static_url = 'preview_composer.html';        
+          break;  
+        case "thumbnail":
+          static_url = 'noti.html';
+          break;
+        default:
+          static_url = 'composer.html';
+          break;
+      }
 
-      return res.render(url, urlParams); 
+      return res.render(static_url, urlParams); 
 
       function getJsonFromUrl(url) {
-        if(!url) url = location.search;
+        if (!url) url = location.search;
         var query = url.substr(1);
         var result = {};
         query.split("&").forEach(function(part) {
@@ -232,6 +211,474 @@
       }
 
     }; 
+
+    var SERVER_ACTION           = 'action';
+    var SERVER_GATEWAY          = 'gateway';
+    var ACTION_EXPORT           = 'export'; 
+
+    exports.server = functions.https.onRequest( async (req, res) => {
+
+        console.log("<<<<<<<<<<<<<<<<<<<<======================");
+
+        console.log("req.path:", req.path); 
+        
+        var path = req.path.split('/')[1];
+
+        var user, pass;
+
+        if ( path === SERVER_GATEWAY || path === SERVER_ACTION ) {          
+
+            var autorization = req.body.data.autorization;      
+      
+            var buff = Buffer.from(autorization, 'base64'); 
+            let key = buff.toString('ascii');
+
+            var keys = key.split(":");   
+
+            user = keys[0];
+            pass = keys[1];
+
+        } else {
+
+          user = "admin";
+          pass = "Notimation2020";
+
+        }
+
+        console.log("user: " + user);
+        console.log("pass: " + pass); 
+
+        if ( (user === "admin") && (pass === "Notimation2020") ) {
+
+          console.log("req.path.split('/')[1]:" + path);
+
+          switch (path) {                        
+            case SERVER_GATEWAY: GatewayOperations(req, res); break;
+            case SERVER_ACTION: Action(req, res); break;              
+          } 
+
+        } else {
+          res.status(401).send("Invalid authorization");  
+        }    
+
+    });
+
+    const Action = async function(req, res) { 
+
+      let option = req.path.split('/')[2]; 
+      var collection = req.body.data.collection; 
+      
+      console.log("option: " + option);
+      console.log("collection: " + collection);
+  
+      switch (option) {
+  
+        case ACTION_EXPORT:          
+           
+            //http://localhost:5000/export/cobranzas
+            //https://noti.ms/export/cobranzas                 
+  
+            try {
+  
+              firestoreService
+              .backup(collection)
+              .then(data => {  
+                return res.status(200).send(data);          
+              }).catch((error) => {                
+                console.log('Error getting sertvice backup');
+                return res.status(400).send(error);                
+              });  
+              
+            } catch (e) {
+                console.error(e);
+                return res.status(400).send(error);                
+            }
+  
+          break;        
+                   
+  
+        default:  
+          res.status(402).send("Option not found");
+        //break;
+      }   
+      
+    };
+
+
+
+    var OPTION_GET_SIM_NUMBERS      = 'simnumber';
+    var OPTION_USING                = 'using';
+    var OPTION_SWITCH               = 'switch';
+    var OPTION_SWITCH_RANDOM        = 'switchradom';
+    var OPTION_SMS_RECEIVED         = 'received';
+    var OPTION_SMS_SEND_AND_RECEIVE = 'sendreceive';          
+  
+    var GatewayOperations = async function(req, res) {
+      
+      console.log("gateway: " + req.path.split('/')[2]);      
+      
+      switch (req.path.split('/')[2]) {      
+
+        case OPTION_USING: {           
+          console.log("url_remote: " + req.body.data.url_remote);     
+          let uurl = req.body.data.url_remote; //'https://us-central1-notims.cloudfunctions.net/backend/gateway/using';          
+          return using(req, res, uurl);          
+        }
+        
+        case OPTION_SWITCH: 
+          switchsim(req, res); 
+        break;        
+
+        case OPTION_SMS_SEND_AND_RECEIVE: {     
+
+            let gateway = req.body.data.gateway;
+            let channel = req.body.data.channel;
+            let recipient = req.body.data.recipient;
+            let message = req.body.data.message;
+            let url = req.body.data.url;
+            let card = req.body.data.card;
+
+            var options_send_and_receive = `{
+              "method": "POST",
+              "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/send", 
+              "timeout": "10000",
+              "body": {
+                "data" : {
+                  "gateway" : "${gateway}",
+                  "channel" : "${channel}",
+                  "recipient" : "${recipient}",
+                  "message" : "${message}",
+                  "url": "${url}", 
+                  "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                }
+              },
+              "json": true 
+            }`;       
+            
+            let sar_json = JSON.parse(options_send_and_receive);
+
+            var current = new Date();
+
+            await rp(sar_json)
+            .then( async (response_sent) => {
+              
+              var resutl = response_sent.result;            
+              let sent = resutl.sent;
+              let sentlength = sent.length;
+              let last = sent[sentlength-1];
+              
+              console.log("last.time: "+ last.time);
+              
+              const timereceived = new Date(last.day + " " + last.time);
+
+              console.log("current: " + JSON.stringify(current));
+              console.log("timereceived: " + JSON.stringify(timereceived));
+
+              if ( (last.status === "Success") && 
+                  (last.number === "264") &&
+                  (current.getTime() < timereceived.getTime()) ) {
+
+                return {
+                  gateway : resutl.gateway,                 
+                  channel : resutl.channel,     
+                  card : card
+                };
+
+              } else {
+                console.log("FAAAIIILLLLL");
+                res.status(500).send("fail");
+              }  
+              
+              return {};
+
+            }).then( async (response_send) => {       
+
+              //console.log("results_sends :::: " + JSON.stringify(response_send));                             
+              var option_received = `{
+                "method": "POST",
+                "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
+                "body": {
+                  "data": {
+                    "gateway": "${response_send.gateway}",            
+                    "url" : ".notimation.com/en/5-3-1SMSinfo.php?ch=",
+                    "channel" : "${response_send.channel}",
+                    "card" : "${response_send.card}",
+                    "pagenumber" : "1",
+                    "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                  }
+                },
+                "json" : true 
+              }`;       
+
+              let receive_json = JSON.parse(option_received);
+              
+              return rp(receive_json);                        
+
+            }).then( async (response_receive) => {   
+              
+              console.log("results_sent: " + JSON.stringify(response_receive));
+
+              let sim_number = response_receive.sim_numbers[0].sim_number;
+              let remote_number = response_receive.sim_numbers[0].remote_number;
+
+              console.log("sim_number: " + sim_number);
+              console.log("remote_number: " + remote_number);
+
+              let response = {
+                number : {
+                  sim_number: sim_number,
+                  remote_number : remote_number
+                }
+              }
+
+              res.status(200).send(response);            
+
+              return response;
+
+            
+            }).catch((error) => {
+        
+              console.log("error: " + error);
+              return error;           
+      
+            });
+        }  
+        break;      
+
+        case OPTION_SMS_RECEIVED: {
+
+              var gatewaysRef = firestore.collection('gateways')
+              .doc("urls").get().then( async (document) => {   
+                
+                  let url_send = document.data().url_send;
+
+                  console.log("url_send: " +url_send);
+
+                  let gateway = req.body.data.gateway;                  
+                  let channel = req.body.data.channel;
+                  let pagenumber = req.body.data.pagenumber;
+                  let card = req.body.data.card;
+                  let url = req.body.data.url;
+
+                  console.log("gateway: "+ gateway);
+                  console.log("channel: "+ channel);
+                  console.log("pagenumber: "+ pagenumber);
+
+                  var option_received = `{
+                    "method": "POST",
+                    "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
+                    "body": {
+                      "data": {
+                        "gateway": "${gateway}",            
+                        "url" : "${url}",
+                        "channel" : "${channel}",
+                        "card" : "${card}",
+                        "pagenumber" : "${pagenumber}",
+                        "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
+                      }
+                    },
+                    "json" : true 
+                  }`;       
+                  
+                  console.log("option_received: " + option_received);
+
+                  let receive_json = JSON.parse(option_received);
+            
+                  await rp(receive_json)
+                      .then( async (results_sent) => {
+                        
+                        console.log("results_sent: " + JSON.stringify(results_sent));
+
+                        let sim_number = results_sent.sim_numbers[0].sim_number;
+                        let remote_number = results_sent.sim_numbers[0].remote_number;
+
+                        console.log("sim_number: " + sim_number);
+                        console.log("remote_number: " + remote_number);
+
+                        let response = {
+                          number : {
+                            sim_number: sim_number,
+                            remote_number : remote_number
+                          }
+                        }
+
+                        res.status(200).send(response);
+                        return {};
+
+                  }).catch((error) => {
+      
+                    console.log("error: " + error);
+
+                    res.status(400).send({"error":error});
+                    return {};
+            
+                  });
+
+                  return {};
+
+              }); 
+          }                 
+          break; 
+
+          case OPTION_SWITCH_RANDOM:            
+            await SwitchRandom(req, res);
+          break;
+
+          default: noti(req, res);
+      }
+    };  
+
+    exports.triggerCampaign = functions.firestore
+      .document('accounts/{accountId}/campaigns/{camapignId}/designs/{designId}')
+      .onUpdate( async (change, context) => {  
+
+        const newValue = change.after.data();                                        
+        
+        let web_update = newValue.web_update;
+        let preview_update = newValue.preview_update;    
+        
+        if ( web_update || preview_update ) {     
+          
+          let encoded_path = newValue.encoded_path;
+          
+          var buff = Buffer.from(encoded_path, 'base64'); 
+          let url_path = buff.toString('ascii');
+
+          console.log("path: " + path);      
+          
+          var type, image_width, image_height;
+          
+          if (web_update) {
+            type = "web";
+            image_width = newValue.image_width_web;
+            image_height = newValue.image_height_web;
+          } else if (preview_update) {
+            type = "preview";
+            image_width = newValue.image_width_preview;
+            image_height = newValue.image_height_preview;
+          }
+          
+          let post_params = { 
+            url_path: url_path,                                 
+            image_width: image_width,
+            image_height: image_height,
+            autorization : "YWRtaW46Tm90aW1hdGlvbjIwMjA="            
+          };         
+          
+          var build_image_web = `{
+            "method": "POST",
+            "uri": "https://us-central1-notims.cloudfunctions.net/backend/buildimage/${type}", 
+            "timeout": "10000",
+            "body": {
+              "data" : ${JSON.stringify(post_params)}                  
+            },
+            "json": true 
+          }`;       
+          
+          let _json = JSON.parse(build_image_web);                 
+
+          await rp(_json)
+          .then( async (response_image) => {
+
+            console.log("response: " + JSON.stringify(response_image));            
+            return response_image;
+
+          }).catch((error) => {
+      
+            console.log("error: " + error);            
+            return error;           
+
+          });
+
+        }
+        
+    }); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
     
 
     exports.buildimage = functions.https.onRequest( async (request, response) => {
@@ -1094,290 +1541,9 @@
    
         return {};         
     };    
-
    
 
-
-
-
-
-
-
-
-
-
-
-    const Action = async function(req, res) { 
-
-      let option = req.path.split('/')[2]; 
-      var collection = req.body.data.collection; 
-      
-      console.log("option: " +option);
-  
-      switch (option) {
-  
-        case OPTION_EXPORT:          
-           
-            //http://localhost:5000/export/cobranzas
-            //https://noti.ms/export/cobranzas                 
-  
-            try {
-  
-              firestoreService
-              .backup(collection)
-              .then(data => {  
-                return res.status(200).send(data);          
-              }).catch((error) => {                
-                console.log('Error getting sertvice backup');
-                return res.status(400).send(error);                
-              });  
-              
-            } catch (e) {
-                console.error(e);
-                return res.status(400).send(error);                
-            }
-  
-          break;        
-                   
-  
-        default:  
-          res.status(402).send("Option not found");
-        //break;
-      }   
-      
-    };
-
-    var OPTION_GET_SIM_NUMBERS      = 'simnumber';
-    var OPTION_USING                = 'using';
-    var OPTION_SWITCH               = 'switch';
-    var OPTION_SWITCH_RANDOM        = 'switchradom';
-    var OPTION_SMS_RECEIVED         = 'received';
-    var OPTION_SMS_SEND_AND_RECEIVE = 'sendreceive';       
-
-    //var OPTION_STATUS           = 'status';
-
-    /*var OPTION_SWITCH_SIM       = 'switchsim';    
-    var OPTION_MANAGMENT     = 'managment';
-    var OPTION_STATUS           = 'status';
-    var OPTION_SEND             = 'send';
-    var OPTION_SIMS_RECEIVED    = 'simsreceived';
-    var OPTION_REBOOT           = 'reboot';*/
-  
-    var GatewayOperations = async function(req, res) {
-      
-      console.log("gateway: " + req.path.split('/')[2]);      
-      
-      switch (req.path.split('/')[2]) {      
-
-        case OPTION_USING: {           
-          console.log("url_remote: " + req.body.data.url_remote);     
-          let uurl = req.body.data.url_remote; //'https://us-central1-notims.cloudfunctions.net/backend/gateway/using';          
-          return using(req, res, uurl);          
-        }
-        
-        case OPTION_SWITCH: 
-          switchsim(req, res); 
-        break;        
-
-        case OPTION_SMS_SEND_AND_RECEIVE: {     
-
-            let gateway = req.body.data.gateway;
-            let channel = req.body.data.channel;
-            let recipient = req.body.data.recipient;
-            let message = req.body.data.message;
-            let url = req.body.data.url;
-            let card = req.body.data.card;
-
-            var options_send_and_receive = `{
-              "method": "POST",
-              "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/send", 
-              "timeout": "10000",
-              "body": {
-                "data" : {
-                  "gateway" : "${gateway}",
-                  "channel" : "${channel}",
-                  "recipient" : "${recipient}",
-                  "message" : "${message}",
-                  "url": "${url}", 
-                  "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                }
-              },
-              "json": true 
-            }`;       
-            
-            let sar_json = JSON.parse(options_send_and_receive);
-
-            var current = new Date();
-
-            await rp(sar_json)
-            .then( async (response_sent) => {
-              
-              var resutl = response_sent.result;            
-              let sent = resutl.sent;
-              let sentlength = sent.length;
-              let last = sent[sentlength-1];
-              
-              console.log("last.time: "+ last.time);
-              
-              const timereceived = new Date(last.day + " " + last.time);
-
-              console.log("current: " + JSON.stringify(current));
-              console.log("timereceived: " + JSON.stringify(timereceived));
-
-              if ( (last.status === "Success") && 
-                  (last.number === "264") &&
-                  (current.getTime() < timereceived.getTime()) ) {
-
-                return {
-                  gateway : resutl.gateway,                 
-                  channel : resutl.channel,     
-                  card : card
-                };
-
-              } else {
-                console.log("FAAAIIILLLLL");
-                res.status(500).send("fail");
-              }  
-              
-              return {};
-
-            }).then( async (response_send) => {       
-
-              //console.log("results_sends :::: " + JSON.stringify(response_send));                             
-              var option_received = `{
-                "method": "POST",
-                "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
-                "body": {
-                  "data": {
-                    "gateway": "${response_send.gateway}",            
-                    "url" : ".notimation.com/en/5-3-1SMSinfo.php?ch=",
-                    "channel" : "${response_send.channel}",
-                    "card" : "${response_send.card}",
-                    "pagenumber" : "1",
-                    "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                  }
-                },
-                "json" : true 
-              }`;       
-
-              let receive_json = JSON.parse(option_received);
-              
-              return rp(receive_json);                        
-
-            }).then( async (response_receive) => {   
-              
-              console.log("results_sent: " + JSON.stringify(response_receive));
-
-              let sim_number = response_receive.sim_numbers[0].sim_number;
-              let remote_number = response_receive.sim_numbers[0].remote_number;
-
-              console.log("sim_number: " + sim_number);
-              console.log("remote_number: " + remote_number);
-
-              let response = {
-                number : {
-                  sim_number: sim_number,
-                  remote_number : remote_number
-                }
-              }
-
-              res.status(200).send(response);            
-
-              return response;
-
-            
-            }).catch((error) => {
-        
-              console.log("error: " + error);
-              return error;           
-      
-            });
-        }  
-        break;      
-
-        case OPTION_SMS_RECEIVED: {
-
-              var gatewaysRef = firestore.collection('gateways')
-              .doc("urls").get().then( async (document) => {   
-                
-                  let url_send = document.data().url_send;
-
-                  console.log("url_send: " +url_send);
-
-                  let gateway = req.body.data.gateway;                  
-                  let channel = req.body.data.channel;
-                  let pagenumber = req.body.data.pagenumber;
-                  let card = req.body.data.card;
-                  let url = req.body.data.url;
-
-                  console.log("gateway: "+ gateway);
-                  console.log("channel: "+ channel);
-                  console.log("pagenumber: "+ pagenumber);
-
-                  var option_received = `{
-                    "method": "POST",
-                    "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
-                    "body": {
-                      "data": {
-                        "gateway": "${gateway}",            
-                        "url" : "${url}",
-                        "channel" : "${channel}",
-                        "card" : "${card}",
-                        "pagenumber" : "${pagenumber}",
-                        "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                      }
-                    },
-                    "json" : true 
-                  }`;       
-                  
-                  console.log("option_received: " + option_received);
-
-                  let receive_json = JSON.parse(option_received);
-            
-                  await rp(receive_json)
-                      .then( async (results_sent) => {
-                        
-                        console.log("results_sent: " + JSON.stringify(results_sent));
-
-                        let sim_number = results_sent.sim_numbers[0].sim_number;
-                        let remote_number = results_sent.sim_numbers[0].remote_number;
-
-                        console.log("sim_number: " + sim_number);
-                        console.log("remote_number: " + remote_number);
-
-                        let response = {
-                          number : {
-                            sim_number: sim_number,
-                            remote_number : remote_number
-                          }
-                        }
-
-                        res.status(200).send(response);
-                        return {};
-
-                  }).catch((error) => {
-      
-                    console.log("error: " + error);
-
-                    res.status(400).send({"error":error});
-                    return {};
-            
-                  });
-
-                  return {};
-
-              }); 
-          }                 
-          break; 
-
-          case OPTION_SWITCH_RANDOM:            
-            await SwitchRandom(req, res);
-          break;
-
-          default: noti(req, res);
-      } 
-
-    };  
+   
     
     
     

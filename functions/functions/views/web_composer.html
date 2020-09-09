@@ -178,7 +178,7 @@
         <div class="col-md-5">
 
           <div class="column-background" style="font-size: 15px;">
-            <label>Arrastrar y soltar elementos.</label>
+            <label>Arrastrar y soltar elementos en los campos.</label>
             <div class="row" id="composer"></div>
             <hr/>
             <div class="row form-body">
@@ -197,6 +197,19 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Add Alert -->  
+      <div id="alertModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">                                
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p id="alert-content"></p>
+                </div>                                
+                <div data-dismiss="modal" class="modal-footer"><button type="button" class="btn btn-primary">OK</button></div>
+            </div>
         </div>
       </div>
      
@@ -273,17 +286,8 @@
                   return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
               }
           }
-      };   
+      };         
       
-      $.get('noti.html').then(function (data) {
-        console.log(data);
-
-        noti_html = data;
-
-      }).fail(function (error) {
-               
-
-      });
     
       $( "#login" ).click(function() {       
 
@@ -307,160 +311,165 @@
 
           $("#login").text("Web Composer - Logged");
 
-          //var client = getUrlParameter('client');         
+          //var account = getUrlParameter('account');         
           //var documentId = getUrlParameter('id');       
 
-          window.camapignId = "DEUDA_345_ASF";
-          window.client = "kairos";
+          window.camapignId = "DEUDA_345_FDG";
+          window.account = "kairos";
+          window.documentPath = `accounts/${window.account}/campaigns/${window.camapignId}`; ///web/sample`;
           
-          db.collection('clients')
-            .doc(window.client)
-            .collection("campaigns")
-            .doc(window.camapignId).get()
-            .then(function(doc) {              
-
-                var name =  doc.data().name;                
-                var fields =  doc.data().fields;   
-
-                let json = `{`;
-
-                var count = 0;
-                var length = fields.length;
+          db.doc(window.documentPath).get()
+              .then(function(doc) {   
                 
-                for (var i=0; i<length; i++) {
+                if (doc.exists) {
 
-                    let field = fields[i];                      
-                    let name = field.name;
-                    let value = field.value;
+                  var name =  doc.data().name;                
+                  var fields =  doc.data().fields;   
 
-                    var button;
-                    switch (i) {
-                      case 0:
-                        button = "btn-primary";
-                      break;
-                      case 1:
-                        button = "btn-secondary";
-                      break;
-                      case 2:
-                        button = "btn-success";
-                      break;
-                      case 3:
-                        button = "btn-warning";
-                      break;
-                      case 4:
-                        button = "btn-info";
-                      break;
-                      default:
-                        button = "btn-dark";
-                        break;
-                    }
+                  let json = `{`;
 
-                    json += ` "${name}" :  { 
-                        "datos" : "${value}", 
-                        "boton" : "${button}"
-                    }`;
-
-                    if (count === (length-1)) {
-                      json += `}`;
-                    } else {
-                      json += `,`;
-                    }
-                    count++;
-                } 
-
-                data = JSON.parse(json);            
-
-                for (var key of Object.keys(data)) {
+                  var count = 0;
+                  var length = fields.length;
                   
-                  let nombre = key;
-                  let datos = data[key]["datos"];
-                  let boton = data[key]["boton"];
+                  for (var i=0; i<length; i++) {
 
-                  let _html = `&nbsp;&nbsp<button data-field="${datos}" style="color:white" class="botones btn ${boton}" type="button" id="${nombre}">${nombre}</button>&nbsp;&nbsp`;
-            
-                  $("#composer").append(_html);
+                      let field = fields[i];                      
+                      let name = field.name;
+                      let value = field.value;
 
-                  $("#" + nombre).on('click', function (e) {                     
+                      var button;
+                      switch (i) {
+                        case 0:
+                          button = "btn-primary";
+                        break;
+                        case 1:
+                          button = "btn-secondary";
+                        break;
+                        case 2:
+                          button = "btn-success";
+                        break;
+                        case 3:
+                          button = "btn-warning";
+                        break;
+                        case 4:
+                          button = "btn-info";
+                        break;
+                        default:
+                          button = "btn-dark";
+                          break;
+                      }
+
+                      json += ` "${name}" :  { 
+                          "datos" : "${value}", 
+                          "boton" : "${button}"
+                      }`;
+
+                      if (count === (length-1)) {
+                        json += `}`;
+                      } else {
+                        json += `,`;
+                      }
+                      count++;
+                  } 
+
+                  data = JSON.parse(json);            
+
+                  for (var key of Object.keys(data)) {
                     
-                    e.preventDefault();
+                    let nombre = key;
+                    let datos = data[key]["datos"];
+                    let boton = data[key]["boton"];
 
-                    active_from_button = true;
+                    let _html = `&nbsp;&nbsp<button data-field="${datos}" style="color:white" class="botones btn ${boton}" type="button" id="${nombre}">${nombre}</button>&nbsp;&nbsp`;
+              
+                    $("#composer").append(_html);
 
-                    var timer_click = setTimeout(function() {                                                           
-                    
-                      var id = $(e.target).attr('id'); 
-                      var variable;
+                    $("#" + nombre).on('click', function (e) {                     
+                      
+                      e.preventDefault();
 
-                      variable = "{" + nombre + "}";                      
+                      active_from_button = true;
 
-                      if (active_saludo) {
+                      var timer_click = setTimeout(function() {                                                           
+                      
+                        var id = $(e.target).attr('id'); 
+                        var variable;
 
-                        var cursorPos = $('#insaludo').prop('selectionStart');
-                        var v = $('#insaludo').val();
-                        var textBefore = v.substring(0,  cursorPos );
-                        var textAfter  = v.substring( cursorPos, v.length );
-                        $('#insaludo').val( textBefore + variable + textAfter ); 
+                        variable = "{" + nombre + "}";                      
 
-                      } else if (active_cuerpo) {                                                      
-                        
-                        tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
+                        if (active_saludo) {
 
-                      }  
+                          var cursorPos = $('#insaludo').prop('selectionStart');
+                          var v = $('#insaludo').val();
+                          var textBefore = v.substring(0,  cursorPos );
+                          var textAfter  = v.substring( cursorPos, v.length );
+                          $('#insaludo').val( textBefore + variable + textAfter ); 
 
-                      clearTimeout(timer_click);
+                        } else if (active_cuerpo) {                                                      
+                          
+                          tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
 
-                    }, 1000);
+                        }  
 
-                  });
+                        clearTimeout(timer_click);
 
+                      }, 1000);
+
+                    });
+
+                  }
                 }
-
           });            
 
           $("#save-web").on('click', async function() {                                  
             
-              //var _css  = getComputedStyle(document.getElementById("html-preview"));            
+              let inputsHtml = await getInputsHTML();  
 
-              let _html_ = await getHTML();                
+              let _html_ = inputsHtml[0];
+              var inputs = window.btoa(inputsHtml[1]);
+
               let background_color = $("#color").data("data-color");               
                 
-              _html = _html.replace(/\n|\t/g, ' '); //break    
+              var _html = _html_.replace(/\n|\t/g, ' '); //break    
               _html = _html.replace(/\>[\t ]+\</g, "><");  // whitespace between tags       
 
-              var _time =  new Date();
+              var _time =  new Date();   
               
-              var webRef = db.collection('clients')
-              .doc(window.client)
-              .collection("campaigns")
-              .doc(window.camapignId)
-              .collection("web").doc("default");
+              var image_width         = $("#preview").width();
+              var image_height        = $("#preview").height();
+              var image_name          = "sample"; //CAMBIAR
 
+              let docPath = window.documentPath + "/designs/" + image_name;              
+              const encodedPath = window.btoa(docPath);
 
+              var webRef = db.doc(docPath);  
 
-
-
-
-              
               webRef.set({        
-                html: _html,
-                last_update: _time,                      
-                fields:fields_array            
+                html_web: _html,
+                inputs_web: inputs,
+                background_color_web : background_color,
+                encoded_path: encodedPath,
+                image_width_web: image_width,
+                image_height_web: image_height,
+                last_update: _time,
+                web_update: true                
               },{ merge:true }).then(docRefSet => {
 
-                  var image_width         = $("#html-preview").width();
-                  var image_height        = $("#html-preview").height();
-                  var image_name          = "default";
-                  var image_storage_path  = `clients/${client}/campaigns/${window.camapignId}`;           
+                  $('#alert-content').text('La web de la campaña ' + window.camapignId + ' ha sido creada con exito.');
+                  $('#alertModal').modal('show');
+
+                  /*
+                  var image_storage_path  = `accounts/${account}/campaigns/${window.camapignId}`;           
                   var type = "web";
 
                   let post_params = { 
-                    html: _html,  
+                    url: _html,                     
                     background_color: background_color,             
                     image_width: image_width,
                     image_height: image_height,
                     image_name: image_name,
                     image_storage_path: image_storage_path,
-                    client: window.client,
+                    account: window.account,
                     campaign: window.camapignId,
                     type: type,
                     design: image_name                                             
@@ -490,15 +499,11 @@
 
                   }             
 
-                });                     
-                               
+                });*/            
                 
               }).catch((error) => {     
                 console.error("Error adding document: ", error);           
               });  
-              
-                     
-
 
           });
        
@@ -548,7 +553,7 @@
                           var reader = new FileReader();            
                           reader.onload = function (e) {                              
                               target_result = e.target.result;
-                              getHTML();
+                              getInputsHTML();
                           }            
                           reader.readAsDataURL(this.files[0]);
                       }
@@ -562,7 +567,7 @@
                 if (name=="pagos") {
                   $el.find("p").remove();      
                   $('#pagos input[type="checkbox"]').click(function(){
-                    getHTML();
+                    getInputsHTML();
                   });     
                 }
                
@@ -609,7 +614,7 @@
                   });
 
                   $("#insaludo").change(function() {
-                    getHTML();
+                    getInputsHTML();
                   });
 
                   clearTimeout(timer);
@@ -631,7 +636,7 @@
             }
           }).sortable();
 
-          var getHTML = async function () {           
+          var getInputsHTML = async function () {           
 
             $("#preview").empty();      
             
@@ -641,9 +646,9 @@
               var _html = "";
 
               var _html = `<div class="row">
-                <div class="col-xs-12 background">`;  
+                <div class="col-xs-12 custom-background">`;  
 
-              var _json = `{`;
+              var inputs = [];
 
                $('#drop-area').children('div').each(function(index, value) { 
                   
@@ -680,12 +685,13 @@
                         break;
                       case "color":
                         count++;  
-                        let color = value = $("#color").find("input").value();
+                        let color = value = $("#color").find("input").val();
                         break;
-                    }       
-                    
-                    _json += `{"id" : "${this.id}", "value" : "${value}"}`;
+                    }                           
+                  
+                    value = replaceVariables(value); 
 
+                    inputs[this.id] = value;
 
                     if (count_drop == count) {               
 
@@ -716,10 +722,11 @@
 
                       _html += comupulsory;
                       _html = replaceVariables(_html);
-                      $("#preview").html(_html); 
-                      resolve(_html);
+                      $("#preview").html(_html);                                                               
 
-                    }         
+                      resolve([_html, inputs]);
+
+                    }  
              
                 } catch (e) {
                     console.error(e);
@@ -812,7 +819,7 @@
         
         $(document).on("click", ".edit-link", function(ev) {   
           
-          getHTML();
+          getInputsHTML();
           
           /*var $el = $(this).parent().parent();
           var $el_copy = $el.clone();
@@ -871,7 +878,7 @@
 
                 editor.on('change', function(ed) {              
                   let _content = editor.getContent();      
-                  getHTML();  
+                  getInputsHTML();  
                 });
                 
                 /** Campos **/              

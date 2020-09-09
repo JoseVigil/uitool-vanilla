@@ -339,7 +339,6 @@
     <script>
     //<![CDATA[
 
-
     /**
      * PDF TO HTML
      * 
@@ -366,9 +365,7 @@
 
     $(document).ready(function () {  
 
-      var client = "kairos";
-
-      
+      var account = "kairos";
 
       var active_saludo = false;
       var active_cuerpo = false;
@@ -455,90 +452,105 @@
 
           var campaignId = getUrlParameter('id');             
           
-          db.collection('clients')
-          .doc(client)
+          db.collection('accounts')
+          .doc(account)
           .collection("campaigns")
           .onSnapshot(snapshot => {
             
               let size = snapshot.size;            
-              let changes = snapshot.docChanges();           
+              let changes = snapshot.docChanges();  
 
-              changes.forEach(change => {
-                  
-                  let document = change.doc;
-                  let id = document.id;    
+              if (size>0) {
+              
+                $("#campaign-table tr").remove();
+                $("#field-table tbody tr").remove();
+                $("#campaign-name").val('');              
 
-                  window.documentId = id;
-
-                  let last = document.data().last_update.toDate();              
-
-                  let last_update = formatDate(last);                  
-                  
-                  let item = `<tr data-id="${document.id}">
-                  <td>
-                      <span class="custom-checkbox" class='clickable-row'>
-                          <input type="checkbox" id="check_${document.id}" name="options[]" value="${document.id}">
-                          <label for="${document.id}"></label>
-                      </span>
-                  </td>
-                  <td>${document.data().name}</td>
-                  <td>${last_update}</td>               
-                  <td><a href="#" id="menu_${document.id}"><i class="fal fa-ellipsis-v"></i></a></td>        
-                  </tr>`;
-                  $('#campaign-table').append(item);
-
-                  let fields = document.data().fields;
-
-                  if ( fields.length>0 ) {                    
-
-                    $("#field0").remove(); 
+                changes.forEach(change => {
                     
-                    for (var i=0; i<fields.length; i++) {              
+                    let document = change.doc;
+                    let id = document.id;    
 
-                      let field = fields[i];                  
-                      let name = field.name;
-                      let value = field.value;
+                    window.documentId = id;
 
-                      let item = `<tr id="field${i}">
-                        <td>
-                          <span class="glyphicon glyphicon-envelope"></span>                                </td>
-                        <td>
-                          <input id="name_${i}" value="${name}" type="text" class="form-control">
-                        </td>
-                        <td>
-                          <input id="value_${i}" value="${value}" type="text" class="form-control">
-                        </td>                               
-                      </tr>`;   
-                      $('#field-table').append(item); 
+                    let last = document.data().last_update.toDate();              
 
+                    let last_update = formatDate(last);  
+                    
+                    var campaign_name = id;                  
+                    $("#campaign-name").val(campaign_name);
+                    
+                    let item = `<tr data-id="${document.id}">
+                    <td>
+                        <span class="custom-checkbox" class='clickable-row'>
+                            <input type="checkbox" id="check_${document.id}" name="options[]" value="${document.id}">
+                            <label for="${document.id}"></label>
+                        </span>
+                    </td>
+                    <td>${campaign_name}</td>
+                    <td>${last_update}</td>               
+                    <td><a href="#" id="menu_${document.id}"><i class="fal fa-ellipsis-v"></i></a></td>        
+                    </tr>`;
+                    $('#campaign-table').append(item);
+
+                    let fields = document.data().fields;
+
+                    if ( fields.length>0 ) {                    
+
+                      $("#field0").remove(); 
+                      
+                      for (var i=0; i<fields.length; i++) {              
+
+                        let field = fields[i];                  
+                        let name = field.name;
+                        let value = field.value;
+
+                        let item = `<tr id="field${i}">
+                          <td>
+                            <span class="glyphicon glyphicon-envelope"></span>                                </td>
+                          <td>
+                            <input id="name_${i}" value="${name}" type="text" class="form-control">
+                          </td>
+                          <td>
+                            <input id="value_${i}" value="${value}" type="text" class="form-control">
+                          </td>                               
+                        </tr>`;   
+                        $('#field-table').append(item); 
+
+                      }
                     }
-                  }
 
-                  document.ref.collection("web")
-                    .doc("default").get()
-                    .then(function(docWeb) { 
+                    document.ref.collection("designs")
+                      .doc("sample").get()
+                      .then(function(docWeb) { 
 
-                     let html = docWeb.data().html;
-                     let preview_image = docWeb.data().preview_image;
-                     let img = `<img src="${preview_image}"/>`;
-                     $("#web-image").remove();
-                     $("#web").append(img);
+                        if (docWeb.exist) {
 
-                  });
+                          let html = docWeb.data().html_web;
+                          let preview_image = docWeb.data().preview_image_web;
+                          let img = `<img src="${preview_image}"/>`;
+                          $("#web-image").remove();
+                          $("#web").append(img);
 
-                  /**
-                   * TODO: Cuando se hace un click en la tabla campaign-table
-                   * se debaria seleccionar el row y cargar los diseños que 
-                   * deberian ser creados como un array dentro de 
-                   * estaba tratando de tomar este modelo se select
-                   * https://jsfiddle.net/armaandhir/f04tyoz7/
-                   * */ 
-                  /*if (count===(size-1)){
-                    $('#campaign-table tr').click();
-                  }*/
-                  //count++;
-                 
-              });
+                        }
+
+                    });
+
+                    /**
+                     * TODO: Cuando se hace un click en la tabla campaign-table
+                     * se debaria seleccionar el row y cargar los diseños que 
+                     * deberian ser creados como un array dentro de 
+                     * estaba tratando de tomar este modelo se select
+                     * https://jsfiddle.net/armaandhir/f04tyoz7/
+                     * */ 
+                    /*if (count===(size-1)){
+                      $('#campaign-table tr').click();
+                    }*/
+                    //count++;
+                  
+                });
+              }
+              
           });
 
             $(".clickable-row").click(function() {
@@ -602,13 +614,13 @@
 
       $("#save-campaign").on('click', function() {  
 
-        let _table_size = $("#field-table tr").length - 1;
+        let _table_size = $("#field-table tbody tr").length;
 
        var count = 0;
        var fields_array = [];
        var _break = false;
         
-        $("#field-table tr").each(function() {
+        $("#field-table tbody tr").each(function() {
           if (_break==false) {            
             let _name = $("#name_"+count).val();
             let _value = $("#value_"+count).val(); 
@@ -635,10 +647,12 @@
 
         var _time =  new Date();
         
-       var campaign =  db.collection('clients')
-          .doc(client)
+       var campaign =  db.collection('accounts')
+          .doc(account)
           .collection("campaigns")
           .doc(cname);
+
+          $("#field-table tbody tr").remove();
 
           campaign.set({        
             name: campaign_name,
@@ -647,20 +661,12 @@
             fields:fields_array            
           },{ merge:true }).then(docRefSet => {              
             
-            return campaign.collection("preview")
-                .doc("default").set({
-                  name: "default",
+            return campaign.collection("designs")
+                .doc("sample").set({
+                  name: "sample",
                   created_date: _time                                         
-                },{ merge:true });
-
-          }).then(docRefSet => { 
-
-            return campaign.collection("web")
-                .doc("default").set({
-                  name: "default",
-                  created_date: _time                                       
-                },{ merge:true });
-              
+                },{ merge:true });        
+                            
           }).then(docRefSet => {       
 
               let _files = document.getElementById("excel-file").files;
