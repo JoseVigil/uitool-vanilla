@@ -119,9 +119,14 @@
                     rocRef.get()
                     .then(function(doc) {      
 
-                        let html = doc.data().html_web;                           
+                        let html = doc.data().html_web;   
+                        
+                        var _html = `<div class="row">
+                          <div class="col-xs-12 custom-background">
+                          ${html}
+                          </div></div>`; 
 
-                        $("#main").append(html);
+                        $("#main").append(_html);
 
                         let background_color_web = doc.data().background_color_web;                            
 

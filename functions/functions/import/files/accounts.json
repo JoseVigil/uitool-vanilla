@@ -4,11 +4,6 @@
             "subCollection": {
                 "accounts/kairos/campaigns": {
                     "DEUDA_345_FDG": {
-                        "name": "DEUDA_345_FDG",
-                        "last_update": {
-                            "_seconds": 1599617046,
-                            "_nanoseconds": 92000000
-                        },
                         "time_created": {
                             "_seconds": 1599617046,
                             "_nanoseconds": 92000000
@@ -31,20 +26,27 @@
                                 "name": "telefono"
                             }
                         ],
+                        "name": "DEUDA_345_FDG",
+                        "last_update": {
+                            "_seconds": 1599617046,
+                            "_nanoseconds": 92000000
+                        },
                         "subCollection": {
                             "accounts/kairos/campaigns/DEUDA_345_FDG/designs": {
                                 "sample": {
+                                    "image_storage_path": "accounts/kairos/campaigns/DEUDA_345_FDG/sample_web.png",
+                                    "public_image_web": "https://storage.googleapis.com/notims.appspot.com/accounts/kairos/campaigns/DEUDA_345_FDG/sample_web.png?GoogleAccessId=notims%40appspot.gserviceaccount.com&Expires=16730323200&Signature=CA9fXN2Nnun08KA1qs92bw0Lp0u58oV%2BeZM2Clswn8FRP4yKeOW0cfydN2ZFiVPvCND7KrR0GTLI5umPb%2BWOQUEKIK%2F0wIF3FGDR6jVq5%2Bbglh6DMRY%2Fl%2B60nyW4paZd3UvH%2BQG2I5EWuGyikxMlq0Smm%2BMO1G2vH5He2koHc4FuYAQPIRNapj5Q5MwpQiX1L5CRiHCXAdwOXryxjzaonNrYnvbGDQUrDi5GFbdRNJlHwM14UDBTlq5Ht%2BYPEUuTVhOZ74wIUIWthTMQ1yR5OPMX9gH1tLFUfvfgw7qGsCHF5xzDQSunfGP0tmY2ItL76O8uPhoC4OmwgtwO8GiMRA%3D%3D",
+                                    "inputs_web": "eyAiaW5wdXRzIjogeyJpZCIgOiAic2FsdWRvIiwgInZhbHVlIiA6ICJIb2xhIEpvc2UgVmlnaWwifSx7ImlkIiA6ICJjdWVycG8iLCAidmFsdWUiIDogIjxwPkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0LCBjb25zZWN0ZXR1ciBhZGlwaXNjaW5nIGVsaXQuIE51bmMgcXVpcyByaG9uY3VzIG1pLCB2ZWwgdml2ZXJyYSBuaXNpLiBOdWxsYSByaG9uY3VzIGludGVyZHVtIG1vbGVzdGllLiBRdWlzcXVlIHRlbGx1cyBmZWxpcywgdGVtcHVzIHZpdGFlIGVsZWlmZW5kIHZhcml1cywgYWxpcXVldCBhdCBzYXBpZW4uIEludGVnZXIgdGVtcG9yLCBudWxsYSBldSBzb2xsaWNpdHVkaW4gaWFjdWxpcywgbWFzc2Egc2VtIGVsZW1lbnR1bTwvcD4KPGgxIHN0eWxlPSJ0ZXh0LWFsaWduOiBjZW50ZXI7Ij5HT0xBISE8L2gxPgo8cD5sYWN1cywgbmVjIHNvZGFsZXMgbmlzbCBlbGl0IGFjIGZlbGlzLiBRdWlzcXVlIHZpdmVycmEgaWFjdWxpcyBsaWd1bGEsIHRpbmNpZHVudCB2ZW5lbmF0aXMgZXJhdCBsYW9yZWV0IHNpdCBhbWV0LiBBbGlxdWFtIGV1IHJ1dHJ1bSBtaSwgZXUgcGVsbGVudGVzcXVlIG1ldHVzLiBVdCBtb2xlc3RpZSBtb2xlc3RpZSBzY2VsZXJpc3F1ZS4gTmFtIGV0IHByZXRpdW0gdG9ydG9yLiBTZWQgdml0YWUgc29sbGljaXR1ZGluIG51bmMsIGF0IGFsaXF1ZXQgdmVsaXQuPC9wPiJ9LHsiaWQiIDogImNvbG9yIiwgInZhbHVlIiA6ICJyZ2IoMjU1LCAxMjgsIDApIn19",
+                                    "background_color_web": "rgb(227, 249, 251)",
                                     "last_update": {
                                         "_seconds": 1599633603,
                                         "_nanoseconds": 335000000
                                     },
-                                    "image_width_web": 351,
-                                    "image_height_web": 554,
-                                    "web_update": false,
-                                    "encoded_path": "YWNjb3VudHMva2Fpcm9zL2NhbXBhaWducy9ERVVEQV8zNDVfRkRHL2Rlc2lnbnMvc2FtcGxl",
-                                    "background_color_web": "rgb(227, 249, 251)",
-                                    "inputs_web": "eyAiaW5wdXRzIjogeyJpZCIgOiAic2FsdWRvIiwgInZhbHVlIiA6ICJIb2xhIEpvc2UgVmlnaWwifSx7ImlkIiA6ICJjdWVycG8iLCAidmFsdWUiIDogIjxwPkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0LCBjb25zZWN0ZXR1ciBhZGlwaXNjaW5nIGVsaXQuIE51bmMgcXVpcyByaG9uY3VzIG1pLCB2ZWwgdml2ZXJyYSBuaXNpLiBOdWxsYSByaG9uY3VzIGludGVyZHVtIG1vbGVzdGllLiBRdWlzcXVlIHRlbGx1cyBmZWxpcywgdGVtcHVzIHZpdGFlIGVsZWlmZW5kIHZhcml1cywgYWxpcXVldCBhdCBzYXBpZW4uIEludGVnZXIgdGVtcG9yLCBudWxsYSBldSBzb2xsaWNpdHVkaW4gaWFjdWxpcywgbWFzc2Egc2VtIGVsZW1lbnR1bTwvcD4KPGgxIHN0eWxlPSJ0ZXh0LWFsaWduOiBjZW50ZXI7Ij5HT0xBISE8L2gxPgo8cD5sYWN1cywgbmVjIHNvZGFsZXMgbmlzbCBlbGl0IGFjIGZlbGlzLiBRdWlzcXVlIHZpdmVycmEgaWFjdWxpcyBsaWd1bGEsIHRpbmNpZHVudCB2ZW5lbmF0aXMgZXJhdCBsYW9yZWV0IHNpdCBhbWV0LiBBbGlxdWFtIGV1IHJ1dHJ1bSBtaSwgZXUgcGVsbGVudGVzcXVlIG1ldHVzLiBVdCBtb2xlc3RpZSBtb2xlc3RpZSBzY2VsZXJpc3F1ZS4gTmFtIGV0IHByZXRpdW0gdG9ydG9yLiBTZWQgdml0YWUgc29sbGljaXR1ZGluIG51bmMsIGF0IGFsaXF1ZXQgdmVsaXQuPC9wPiJ9LHsiaWQiIDogImNvbG9yIiwgInZhbHVlIiA6ICJyZ2IoMjU1LCAxMjgsIDApIn19",
                                     "html_web": "<div class=\"row\"><div class=\"col-xs-12 custom-background\"><h3 style=\"margin-bottom: 50px;\"><p class=\"font-weight-bold\">                                       Hola Jose Vigil</p></h3><div style=\"margin-bottom: 40px;\"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc quis rhoncus mi, vel viverra nisi. Nulla rhoncus interdum molestie. Quisque tellus felis, tempus vitae eleifend varius, aliquet at sapien. Integer tempor, nulla eu sollicitudin iaculis, massa sem elementum</p><h1 style=\"text-align: center;\">GOLA!!</h1><p>lacus, nec sodales nisl elit ac felis. Quisque viverra iaculis ligula, tincidunt venenatis erat laoreet sit amet. Aliquam eu rutrum mi, eu pellentesque metus. Ut molestie molestie scelerisque. Nam et pretium tortor. Sed vitae sollicitudin nunc, at aliquet velit.</p></div></div></div><footer class=\"footer\"><div class=\"container\"><hr><div class=\"row\"><div class=\"col-sm-2\"/><div class=\"col-sm-8\"><button type=\"button\" class=\"btn btn-secondary col-12\">No soy esa persona</button></div><div class=\"col-sm-2\"/></div><br></div></footer>",
+                                    "image_width_web": 351,
+                                    "encoded_path": "YWNjb3VudHMva2Fpcm9zL2NhbXBhaWducy9ERVVEQV8zNDVfRkRHL2Rlc2lnbnMvc2FtcGxl",
+                                    "web_update": false,
+                                    "image_height_web": 554,
                                     "subCollection": {}
                                 }
                             }

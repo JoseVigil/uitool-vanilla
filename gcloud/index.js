@@ -59,7 +59,8 @@
 
 		let option = req.url.split('/')[2];	
 
-		var public_url, update, image_width, image_height, image_storage_path, page_url, documentRef; 
+		var public_url, update, image_width, image_height, image_storage_name,
+			image_storage_path, page_url, documentRef; 
 
 		switch (option) {	
 
@@ -78,6 +79,7 @@
 				image_width 			= req.body.data.image_width;	
 				image_height 			= req.body.data.image_height;					
 				image_storage_path		= `${image_storage}${_image_}`;
+				image_storage_name		= "web_image_storage";
 				update 					= "web_update";				
  
 				public_url = "https://noti.ms/composer/thumbnail?&path=/" + url_path;
@@ -169,7 +171,7 @@
 
 		      var json_update = `{
 				"public_image_web": "${image_url}",
-				"image_storage_path" : "${image_storage_path}",
+				"${image_storage_name}" : "${image_storage_path}",
 				"${update}": false
 			  }`;	
 		      

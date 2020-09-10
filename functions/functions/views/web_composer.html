@@ -152,7 +152,7 @@
 
                   <div id="color" class="form-group draggable">
                     <label for="color" ><b>Color de fondo</b></label>                   
-                    <input type="text" value="rgb(255, 128, 0)" />
+                    <input type="text" value="rgb(0, 0, 0)" />
                     <p class="help-block">Cambiar color de fondo</p>                    
                   </div>
                   
@@ -324,7 +324,7 @@
                 if (doc.exists) {
 
                   var name =  doc.data().name;                
-                  var fields =  doc.data().fields;   
+                  var fields =  doc.data().fields;                             
 
                   let json = `{`;
 
@@ -387,14 +387,12 @@
                     $("#" + nombre).on('click', function (e) {                     
                       
                       e.preventDefault();
-
                       active_from_button = true;
 
                       var timer_click = setTimeout(function() {                                                           
                       
                         var id = $(e.target).attr('id'); 
                         var variable;
-
                         variable = "{" + nombre + "}";                      
 
                         if (active_saludo) {
@@ -405,19 +403,104 @@
                           var textAfter  = v.substring( cursorPos, v.length );
                           $('#insaludo').val( textBefore + variable + textAfter ); 
 
-                        } else if (active_cuerpo) {                                                      
-                          
+                        } else if (active_cuerpo) {                
                           tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
-
-                        }  
-
+                        }                          
                         clearTimeout(timer_click);
-
                       }, 1000);
-
                     });
 
                   }
+
+
+                  doc.ref.collection("designs") 
+                    .doc("sample").get()
+                    .then(function(docWeb) { 
+
+                      if (docWeb.exists) {
+
+                        let inputs_web_base = docWeb.data().inputs_web; 
+
+                        if (inputs_web_base != undefined) {
+                          
+                          let html = docWeb.data().html_web;
+                          let public_image_web = docWeb.data().public_image_web;
+                          let img = `<img src="${public_image_web}"/>`;
+                          
+                          $("#web-image").remove();
+                          $("#web").append(img);
+
+                          let modules = docWeb.data().inputs_web;    
+                          var flags = [];                                     
+
+                          for ($m in modules) {
+
+                            let module = modules[$m];
+
+                            var saludo, cuerpo, color;
+                            var $orig, name, flag;
+
+                            switch (module.key) {
+
+                              case "saludo":
+                                $orig = $("#saludo");                                                                
+                                flag = 1;
+                                break;
+
+                              case "cuerpo":
+                                $orig = $("#cuerpo");                                                                
+                                flag = 2;                                
+                                break;
+
+                              case "color":
+                                $orig = $("#color");                                                                
+                                flag = 3;                                
+                                break;
+                            }
+
+                            name = module.key;
+
+                            var $ele = $orig.clone()
+                              .addClass("dropped")
+                              .css({"position": "static", "left": null, "right": null})                            
+                              .appendTo( "#drop-area" );
+
+                            drop($ele, name, $orig);                        
+                            
+                            flags[flag]= [module.value, $ele]; 
+
+                          } 
+                          
+                          var ltimer = setTimeout(function() { 
+
+                            for (flag in flags) { 
+                              
+                                let value = flags[flag][0];
+                                let $ele  = flags[flag][1];
+
+                                let f = parseInt(flag);
+
+                                switch (f) {
+                                    case 1:
+                                      $ele.find("#insaludo").val(value);
+                                    break;
+                                    case 2:                                      
+                                      tinymce.activeEditor.setContent(value);
+                                    break;
+                                    case 3:
+                                      $ele.find("#incolor").val(value);
+                                      break;
+                                }
+                            }
+
+                            getInputsHTML();
+
+                            clearTimeout(ltimer);
+
+                          }, 500)
+                        }
+                      }
+                  });
                 }
           });            
 
@@ -426,7 +509,7 @@
               let inputsHtml = await getInputsHTML();  
 
               let _html_ = inputsHtml[0];
-              var inputs = window.btoa(inputsHtml[1]);
+              var modules = inputsHtml[1];
 
               let background_color = $("#color").data("data-color");               
                 
@@ -436,7 +519,7 @@
               var _time =  new Date();   
               
               var image_width         = $("#preview").width();
-              var image_height        = $("#preview").height();
+              var image_height        = $("#preview").height() + 40;
               var image_name          = "sample"; //CAMBIAR
 
               let docPath = window.documentPath + "/designs/" + image_name;              
@@ -446,16 +529,16 @@
 
               webRef.set({        
                 html_web: _html,
-                inputs_web: inputs,
+                inputs_web: modules,
                 background_color_web : background_color,
                 encoded_path: encodedPath,
                 image_width_web: image_width,
                 image_height_web: image_height,
-                last_update: _time,
+                last_update: _time,                
                 web_update: true                
-              },{ merge:true }).then(docRefSet => {
+              },{ merge: true }).then(docRefSet => {
 
-                  $('#alert-content').text('La web de la campaña ' + window.camapignId + ' ha sido creada con exito.');
+                  $('#alert-content').text('La web de la campaña ' + window.camapignId + ' se ha guardado con exito.');
                   $('#alertModal').modal('show');
 
                   /*
@@ -503,7 +586,15 @@
                 
               }).catch((error) => {     
                 console.error("Error adding document: ", error);           
-              });  
+              }); 
+              
+              function reverseArr(input) {
+                  var ret = new Array;
+                  for(var i = input.length-1; i >= 0; i--) {
+                      ret.push(input[i]);
+                  }
+                  return ret;
+              }
 
           });
        
@@ -521,9 +612,7 @@
               $(".empty-form").remove();
               var $orig = $(ui.draggable);
               
-              if(!$(ui.draggable).hasClass("dropped")) {
-
-                count_drop++;
+              if(!$(ui.draggable).hasClass("dropped")) {               
 
                 var name = $orig.find("label").attr("for");                      
                 
@@ -532,6 +621,27 @@
                   .addClass("dropped")
                   .css({"position": "static", "left": null, "right": null})
                   .appendTo(this);
+                  
+                  drop($el, name, $orig);                
+               
+              } else {
+               
+                if($(this)[0]!=$orig.parent()[0]) {
+                
+                  var $el = $orig
+                    .clone()
+                    .css({"position": "static", "left": null, "right": null})
+                    .appendTo(this);
+                  $orig.remove();
+
+                }
+              }
+            }
+          }).sortable();
+
+          var drop = async function ($el, name, $orig) {
+
+                count_drop++;
 
                 if (name=="saludo") {                  
                   $el.find("p").remove();                                     
@@ -620,21 +730,8 @@
                   clearTimeout(timer);
 
                 }, 500);
-               
-              } else {
-               
-                if($(this)[0]!=$orig.parent()[0]) {
-                
-                  var $el = $orig
-                    .clone()
-                    .css({"position": "static", "left": null, "right": null})
-                    .appendTo(this);
-                  $orig.remove();
 
-                }
-              }
-            }
-          }).sortable();
+          }
 
           var getInputsHTML = async function () {           
 
@@ -645,10 +742,7 @@
               var count = 0;
               var _html = "";
 
-              var _html = `<div class="row">
-                <div class="col-xs-12 custom-background">`;  
-
-              var inputs = [];
+              var modules = {};
 
                $('#drop-area').children('div').each(function(index, value) { 
                   
@@ -656,15 +750,16 @@
                   
                     console.log(`div${index}: ${this.id}`);  
                     
-                    var value;
+                    var value;                                                          
+                    var json = {};
 
                     switch (this.id) {
                       case "saludo":
                         count++;
-                        let insaludo = value = $("#insaludo").val();
+                        let insaludo = value = $(this).find("#insaludo").val();
                         let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
                                       ${insaludo}</p></h3>`;
-                        _html += saludo;                        
+                        _html += saludo;                                                                
                         break;
                       case "cuerpo":
                         count++;
@@ -678,24 +773,23 @@
                         //let inMercado = $('#inMercado').prop('checked');
                         //let inRapi = $('#inRapi').prop('checked');
                         //let inFacil = $('#inFacil').prop('checked');
-                        let inpagos = value = getPagos();
-                        if (inpagos!=undefined) {
-                            _html += inpagos;
-                        } 
+                        let pagos = value = getPagos();
+                        if (pagos!=undefined) {
+                            _html += pagos;
+                        }                         
                         break;
                       case "color":
                         count++;  
-                        let color = value = $("#color").find("input").val();
+                        let color = value = $(this).find("#incolor").val();     
+                        $('#preview').css('background-color', color);                   
                         break;
-                    }                           
-                  
-                    value = replaceVariables(value); 
+                    }        
 
-                    inputs[this.id] = value;
+                    json["value"] = value;                                          
+                    json["key"] = this.id;                                          
+                    modules[count] = json;                     
 
-                    if (count_drop == count) {               
-
-                      _html += `</div></div>`;
+                    if (count_drop == count) {                                     
 
                       let comupulsory = `
                       <footer class="footer">
@@ -724,7 +818,7 @@
                       _html = replaceVariables(_html);
                       $("#preview").html(_html);                                                               
 
-                      resolve([_html, inputs]);
+                      resolve([_html, modules]);
 
                     }  
              

@@ -462,19 +462,16 @@
 
               if (size>0) {
               
-                $("#campaign-table tr").remove();
+                $("#campaign-table tbody tr").remove();
                 $("#field-table tbody tr").remove();
                 $("#campaign-name").val('');              
 
                 changes.forEach(change => {
                     
                     let document = change.doc;
-                    let id = document.id;    
-
+                    let id = document.id;  
                     window.documentId = id;
-
-                    let last = document.data().last_update.toDate();              
-
+                    let last = document.data().last_update.toDate();
                     let last_update = formatDate(last);  
                     
                     var campaign_name = id;                  
@@ -524,11 +521,11 @@
                       .doc("sample").get()
                       .then(function(docWeb) { 
 
-                        if (docWeb.exist) {
+                        if (docWeb.exists) {
 
                           let html = docWeb.data().html_web;
-                          let preview_image = docWeb.data().preview_image_web;
-                          let img = `<img src="${preview_image}"/>`;
+                          let public_image_web = docWeb.data().public_image_web;
+                          let img = `<img src="${public_image_web}"/>`;
                           $("#web-image").remove();
                           $("#web").append(img);
 
@@ -553,9 +550,9 @@
               
           });
 
-            $(".clickable-row").click(function() {
-                window.location = $(this).data("href");
-            });
+          $(".clickable-row").click(function() {
+              window.location = $(this).data("href");
+          });
 
         }
 
@@ -642,9 +639,7 @@
       function saveCampaig(fields_array) {
 
         var campaign_name = $("#campaign-name").val();
-
         var cname = campaign_name.split(' ').join('_');
-
         var _time =  new Date();
         
        var campaign =  db.collection('accounts')
@@ -694,7 +689,8 @@
                   var file = document.getElementById("excel-file").files[0];   
                   var filePathMuseum = "jose.xlsx";        
                   const museumRef = storageRef.child(filePathMuseum);
-                  var putRef = museumRef.put(_file, metadataFiles);          
+                  var putRef = museumRef.put(_file, metadataFiles);  
+
                   putRef.on('state_changed', function(snapshot) {
                       var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                       console.log('Upload is ' + progress + '% done');
