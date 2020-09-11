@@ -103,21 +103,21 @@
                       <p>Crea el cuerpo del mensaje</p>                        
                     </div>     
 
-                    <div class="form-group draggable">
+                    <div id="contacto" class="form-group draggable">
                       <label for="contacto" ><b>Contacto</b></label>
                       <div class="control-group">                        
                         <div class="controls span2">
                             <label class="checkbox">
-                              <input type="checkbox" id="inlineCheckbox1"> Grabar mensaje
+                              <input type="checkbox" id="inGrabar"> Grabar mensaje
                             </label>
                             <label class="checkbox">
-                                <input type="checkbox" id="inlineCheckbox1"> Llamame
+                                <input type="checkbox" id="inLlamar"> Llamame
                             </label>
                             <label class="checkbox">
-                                <input type="checkbox" id="inlineCheckbox2"> Whatsapp
+                                <input type="checkbox" id="inWhatsapp"> Whatsapp
                             </label>
                             <label class="checkbox">
-                                <input type="checkbox" id="inlineCheckbox3"> Email
+                                <input type="checkbox" id="inEmail"> Email
                             </label>                            
                         </div>                        
                       </div>
@@ -452,9 +452,19 @@
                                 flag = 2;                                
                                 break;
 
+                              case "contacto":
+                                $orig = $("#contacto");                                                                
+                                flag = 3;                                
+                                break;
+
+                              case "pagos":
+                                $orig = $("#pagos");                                                                
+                                flag = 4;                                
+                                break;
+
                               case "color":
                                 $orig = $("#color");                                                                
-                                flag = 3;                                
+                                flag = 5;                                
                                 break;
                             }
 
@@ -487,7 +497,19 @@
                                     case 2:                                      
                                       tinymce.activeEditor.setContent(value);
                                     break;
-                                    case 3:
+                                    case 3:                                      
+                                      $ele.find('#inGrabar').prop('checked', value.rec);
+                                      $ele.find('#inLlamar').prop('checked', value.call);
+                                      $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                      $ele.find('#inEmail').prop('checked', value.email);
+                                      break;
+                                    case 4:                               
+                                      $ele.find('#inMercado').prop('checked', value.rec);
+                                      $ele.find('#inRapi').prop('checked', value.call);
+                                      $ele.find('#inFacil').prop('checked', value.wa);
+                                      $ele.find('#inOtros').prop('checked', value.email);
+                                      break;
+                                    case 5:
                                       $ele.find("#incolor").val(value);
                                       break;
                                 }
@@ -511,7 +533,13 @@
               let _html_ = inputsHtml[0];
               var modules = inputsHtml[1];
 
-              let background_color = $("#color").data("data-color");               
+              var background_color; 
+              for ($m in modules) {
+                let module = modules[parseInt($m)];                              
+                if (module.key == "color") {
+                  background_color = module.value;
+                }
+              }             
                 
               var _html = _html_.replace(/\n|\t/g, ' '); //break    
               _html = _html.replace(/\>[\t ]+\</g, "><");  // whitespace between tags       
@@ -519,7 +547,7 @@
               var _time =  new Date();   
               
               var image_width         = $("#preview").width();
-              var image_height        = $("#preview").height() + 40;
+              var image_height        = $("#preview").height() + 60;
               var image_name          = "sample"; //CAMBIAR
 
               let docPath = window.documentPath + "/designs/" + image_name;              
@@ -527,16 +555,21 @@
 
               var webRef = db.doc(docPath);  
 
-              webRef.set({        
+              let payload = {        
                 html_web: _html,
-                inputs_web: modules,
-                background_color_web : background_color,
+                inputs_web: modules,                
                 encoded_path: encodedPath,
                 image_width_web: image_width,
                 image_height_web: image_height,
                 last_update: _time,                
                 web_update: true                
-              },{ merge: true }).then(docRefSet => {
+              };
+
+              if (background_color) {
+                payload.background_color_web = background_color;
+              }              
+
+              webRef.set(payload,{ merge: true }).then(docRefSet => {
 
                   $('#alert-content').text('La web de la campaña ' + window.camapignId + ' se ha guardado con exito.');
                   $('#alertModal').modal('show');
@@ -671,7 +704,10 @@
                 }*/
 
                 if (name=="contacto") {
-                 $el.find("p").remove();           
+                  $el.find("p").remove();   
+                  $('#contacto input[type="checkbox"]').click(function(){
+                    getInputsHTML();
+                  });         
                 }
 
                 if (name=="pagos") {
@@ -770,12 +806,26 @@
                         break;
                       case "pagos":
                         count++;                
-                        //let inMercado = $('#inMercado').prop('checked');
-                        //let inRapi = $('#inRapi').prop('checked');
-                        //let inFacil = $('#inFacil').prop('checked');
-                        let pagos = value = getPagos();
+                        let inMercado = $('#inMercado').prop('checked');
+                        let inRapi = $('#inRapi').prop('checked');
+                        let inFacil = $('#inFacil').prop('checked');
+                        let inOtros = $('#inOtros').prop('checked');                           
+                        value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
+                        let pagos = getPagos();
                         if (pagos!=undefined) {
                             _html += pagos;
+                        }                         
+                        break;
+                      case "contacto":
+                        count++;                
+                        let inGrabar    = $('#inGrabar').prop('checked');
+                        let inLlamar    = $('#inLlamar').prop('checked');
+                        let inWhatsapp  = $('#inWhatsapp').prop('checked');
+                        let inEmail     = $('#inEmail').prop('checked');                        
+                        value = JSON.parse(`{"rec":${inGrabar}, "call":${inLlamar}, "wa":${inWhatsapp}, "email":${inEmail}}`);
+                        let contacto = getContacto();
+                        if (contacto!=undefined) {
+                            _html += contacto;
                         }                         
                         break;
                       case "color":
@@ -878,6 +928,50 @@
               return inpagos;
 
           }
+
+
+          function getContacto() {
+
+            var arrayObj = [
+              {"image": "record.png", "id": "inGrabar", "value": $('#inGrabar').prop('checked')},
+              {"image": "call.png", "id": "inLlamar", "value": $('#inLlamar').prop('checked')},
+              {"image": "whatsapp.png", "id": "inWhatsapp", "value": $('#inWhatsapp').prop('checked')},
+              {"image": "gmail.png", "id": "inEmail", "value": $('#inEmail').prop('checked')},
+            ];
+
+            var _array = arrayObj.filter(function(s) { 
+              return s.value; 
+            });
+
+            count = _array.length;
+
+            if (count==0) {
+              return;
+            }
+
+            var incontactos = "";
+
+            switch (count) {
+              case 1:
+              incontactos = `<div class="row">
+                    <div class="col">                         
+                    </div>
+                    <div class="col-5">
+                      <img src="/images/${_array[0].image}"/>
+                    </div>
+                    <div class="col">                          
+                    </div>
+                  </div>`;
+                break;
+              case 2:
+                incontactos = "";
+                break;
+              case 3:
+                incontactos = "";
+                break;
+            }
+            return incontactos;
+          }
         
 
           function replaceVariables(_html) {
@@ -906,8 +1000,7 @@
                 </div>\
               </div>\
             </div>\
-            </div>').appendTo(document.body);
-            
+            </div>').appendTo(document.body);            
           return modal;
         };
         
