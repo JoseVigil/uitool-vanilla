@@ -41,7 +41,15 @@
           color: red;
           background-color: yellow;
       }
-          
+
+      .form-control-xs {
+          height: calc(1em + .375rem + 2px) !important;
+          padding: .125rem .25rem !important;
+          font-size: .75rem !important;
+          line-height: 1.5;
+          border-radius: .2rem;
+      }
+                
        
      </style>
 
@@ -198,7 +206,8 @@
                             <tbody>
                               <tr id="field0">
                                 <td>
-                                  <span class="glyphicon glyphicon-envelope"></span>                                </td>
+                                  <span class="glyphicon glyphicon-envelope"></span>                                
+                                </td>
                                 <td>
                                   <input id="name_0" type="text" class="form-control">
                                 </td>
@@ -274,50 +283,10 @@
               <br><br>
               
               <div class="row">                
-                <div class="col-md-4">                  
-                  <div class="row">
-
-                    <div class="col-md-12" style="background-color:#E8F0FE;">
-
-                      <div class="row mt-3 mb-3 ml-3">
-                        
-                        <div class="col-md-8">
-                          <h3 class="float-left">Diseño A</h3>   
-                        </div>
-                        
-                        <div class="col-md-4">                           
-                          <button type="button" class="float-right btn btn-success">X</button>
-                        </div>
-
-                      </div>
-
-                      <button id="preview" class="card border round" style="width: 18rem;">                        
-                        <div class="card-body">
-                         Preview
-                        </div>
-                      </button>  
-                      
-                      <br>
-                      
-                      <button id="web" class="card border rounded h-100" style="width: 18rem;">                        
-                        <div id="web-image" class="card-body">
-                         Web Page
-                        </div>
-                      </button>                    
-                      
-                      <div class="row">
-                        <div class="col-md-12">
-                      </div>
-
+                <div class="col-md-3">                  
+                  <div id="cards" class="row">
                   </div>
-
-                <div class="col-md-4">
-                </div>
-                <div class="col-md-4">
-                </div>
               </div>
-            </div>
-          </div>
 
           <!-- Add Alert -->  
           <div id="alertModal" class="modal fade">
@@ -365,7 +334,7 @@
 
     $(document).ready(function () {  
 
-      var account = "kairos";
+      window.account = "kairos";
 
       var active_saludo = false;
       var active_cuerpo = false;
@@ -453,7 +422,7 @@
           var campaignId = getUrlParameter('id');             
           
           db.collection('accounts')
-          .doc(account)
+          .doc(window.account)
           .collection("campaigns")
           .onSnapshot(snapshot => {
             
@@ -470,7 +439,7 @@
                     
                     let document = change.doc;
                     let id = document.id;  
-                    window.documentId = id;
+                    window.campaignId = id;
                     let last = document.data().last_update.toDate();
                     let last_update = formatDate(last);  
                     
@@ -518,17 +487,48 @@
                     }
 
                     document.ref.collection("designs")
-                      .doc("sample").get()
-                      .then(function(docWeb) { 
+                      .onSnapshot(cardSnapshot => {
 
-                        if (docWeb.exists) {
+                        let cardSize = cardSnapshot.size;            
+                        let cardChanges = cardSnapshot.docChanges(); 
 
-                          let html = docWeb.data().html_web;
-                          let public_image_web = docWeb.data().public_image_web;
-                          let img = `<img src="${public_image_web}"/>`;
-                          $("#web-image").remove();
-                          $("#web").append(img);
+                        var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
+                        window.newdesign = alphabet[cardSize];                        
+                        
+                        if (cardSize > 0) {
+
+                          cardChanges.forEach(cardDoc => {                           
+
+                              let doc = cardDoc.doc;
+
+                              if (doc.exists) {
+                                let name = doc.id;
+                                let piw = doc.data().public_image_web;
+                                let pip = doc.data().public_image_preview;
+                                let card = filterCard(name, piw, pip);
+                                $("#cards").append(card);   
+                                
+                                $(`#preview-${name}`).on('click', function() {              
+                                  buildLink("preview");
+                                }); 
+
+                                $(`#web-${name}`).on('click', function() {       
+                                  buildLink("web");
+                                }); 
+
+                                function buildLink(type) {
+                                  let web = "http://localhost:5000/composer/web";
+                                  let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
+                                  window.open(url, '_blank');
+                                }
+                              }
+
+                          });
+
+                        } else {
+                          let newCard = getCards("A");                          
+                          $("#cards").append(img);
                         }
 
                     });
@@ -546,13 +546,16 @@
                     //count++;
                   
                 });
-              }
-              
+              }              
           });
 
           $(".clickable-row").click(function() {
               window.location = $(this).data("href");
           });
+
+        }
+
+        function getNewDesignName(){
 
         }
 
@@ -576,27 +579,14 @@
 
       }); 
 
-      $("#preview").on('click', function() {       
-
-        let preview = "http://localhost:5000/composer/preview";
-        let url = composer + "?&id=" + window.documentId;
-        var win = window.open(url, '_blank');
-
-      }); 
-
-      $("#web").on('click', function() {       
-
-        let composer = "http://localhost:5000/composer/web";
-        let url = composer + "?&id=" + window.documentId;
-        var win = window.open(url, '_blank');
-
-      }); 
+      
+      
 
       $("#add-field").on('click', function() {  
-
           let item = `<tr id="field${count_field}">
             <td>
-              <span class="glyphicon glyphicon-envelope"></span>                                </td>
+              <span class="glyphicon glyphicon-envelope"></span>                                
+            </td>
             <td>
               <input id="name_${count_field}" type="text" class="form-control">
             </td>
@@ -606,7 +596,6 @@
           </tr>`;   
           $('#field-table').append(item); 
           count_field++;
-
       });   
 
       $("#save-campaign").on('click', function() {  
@@ -633,8 +622,77 @@
             count++;
           }
         });      
-      
+        let card = getCard();          
+        $("#cards").append(card);
+
       });
+
+      function filterCard(m, w, p) {        
+        if ( ( w!=undefined ) && ( p!=undefined ) ) {         
+          return getCard(m, w, p);         
+        } else {
+          if ( w ) {
+            return getCardCustom(m, w);              
+          }  else if ( p ) {
+            return getCardCustom(m, p);              
+          }
+        }
+      }
+
+      function getCard(name) {
+        return getCard(name, undefined, undefined);
+      }
+
+      function getCardCustom(name, img_preview) {
+        return getCard(name, img_preview, undefined);
+      }
+
+      function getCardCustom(name, img_web) {
+        return getCard(name, undefined, img_web);
+      }
+
+      function getCard(name, img_preview, img_web) {
+        
+        let card = `<div class="col-md-12" style="background-color:#E8F0FE;">                              
+              <div class="row col-md-12 mt-3 mb-2">                                
+                <div class="col-md-10">
+                  <h3 id="card${name}">${name}</h3>                                
+                </div>
+                <div class="col-md-2">                           
+                  <button type="button" class="float-right btn btn-success">X</button>
+                </div>
+              </div>
+              <button id="preview-${name}" class="card border round w-100">`;                                        
+              if (img_preview) {
+                card += `<img class="w-100" src="${img_preview}"/>`;
+              } else {
+                card += `<div id="preview-image-${name}" class="card-body">
+                          Preview
+                        </div>`;
+              }
+              card += `</button>                                
+              <br>
+              <button id="web-${name}" class="card border rounded h-100">`;                        
+              if (img_web) {
+                card += `<img class="w-100" src="${img_web}"/>`;                  
+              } else {
+                card += `<div id="web-image-${name}" class="card-body">
+                                Web Page
+                              </div>`;
+              }
+              card += `</button>
+                <div class="row">
+                  <div class="col-md-12">
+                </div>
+                </div>
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-4">
+                </div>
+              </div>`;            
+
+          return card;
+      }
 
       function saveCampaig(fields_array) {
 
@@ -643,7 +701,7 @@
         var _time =  new Date();
         
        var campaign =  db.collection('accounts')
-          .doc(account)
+          .doc(window.account)
           .collection("campaigns")
           .doc(cname);
 

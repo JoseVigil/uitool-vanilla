@@ -9,6 +9,7 @@
      <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">     
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
      <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
      <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
      
      <title>Noti.ms</title>
@@ -78,17 +79,66 @@
             <div class="tabbable" id="tabs-381741">
               <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link active" href="#tab1" data-toggle="tab">Basico</a>
+                  <a class="nav-link active" href="#preview-tab" data-toggle="tab">Preview</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#tab2" data-toggle="tab"></a>
-                </li>
+                  <a class="nav-link" href="#web-tab" data-toggle="tab">Web</a>
+                </li>                
               </ul>
               <div class="tab-content">
-                <div class="tab-pane active">
+                
+                <div id="preview-tab" class="tab-pane active">
+                  
+                  <form id="form-composer-preview" role="form">
+                    
+                    <br>
 
-                  <form id="form-composer" role="form">
+                    <div id="llamada" class="form-group draggable">
+                      <label for="llamada" ><b>Llamada</b></label>
+                      <input type="text" class="form-control" id="inllamada">
+                      <p class="help-block">Crear llamada a la acción</p>
+                    </div>
 
+                    <div id="mensaje" class="form-group draggable">
+                      <label for="mensaje" ><b>Mensaje</b></label>  
+                      <input type="text" class="form-control">
+                      <p>Crea el mensaje</p>                        
+                    </div>
+
+                    <div id="fondo" class="form-group draggable">
+                      <label for="fondo" ><b>Imagen de fondo</b></label>                                            
+                      <input id="infondo" type="file" accept=".jpg, .jpeg, .png">
+                    </div>
+
+                    <div id="pie" class="form-group draggable">
+                      <label for="pie" ><b>Pie de preview</b></label>
+                      <div class="control-group">                        
+                        <div class="controls span2">
+                            <label class="checkbox">
+                              <input type="checkbox" id="inInfo"> + info
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="inConocer"> Conocer mas
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="inFinanciar"> Financiar
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="inDesuscribir"> Desuscribir
+                            </label>                            
+                        </div>                        
+                      </div>
+                      <p class="help-block">Pie de preview</p>
+                    </div>                    
+
+                  </form>
+
+                </div>
+
+                <div id="web-tab" class="tab-pane">
+
+                  <form id="form-composer-web" role="form">
+                    
                     <br>
 
                     <div id="saludo" class="form-group draggable">
@@ -101,7 +151,8 @@
                       <label for="cuerpo" ><b>Cuerpo</b></label>  
                       <input type="text" class="form-control">
                       <p>Crea el cuerpo del mensaje</p>                        
-                    </div>     
+                    </div>                    
+                    
 
                     <div id="contacto" class="form-group draggable">
                       <label for="contacto" ><b>Contacto</b></label>
@@ -146,15 +197,42 @@
                               </label>           
                             </div>                   
                         </div>                        
-                    </div>                                                          
-                      <p class="help-block">Medio de pago</p>
-                    </div>                   
+                        </div>                                                          
+                        <p class="help-block">Medio de pago</p>
+                    </div>  
 
-                  <div id="color" class="form-group draggable">
-                    <label for="color" ><b>Color de fondo</b></label>                   
-                    <input type="text" value="rgb(0, 0, 0)" />
-                    <p class="help-block">Cambiar color de fondo</p>                    
-                  </div>
+                    <div id="facturas" class="form-group draggable">
+                      <label for="facturas" ><b>Detalle de facturas</b></label>
+                      <input type="text" class="form-control" id="infacturas">
+                      <div class="control-group">                        
+                        <div class="controls">
+                            <div class="row">                             
+                              <label class="checkbox">
+                                <input type="checkbox" id="inDetalle"> Ver detalle
+                              </label>
+                              <label class="checkbox">
+                                <input type="checkbox" id="inMonto"> Monto
+                              </label> 
+                              <label class="checkbox">
+                                  <input type="checkbox" id="inDescargar"> Descargar PDF
+                              </label>                                                            
+                            </div>                                             
+                          </div>                        
+                        </div>                                                          
+                        <p class="help-block">Detalle de facturas</p>
+                    </div>  
+                    
+                    <div id="imagen" class="form-group draggable">
+                      <label for="imagen" ><b>Imagen</b></label>
+                      <input id="inimagen" type="file" name="files[]">
+                      <p class="help-block">Agregar imagen</p>
+                    </div>
+
+                    <div id="color" class="form-group draggable">
+                      <label for="color" ><b>Color de fondo</b></label>                   
+                      <input type="text" value="rgb(0, 0, 0)" />
+                      <p class="help-block">Cambiar color de fondo</p>                    
+                    </div>
                   
                   </form>
 
@@ -289,7 +367,7 @@
       };         
       
     
-      $( "#login" ).click(function() {       
+      $( "#login" ).click(function() {    
 
         firebase.auth()
         .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
@@ -311,12 +389,18 @@
 
           $("#login").text("Web Composer - Logged");
 
-          //var account = getUrlParameter('account');         
-          //var documentId = getUrlParameter('id');       
+          window.type = getUrlParameter('type');
+          window.account = getUrlParameter('account');         
+          window.campaignId = getUrlParameter('campaignId');  
+          window.designId = getUrlParameter('designId'); 
 
-          window.camapignId = "DEUDA_345_FDG";
-          window.account = "kairos";
-          window.documentPath = `accounts/${window.account}/campaigns/${window.camapignId}`; ///web/sample`;
+          if (window.type=="web") {
+            $('a[href="#web-tab"]').tab('show');
+          } else if (window.type=="preview") {
+            $('a[href="#preview-tab"]').tab('show');            
+          }
+
+          window.documentPath = `accounts/${window.account}/campaigns/${window.campaignId}`; ///web/sample`;
           
           db.doc(window.documentPath).get()
               .then(function(doc) {   
@@ -412,12 +496,20 @@
 
                   }
 
+                  window.docDesign = doc;
+                  LoadTypes(doc);
+                                  
+              }
+          });  
+          
+          
+          var LoadTypes = function(doc) {
 
-                  doc.ref.collection("designs") 
-                    .doc("sample").get()
+            doc.ref.collection("designs") 
+                    .doc(window.designId).get()
                     .then(function(docWeb) { 
 
-                      if (docWeb.exists) {
+                      if (docWeb.exists) {                        
 
                         let inputs_web_base = docWeb.data().inputs_web; 
 
@@ -430,101 +522,231 @@
                           $("#web-image").remove();
                           $("#web").append(img);
 
-                          let modules = docWeb.data().inputs_web;    
-                          var flags = [];                                     
+                          if (window.type=="web") {                         
 
-                          for ($m in modules) {
-
-                            let module = modules[$m];
-
-                            var saludo, cuerpo, color;
-                            var $orig, name, flag;
-
-                            switch (module.key) {
-
-                              case "saludo":
-                                $orig = $("#saludo");                                                                
-                                flag = 1;
-                                break;
-
-                              case "cuerpo":
-                                $orig = $("#cuerpo");                                                                
-                                flag = 2;                                
-                                break;
-
-                              case "contacto":
-                                $orig = $("#contacto");                                                                
-                                flag = 3;                                
-                                break;
-
-                              case "pagos":
-                                $orig = $("#pagos");                                                                
-                                flag = 4;                                
-                                break;
-
-                              case "color":
-                                $orig = $("#color");                                                                
-                                flag = 5;                                
-                                break;
-                            }
-
-                            name = module.key;
-
-                            var $ele = $orig.clone()
-                              .addClass("dropped")
-                              .css({"position": "static", "left": null, "right": null})                            
-                              .appendTo( "#drop-area" );
-
-                            drop($ele, name, $orig);                        
+                            let modules_web = docWeb.data().inputs_web;                             
+                            var mlength = Object.keys(modules_web).length;
                             
-                            flags[flag]= [module.value, $ele]; 
+                            if ( mlength > 0 ) {
 
-                          } 
-                          
-                          var ltimer = setTimeout(function() { 
+                                var flags_web = [];                                     
 
-                            for (flag in flags) { 
-                              
-                                let value = flags[flag][0];
-                                let $ele  = flags[flag][1];
+                                for ($m in modules_web) {
 
-                                let f = parseInt(flag);
+                                  let module_web = modules_web[$m];
+                                  
+                                  var $orig, name, flag;
 
-                                switch (f) {
-                                    case 1:
-                                      $ele.find("#insaludo").val(value);
+                                  switch (module_web.key) {
+
+                                    case "saludo":
+                                      $orig = $("#saludo");                                                                
+                                      flag = 1;
+                                      break;
+
+                                    case "cuerpo":
+                                      $orig = $("#cuerpo");                                                                
+                                      flag = 2;                                
+                                      break;
+
+                                    case "contacto":
+                                      $orig = $("#contacto");                                                                
+                                      flag = 3;                                
+                                      break;
+
+                                    case "pagos":
+                                      $orig = $("#pagos");                                                                
+                                      flag = 4;                                
+                                      break;
+
+                                    case "facturas":
+                                      $orig = $("#facturas");                                                                
+                                      flag = 5;                                
+                                      break;
+
+                                    case "color":
+                                      $orig = $("#color");                                                                
+                                      flag = 6;                                
+                                      break;
+                                  }
+
+                                  name = module_web.key;
+
+                                  var $ele = $orig.clone()
+                                    .addClass("dropped")
+                                    .css({"position": "static", "left": null, "right": null})                            
+                                    .appendTo( "#drop-area" );
+
+                                  drop($ele, name, $orig);                        
+                                  
+                                  flags_web[flag]= [module_web.value, $ele]; 
+
+                                } 
+                                
+                                var wtimer = setTimeout(function() { 
+
+                                  for (flag in flags_web) { 
+                                    
+                                      let value = flags_web[flag][0];
+                                      let $ele  = flags_web[flag][1];
+
+                                      let f = parseInt(flag);
+
+                                      switch (f) {
+                                          case 1:
+                                            $ele.find("#insaludo").val(value);
+                                          break;
+                                          case 2:                                      
+                                            tinymce.activeEditor.setContent(value);
+                                          break;
+                                          case 3:                                      
+                                            $ele.find('#inGrabar').prop('checked', value.rec);
+                                            $ele.find('#inLlamar').prop('checked', value.call);
+                                            $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                            $ele.find('#inEmail').prop('checked', value.email);
+                                            break;
+                                          case 4:                               
+                                            $ele.find('#inMercado').prop('checked', value.rec);
+                                            $ele.find('#inRapi').prop('checked', value.call);
+                                            $ele.find('#inFacil').prop('checked', value.wa);
+                                            $ele.find('#inOtros').prop('checked', value.email);
+                                            break;
+                                          case 5:                                                                           
+                                            $ele.find('#inDescargar').prop('checked', value.des);
+                                            $ele.find('#inDetalle').prop('checked', value.det);                                            
+                                            $ele.find('#inMonto').prop('checked', value.mon);                                            
+                                            break;
+                                          case 6:
+                                            $ele.find("#incolor").val(value);
+                                            break;
+                                      }
+                                  }
+
+                                  getInputsHTML();
+
+                                  clearTimeout(wtimer);
+
+                                }, 500);
+
+                            } 
+
+                        } else if (window.type=="preview") {                             
+
+                            let modules_preview = docWeb.data().modules_preview;
+
+                            var plength = Object.keys(modules_preview).length;
+                            
+                            if (plength > 0 ) {
+
+                              var flags_preview = [];                                     
+
+                              for ($m in modules_preview) {
+
+                                let module_preview = modules_preview[$m];
+
+                                var $orig, name, flag;
+
+                                switch (module_preview.key) {
+
+                                  case "llamada":
+                                    $orig = $("#llamada");                                                                
+                                    flag = 1;
                                     break;
-                                    case 2:                                      
-                                      tinymce.activeEditor.setContent(value);
+
+                                  case "mensaje":
+                                    $orig = $("#mensaje");                                                                
+                                    flag = 2;                                
                                     break;
-                                    case 3:                                      
-                                      $ele.find('#inGrabar').prop('checked', value.rec);
-                                      $ele.find('#inLlamar').prop('checked', value.call);
-                                      $ele.find('#inWhatsapp').prop('checked', value.wa);
-                                      $ele.find('#inEmail').prop('checked', value.email);
-                                      break;
-                                    case 4:                               
-                                      $ele.find('#inMercado').prop('checked', value.rec);
-                                      $ele.find('#inRapi').prop('checked', value.call);
-                                      $ele.find('#inFacil').prop('checked', value.wa);
-                                      $ele.find('#inOtros').prop('checked', value.email);
-                                      break;
-                                    case 5:
-                                      $ele.find("#incolor").val(value);
-                                      break;
+
+                                  case "fondo":
+                                    $orig = $("#fondo");                                                                
+                                    flag = 3;                                
+                                    break;
+
+                                  case "pie":
+                                    $orig = $("#pie");                                                                
+                                    flag = 4;                                
+                                    break;
+
                                 }
-                            }
 
-                            getInputsHTML();
+                                name = module_preview.key;
 
-                            clearTimeout(ltimer);
+                                var $ele = $orig.clone()
+                                  .addClass("dropped")
+                                  .css({"position": "static", "left": null, "right": null})                            
+                                  .appendTo( "#drop-area" );
 
-                          }, 500)
+                                drop($ele, name, $orig);                        
+                                
+                                flags_preview[flag] = [module_preview.value, $ele]; 
+
+                              } 
+
+                              var ptimer = setTimeout(function() { 
+
+                                for (flag in flags_preview) { 
+                                  
+                                    let value = flags_preview[flag][0];
+                                    let $ele  = flags_preview[flag][1];
+
+                                    let f = parseInt(flag);
+
+                                    switch (f) {
+                                        case 1:
+                                          $ele.find("#inllamada").val(value);
+                                        break;
+                                        case 2:                                      
+                                          tinymce.activeEditor.setContent(value);
+                                        break;
+                                        case 3:                                      
+                                          $ele.find('#inGrabar').prop('checked', value.rec);
+                                          $ele.find('#inLlamar').prop('checked', value.call);
+                                          $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                          $ele.find('#inEmail').prop('checked', value.email);
+                                          break;
+                                        case 4:                               
+                                          $ele.find('#inMercado').prop('checked', value.rec);
+                                          $ele.find('#inRapi').prop('checked', value.call);
+                                          $ele.find('#inFacil').prop('checked', value.wa);
+                                          $ele.find('#inOtros').prop('checked', value.email);
+                                          break;                                       
+                                        case 5:
+                                          $ele.find("#incolor").val(value);
+                                          break;
+                                    }
+                                }
+
+                                getInputsHTML();
+
+                                clearTimeout(ptimer);
+
+                              }, 500);
+
+                            } 
                         }
                       }
-                  });
-                }
-          });            
+                    }
+                });  
+
+          }
+          
+          $( "#preview-tab" ).click(function() { 
+            
+            count_drop=0;
+            window.type = "preview";
+            LoadTypes(window.docDesign);
+
+          });
+
+          $( "#web-tab" ).click(function() {
+            
+            count_drop=0;
+            window.type = "web";
+            LoadTypes(window.docDesign);
+
+          });
+
 
           $("#save-web").on('click', async function() {                                  
             
@@ -548,9 +770,9 @@
               
               var image_width         = $("#preview").width();
               var image_height        = $("#preview").height() + 60;
-              var image_name          = "sample"; //CAMBIAR
+              //var image_name          = "sample"; //CAMBIAR
 
-              let docPath = window.documentPath + "/designs/" + image_name;              
+              let docPath = window.documentPath + "/designs/" + window.designId;              
               const encodedPath = window.btoa(docPath);
 
               var webRef = db.doc(docPath);  
@@ -676,98 +898,210 @@
 
                 count_drop++;
 
-                if (name=="saludo") {                  
-                  $el.find("p").remove();                                     
-                }
+                if (window.type=="web") {
 
-                if (name=="cuerpo") {                  
-                  $el.find("p").remove();                   
-                  $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
-                  $el.find("textarea").removeAttr('placeholder');
-                  initTinyEMC();
-                }                
+                  switch(name) {
 
-                /*if (name=="imagen") { 
-                  $el.find("p").remove(); 
-                  $el.find("input").attr('id', 'inimage');  
-                  
-                  $el.find("input").change(function() {                      
-                      if (this.files && this.files[0]) {
-                          var reader = new FileReader();            
-                          reader.onload = function (e) {                              
-                              target_result = e.target.result;
-                              getInputsHTML();
-                          }            
-                          reader.readAsDataURL(this.files[0]);
+                    case "saludo":
+                      $el.find("p").remove();
+                      break;
+                    case "cuerpo":
+                      $el.find("p").remove();                   
+                      $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
+                      $el.find("textarea").removeAttr('placeholder');
+                      initTinyEMC();
+                      break;
+                    case "contacto":
+                      $el.find("p").remove();   
+                      $('#contacto input[type="checkbox"]').click(function(){
+                        getInputsHTML();
+                      });         
+                      break;
+                    case "pagos":
+                      $el.find("p").remove();      
+                      $('#pagos input[type="checkbox"]').click(function(){
+                        getInputsHTML();
+                      });
+                      break;
+                    case "facturas":
+                      $el.find("p").remove();      
+                      $('#facturas input[type="checkbox"]').click(function(){
+                        getInputsHTML();
+                      });
+                      break;
+                    case "imagen":
+                      $el.find("p").remove(); 
+                      $el.find("input").attr('id', 'inimage');                   
+                      $el.find("input").change(function() {                      
+                          if (this.files && this.files[0]) {
+                            saveImage(files);
+                          }
+                      });
+                      break;
+                    case "color":
+                      $el.find("p").remove();
+                      $el.find("input").attr('id', 'incolor');                 
+                      $('#incolor').colorpicker();                        
+                      $('#incolor').on('colorpickerChange', function(event) {
+                        let c = event.color.toString();
+                        $( "#color" ).data( "data-color", c );
+                        $('#preview').css('background-color', c);
+                      });
+                      break;
+                  }
+
+                  // update id
+                  var id = $orig.find(":input").attr("id");                  
+                  if (id) {
+                    id = id.split("-").slice(0,-1).join("-") + "-" 
+                      + (parseInt(id.split("-").slice(-1)[0]) + 1);                
+                    $orig.find(":input").attr("id", id);
+                    $orig.find("label").attr("for", id);
+                  }            
+
+                  // tools
+                  $('<p class="tools">\
+                    <a class="text-primary edit-link">Visualizar<a> | \
+                    <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
+
+                  var timer = setTimeout(function() {                                        
+
+                    $("#insaludo").focus(function(){
+                      $(this).css("background-color", "#EFF0F1");
+                      active_saludo = true;                      
+                      active_cuerpo = false;
+                      active_from_button = false;
+                    });
+
+                    $("#insaludo").blur(function(){
+                      $(this).css("background-color", "white");
+                      if (active_from_button) {
+                        active_saludo = false;
                       }
-                  });
-                }*/
+                    });
 
-                if (name=="contacto") {
-                  $el.find("p").remove();   
-                  $('#contacto input[type="checkbox"]').click(function(){
-                    getInputsHTML();
-                  });         
-                }
+                    $("#insaludo").change(function() {
+                      getInputsHTML();
+                    });
 
-                if (name=="pagos") {
-                  $el.find("p").remove();      
-                  $('#pagos input[type="checkbox"]').click(function(){
-                    getInputsHTML();
-                  });     
-                }
-               
-                if (name=="color") {                              
-                  $el.find("p").remove();
-                  $el.find("input").attr('id', 'incolor');                 
-                  $('#incolor').colorpicker();                        
-                  $('#incolor').on('colorpickerChange', function(event) {
-                    let c = event.color.toString();
-                    $( "#color" ).data( "data-color", c );
-                    $('#preview').css('background-color', c);
-                  });
-                }
+                    clearTimeout(timer);
 
-                // update id
-                var id = $orig.find(":input").attr("id");
-                
-                if(id) {
-                  id = id.split("-").slice(0,-1).join("-") + "-" 
-                    + (parseInt(id.split("-").slice(-1)[0]) + 1);                
-                  $orig.find(":input").attr("id", id);
-                  $orig.find("label").attr("for", id);
-                }            
+                  }, 500);
 
-                // tools
-                $('<p class="tools">\
-                  <a class="text-primary edit-link">Visualizar<a> | \
-                  <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
 
-                var timer = setTimeout(function() {                                        
+                } else if (window.type=="preview") {
 
-                  $("#insaludo").focus(function(){
-                    $(this).css("background-color", "#EFF0F1");
-                    active_saludo = true;                      
-                    active_cuerpo = false;
-                    active_from_button = false;
-                  });
-
-                  $("#insaludo").blur(function(){
-                    $(this).css("background-color", "white");
-                    if (active_from_button) {
-                      active_saludo = false;
+                  switch(name) {
+                    case "llamada":
+                      $el.find("p").remove();
+                      break;
+                    case "mensaje":
+                      $el.find("p").remove();                   
+                      $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
+                      $el.find("textarea").removeAttr('placeholder');
+                      initTinyEMC();
+                      break;
+                    case "pagos":
+                      $el.find("p").remove();      
+                      $('#pagos input[type="checkbox"]').click(function(){
+                        getInputsHTML();
+                      });
+                      break;
+                    case "fondo":
+                      $el.find("p").remove(); 
+                      $el.find("input").attr('id', 'inimage');                   
+                      $el.find("input").change(function() {                      
+                          if (this.files && this.files[0]) {
+                            saveImage(files);
+                          }
+                      });
+                      break;                                          
+                    case "color":
+                      $el.find("p").remove();
+                      $el.find("input").attr('id', 'incolor');                 
+                      $('#incolor').colorpicker();                        
+                      $('#incolor').on('colorpickerChange', function(event) {
+                        let c = event.color.toString();
+                        $( "#color" ).data( "data-color", c );
+                        $('#preview').css('background-color', c);
+                      });
+                      break;
                     }
-                  });
 
-                  $("#insaludo").change(function() {
-                    getInputsHTML();
-                  });
+                    // update id
+                    var id = $orig.find(":input").attr("id");                  
+                    if (id) {
+                    id = id.split("-").slice(0,-1).join("-") + "-" 
+                      + (parseInt(id.split("-").slice(-1)[0]) + 1);                
+                    $orig.find(":input").attr("id", id);
+                    $orig.find("label").attr("for", id);
+                    }            
 
-                  clearTimeout(timer);
+                    // tools
+                    $('<p class="tools">\
+                    <a class="text-primary edit-link">Visualizar<a> | \
+                    <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
 
-                }, 500);
+                    var timer = setTimeout(function() {                                        
+
+                    $("#inllamado").focus(function(){
+                      $(this).css("background-color", "#EFF0F1");
+                      active_saludo = true;                      
+                      active_cuerpo = false;
+                      active_from_button = false;
+                    });
+
+                    $("#llamado").blur(function(){
+                      $(this).css("background-color", "white");
+                      if (active_from_button) {
+                        active_saludo = false;
+                      }
+                    });
+
+                    $("#insaludo").change(function() {
+                      getInputsHTML();
+                    });
+
+                    clearTimeout(timer);
+
+                    }, 500);
+
+                }
 
           }
+
+          function saveImage(files) {
+            var reader = new FileReader();            
+            reader.onload = function (e) {                              
+                
+              //target_result = e.target.result;
+
+                let docPath = window.documentPath + "/designs/" + window.designId; 
+                let paths = url_path.split("/");
+                let _image_ 			= image_name + "_web.png";
+                var image_storage  		= url_path.split(paths[4])[0];
+
+                var storageRef = storage.ref("/posts");                                        
+                var filePath =  title + ".png";
+                const imageRef = storageRef.child(imgName)
+                imageRef.put(img)
+                .then(snapshot => {
+                    return imageRef.getDownloadURL()
+                    .then(url => {
+                        // url is the download URL
+                    })
+                })
+                .catch(error => {
+                    // deal any errors
+                })
+
+                getInputsHTML();
+            }            
+            reader.readAsDataURL(this.files[0]);
+
+          }
+
+
 
           var getInputsHTML = async function () {           
 
@@ -777,100 +1111,209 @@
 
               var count = 0;
               var _html = "";
-
               var modules = {};
 
                $('#drop-area').children('div').each(function(index, value) { 
                   
                   try {
-                  
-                    console.log(`div${index}: ${this.id}`);  
-                    
+
+                    console.log(`div${index}: ${this.id}`);
+
                     var value;                                                          
                     var json = {};
 
-                    switch (this.id) {
-                      case "saludo":
-                        count++;
-                        let insaludo = value = $(this).find("#insaludo").val();
-                        let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
-                                      ${insaludo}</p></h3>`;
-                        _html += saludo;                                                                
-                        break;
-                      case "cuerpo":
-                        count++;
-                        let inscuerpo = value = tinymce.activeEditor.getContent();
-                        let cuerpo =  `<div style="margin-bottom: 40px;">
-                                    ${inscuerpo}</div>`;
-                        _html += cuerpo;
-                        break;
-                      case "pagos":
-                        count++;                
-                        let inMercado = $('#inMercado').prop('checked');
-                        let inRapi = $('#inRapi').prop('checked');
-                        let inFacil = $('#inFacil').prop('checked');
-                        let inOtros = $('#inOtros').prop('checked');                           
-                        value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
-                        let pagos = getPagos();
-                        if (pagos!=undefined) {
-                            _html += pagos;
-                        }                         
-                        break;
-                      case "contacto":
-                        count++;                
-                        let inGrabar    = $('#inGrabar').prop('checked');
-                        let inLlamar    = $('#inLlamar').prop('checked');
-                        let inWhatsapp  = $('#inWhatsapp').prop('checked');
-                        let inEmail     = $('#inEmail').prop('checked');                        
-                        value = JSON.parse(`{"rec":${inGrabar}, "call":${inLlamar}, "wa":${inWhatsapp}, "email":${inEmail}}`);
-                        let contacto = getContacto();
-                        if (contacto!=undefined) {
-                            _html += contacto;
-                        }                         
-                        break;
-                      case "color":
-                        count++;  
-                        let color = value = $(this).find("#incolor").val();     
-                        $('#preview').css('background-color', color);                   
-                        break;
-                    }        
+                    if (window.type=="web") {
+                    
+                        switch (this.id) {
+                          case "saludo":
+                            count++;
+                            let insaludo = value = $(this).find("#insaludo").val();
+                            let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
+                                          ${insaludo}</p></h3>`;
+                            _html += saludo;                                                                
+                            break;
+                          case "cuerpo":
+                            count++;
+                            let inscuerpo = value = tinymce.activeEditor.getContent();
+                            let cuerpo =  `<div style="margin-bottom: 40px;">
+                                        ${inscuerpo}</div>`;
+                            _html += cuerpo;
+                            break;
+                          case "pagos":
+                            count++;                
+                            let inMercado = $('#inMercado').prop('checked');
+                            let inRapi = $('#inRapi').prop('checked');
+                            let inFacil = $('#inFacil').prop('checked');
+                            let inOtros = $('#inOtros').prop('checked');                           
+                            value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
+                            let pagos = getPagos();
+                            if (pagos!=undefined) {
+                                _html += pagos;
+                            }                         
+                            break;
+                          case "contacto":
+                            count++;                
+                            let inGrabar    = $('#inGrabar').prop('checked');
+                            let inLlamar    = $('#inLlamar').prop('checked');
+                            let inWhatsapp  = $('#inWhatsapp').prop('checked');
+                            let inEmail     = $('#inEmail').prop('checked');                        
+                            value = JSON.parse(`{"rec":${inGrabar}, "call":${inLlamar}, "wa":${inWhatsapp}, "email":${inEmail}}`);
+                            let contacto = getContacto();
+                            if (contacto!=undefined) {
+                                _html += contacto;
+                            }                         
+                            break;
+                          case "facturas":
+                            count++;                                            
+                            let inDescargar = $('#inDescargar').prop('checked');
+                            let inDetalle    = $('#inDetalle').prop('checked');                                                 
+                            let inMonto    = $('#inMonto').prop('checked');                                                 
+                            value = JSON.parse(`{"des":${inDescargar}, "det":${inDetalle}, "mon":${inMonto}}`);
+                            let infactura = $(this).find("#inllamada").val();
+                            let facturas = getFacturas(value, infactura);
+                            if (facturas!=undefined) {
+                                _html += facturas;
+                            }                         
+                            break;
+                          case "imagen":
+                            count++;                       
+                            if ( $("#inimagen").val() != undefined ) {
+                              let inimagen =  `<div style="width:100%; height:100%">
+                                              <img style="margin-left: auto;  margin-right: auto; display: block; width: 50%;"
+                                              src="${target_result}"></div>`;
+                              _html += inimagen;
+                            }
+                            break;
+                          case "color":
+                            count++;  
+                            let color = value = $(this).find("#incolor").val();     
+                            $('#preview').css('background-color', color);                   
+                            break;
+                        }        
 
-                    json["value"] = value;                                          
-                    json["key"] = this.id;                                          
-                    modules[count] = json;                     
+                        json["value"] = value;                                          
+                        json["key"] = this.id;                                          
+                        modules[count] = json;                     
 
-                    if (count_drop == count) {                                     
+                        if (count_drop == count) {                                     
 
-                      let comupulsory = `
-                      <footer class="footer">
-                        <div class="container">` +
-                          /*<hr>
-                          <div class="row">
-                            <div class="col-sm-2"/>                        
-                            <div class="col-sm-8">
-                              <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
+                          let comupulsory = `
+                          <footer class="footer">
+                            <div class="container">` +
+                              /*<hr>
+                              <div class="row">
+                                <div class="col-sm-2"/>                        
+                                <div class="col-sm-8">
+                                  <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
+                                </div>
+                                <div class="col-sm-2"/>
+                              </div>*/
+                              `<hr>              
+                              <div class="row">
+                                <div class="col-sm-2"/>                        
+                                <div class="col-sm-8">
+                                  <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
+                                </div>
+                                <div class="col-sm-2"/>
+                              </div>
+                              <br>
                             </div>
-                            <div class="col-sm-2"/>
-                          </div>*/
-                          `<hr>              
-                          <div class="row">
-                            <div class="col-sm-2"/>                        
-                            <div class="col-sm-8">
-                              <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
-                            </div>
-                            <div class="col-sm-2"/>
-                          </div>
-                          <br>
-                        </div>
-                      </footer>`;
+                          </footer>`;
 
-                      _html += comupulsory;
-                      _html = replaceVariables(_html);
-                      $("#preview").html(_html);                                                               
+                          _html += comupulsory;
+                          _html = replaceVariables(_html);
+                          $("#preview").html(_html);                                                               
 
-                      resolve([_html, modules]);
+                          resolve([_html, modules]);
 
-                    }  
+                        }  
+
+                      } else if (window.type=="preview") {
+
+                          switch (this.id) {
+                            case "llamada":
+                              count++;
+                              let insaludo = value = $(this).find("#inllamada").val();
+                              let llamada =  `<h3 style="margin-bottom: 30px;"><p class="font-weight-bold">
+                                            ${llamada}</p></h3>`;
+                              _html += llamada;                                                                
+                              break;
+                            case "mensaje":
+                              count++;
+                              let inmensaje = value = tinymce.activeEditor.getContent();
+                              let mensaje =  `<div style="margin-bottom: 40px;">
+                                          ${inmensaje}</div>`;
+                              _html += mensaje;
+                              break;
+                            case "fondo":
+                              count++;                
+                              let inMercado = $('#inMercado').prop('checked');
+                              let inRapi = $('#inRapi').prop('checked');
+                              let inFacil = $('#inFacil').prop('checked');
+                              let inOtros = $('#inOtros').prop('checked');                           
+                              value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
+                              let pagos = getPagos();
+                              if (pagos!=undefined) {
+                                  _html += pagos;
+                              }                         
+                              break;
+                            case "pie":
+                              count++;                
+                              let inGrabar    = $('#inGrabar').prop('checked');
+                              let inLlamar    = $('#inLlamar').prop('checked');
+                              let inWhatsapp  = $('#inWhatsapp').prop('checked');
+                              let inEmail     = $('#inEmail').prop('checked');                        
+                              value = JSON.parse(`{"rec":${inGrabar}, "call":${inLlamar}, "wa":${inWhatsapp}, "email":${inEmail}}`);
+                              let contacto = getContacto();
+                              if (contacto!=undefined) {
+                                  _html += contacto;
+                              }                         
+                              break;
+                            case "color":
+                              count++;  
+                              let color = value = $(this).find("#incolor").val();     
+                              $('#preview').css('background-color', color);                   
+                              break;
+                          }        
+
+                          json["value"] = value;                                          
+                          json["key"] = this.id;                                          
+                          modules[count] = json;                     
+
+                          if (count_drop == count) {                                     
+
+                            let comupulsory = `
+                            <footer class="footer">
+                              <div class="container">` +
+                                /*<hr>
+                                <div class="row">
+                                  <div class="col-sm-2"/>                        
+                                  <div class="col-sm-8">
+                                    <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
+                                  </div>
+                                  <div class="col-sm-2"/>
+                                </div>*/
+                                `<hr>              
+                                <div class="row">
+                                  <div class="col-sm-2"/>                        
+                                  <div class="col-sm-8">
+                                    <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
+                                  </div>
+                                  <div class="col-sm-2"/>
+                                </div>
+                                <br>
+                              </div>
+                            </footer>`;
+
+                            _html += comupulsory;
+                            _html = replaceVariables(_html);
+                            $("#preview").html(_html);                                                               
+
+                            resolve([_html, modules]);
+
+                        }  
+
+                      }
              
                 } catch (e) {
                     console.error(e);
@@ -972,6 +1415,83 @@
             }
             return incontactos;
           }
+
+          function getFacturas(value, infactura) {     
+            
+            var _html = "";
+
+            if (infactura) {
+              _html +=  `<h3 style="margin-bottom: 30px;"><p class="font-weight-bold">
+                                            ${infactura}</p></h3>`;
+            }         
+
+            if ( value.des==true || value.det==true || value.mon==true) {
+
+                var today = new Date();
+                var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                var number = "10354";
+                var amount  = "$87.000";
+
+                var table = 
+                `<table id="field-table" class="table table-bordered table-hover table-sm">
+                  <thead>
+                    <tr>                      
+                      <th>
+                        Fecha 
+                      </th>
+                      <th>
+                        Numero
+                      </th>`;
+                      if (value.mon) {                  
+                        table += `<th>
+                                    Monto 
+                                  </th>`; 
+                      }                                  
+                      if (value.det) {                  
+                        table += `<th>
+                                    Ver 
+                                  </th>`;
+                      }                                                   
+                      if (value.des) {
+                        table += `<th>
+                                    Descargar 
+                                  </th>`;
+                      }                  
+                      table +=`</tr>
+                  </thead>
+                  <tbody>
+                    <tr id="field0">
+                      <td>
+                        ${date}
+                      </td>
+                      <td>
+                        ${number}
+                      </td>`;
+                      if (value.mon) {                  
+                        table += `<td>            
+                          ${amount}
+                        </td>`;
+                      }
+                      if (value.det) {                  
+                        table += `<td>            
+                          <i class="fa fa-eye" aria-hidden="true"></i>
+                        </td>`;
+                      }  
+                      if (value.des) {                  
+                        table += `<td>            
+                          <i class="fa fa-download" aria-hidden="true"></i>
+                        </td>`;
+                      }                               
+                   table += `</tr>                              
+                  </tbody>
+                </table>`;
+
+                _html += table;
+
+              } 
+            
+              return _html
+            }
         
 
           function replaceVariables(_html) {

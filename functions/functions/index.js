@@ -160,24 +160,7 @@
         urlParams = getJsonFromUrl(params[1]);        
       }     
 
-      var static_url;
-      /*switch(module) {
-        case "campaign":
-          static_url = path.join(__dirname + '/../public/html/campaign_composer.html');
-          break;
-        case "web":
-          static_url = path.join(__dirname + '/../public/html/web_composer.html');        
-          break;
-        case "preview":
-          static_url = path.join(__dirname + '/../public/html/preview_composer.html');        
-          break;  
-        case "thumbnail":
-          static_url = path.join(__dirname + '/../public/html/noti.html');
-          break;
-        default:
-          static_url = path.join(__dirname + '/../public/html/composer.html');
-          break;
-      }*/
+      var static_url;     
       
       switch(module) {
         case "campaign":
@@ -434,7 +417,6 @@
               res.status(200).send(response);            
 
               return response;
-
             
             }).catch((error) => {
         
@@ -1540,14 +1522,7 @@
         });        
    
         return {};         
-    };    
-   
-
-   
-    
-    
-    
-   
+    };       
 
     /*const status = async function(req, res, url) {  
 
@@ -1723,16 +1698,7 @@
       });    
 
     };*/
-
     
-    
-  
-
-
-
-
-
-  
 
   var SendPromises = async function (promises) {        
       
