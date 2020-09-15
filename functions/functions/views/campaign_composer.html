@@ -400,8 +400,7 @@
         firebase
           .auth()
           .signOut()
-          .then(function () {
-            
+          .then(function () {            
 
             window.location.reload();  
 
@@ -464,8 +463,10 @@
                     if ( fields.length>0 ) {                    
 
                       $("#field0").remove(); 
+
+                      count_field = fields.length;
                       
-                      for (var i=0; i<fields.length; i++) {              
+                      for (var i=0; i < fields.length; i++) {              
 
                         let field = fields[i];                  
                         let name = field.name;
@@ -484,6 +485,7 @@
                         $('#field-table').append(item); 
 
                       }
+
                     }
 
                     document.ref.collection("designs")
@@ -503,6 +505,7 @@
                               let doc = cardDoc.doc;
 
                               if (doc.exists) {
+
                                 let name = doc.id;
                                 let piw = doc.data().public_image_web;
                                 let pip = doc.data().public_image_preview;
@@ -522,6 +525,7 @@
                                   let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
                                   window.open(url, '_blank');
                                 }
+
                               }
 
                           });
@@ -578,8 +582,6 @@
         }
 
       }); 
-
-      
       
 
       $("#add-field").on('click', function() {  
@@ -607,9 +609,11 @@
        var _break = false;
         
         $("#field-table tbody tr").each(function() {
-          if (_break==false) {            
-            let _name = $("#name_"+count).val();
-            let _value = $("#value_"+count).val(); 
+            
+          if (_break==false) {  
+
+            let _name = $("#name_" + count ).val();
+            let _value = $("#value_" + count ).val(); 
             let _field = {
               "name":_name,
               "value":_value
@@ -621,11 +625,105 @@
             } 
             count++;
           }
-        });      
+
+        });
+
         let card = getCard();          
         $("#cards").append(card);
 
       });
+
+      function saveCampaig(fields_array) {
+
+        var campaign_name = $("#campaign-name").val();
+        var cname = campaign_name.split(' ').join('_');
+        var _time =  new Date();
+
+        var campaign =  db.collection('accounts')
+          .doc(window.account)
+          .collection("campaigns")
+          .doc(cname);
+
+          $("#field-table tbody tr").remove();
+
+          campaign.set({        
+            name: campaign_name,
+            last_update: _time,      
+            time_created: _time,
+            fields:fields_array            
+          },{ merge:true }).then(docRefSet => {              
+            
+            return campaign.collection("designs")
+                .doc("sample").set({
+                  name: "sample",
+                  created_date: _time                                         
+                },{ merge:true });        
+                            
+          }).then(docRefSet => {       
+
+              let _files = document.getElementById("excel-file").files;
+
+              if (_files.length>0) {
+                  
+                  var storageRef = storage.ref(path);       
+                    
+                  var filePath =  "jose.xls";        
+                  var thisRef = storageRef.child(filePath);    
+
+                  var file = [0]; 
+                  var input = this;
+                  var length = input.files.length;
+                  var _file = input.files.item(0); 
+                  
+                  var metadataFiles = {
+                    customMetadata: {                
+                        'type': 'xls',
+                        'documentId' : cname,
+                        "path" : path                        
+                    }
+                  };
+
+                  var file = document.getElementById("excel-file").files[0];   
+                  var filePathMuseum = "jose.xlsx";        
+                  const museumRef = storageRef.child(filePathMuseum);
+                  var putRef = museumRef.put(_file, metadataFiles);  
+
+                  putRef.on('state_changed', function(snapshot) {
+                      var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                      console.log('Upload is ' + progress + '% done');
+                      switch (snapshot.state) {
+                        case firebase.storage.TaskState.PAUSED: // or 'paused'
+                          console.log('Upload is paused');
+                          break;
+                        case firebase.storage.TaskState.RUNNING: // or 'running'
+                          console.log('Upload is running');
+                          break;
+                      }
+                    }, function(error) {
+                      // Handle unsuccessful uploads
+                    }, function() { 
+
+                      //Crear                       
+                      $('#alertModal').modal('show');                      
+                  });
+
+              } else {                
+
+                $('#alert-content').text('La campaña ' + campaign_name + ' ha sido creada con exito.');
+                $('#alertModal').modal('show');
+
+              }
+            
+          }).catch((error) => {     
+            console.error("Error adding document: ", error);           
+          });   
+
+
+        }
+
+        $("#excel-file").on('change', function() {});
+
+        });  
 
       function filterCard(m, w, p) {        
         if ( ( w!=undefined ) && ( p!=undefined ) ) {         
@@ -694,97 +792,7 @@
           return card;
       }
 
-      function saveCampaig(fields_array) {
-
-        var campaign_name = $("#campaign-name").val();
-        var cname = campaign_name.split(' ').join('_');
-        var _time =  new Date();
-        
-       var campaign =  db.collection('accounts')
-          .doc(window.account)
-          .collection("campaigns")
-          .doc(cname);
-
-          $("#field-table tbody tr").remove();
-
-          campaign.set({        
-            name: campaign_name,
-            last_update: _time,      
-            time_created: _time,
-            fields:fields_array            
-          },{ merge:true }).then(docRefSet => {              
-            
-            return campaign.collection("designs")
-                .doc("sample").set({
-                  name: "sample",
-                  created_date: _time                                         
-                },{ merge:true });        
-                            
-          }).then(docRefSet => {       
-
-              let _files = document.getElementById("excel-file").files;
-
-              if (_files.length>0) {
-                  
-                  var storageRef = storage.ref(path);       
-                    
-                  var filePath =  "jose.xls";        
-                  var thisRef = storageRef.child(filePath);    
-
-                  var file = [0]; 
-                  var input = this;
-                  var length = input.files.length;
-                  var _file = input.files.item(0); 
-                  
-                  var metadataFiles = {
-                    customMetadata: {                
-                        'type': 'xls',
-                        'documentId' : cname,
-                        "path" : path                        
-                    }
-                  };
-
-                  var file = document.getElementById("excel-file").files[0];   
-                  var filePathMuseum = "jose.xlsx";        
-                  const museumRef = storageRef.child(filePathMuseum);
-                  var putRef = museumRef.put(_file, metadataFiles);  
-
-                  putRef.on('state_changed', function(snapshot) {
-                      var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                      console.log('Upload is ' + progress + '% done');
-                      switch (snapshot.state) {
-                        case firebase.storage.TaskState.PAUSED: // or 'paused'
-                          console.log('Upload is paused');
-                          break;
-                        case firebase.storage.TaskState.RUNNING: // or 'running'
-                          console.log('Upload is running');
-                          break;
-                      }
-                    }, function(error) {
-                      // Handle unsuccessful uploads
-                    }, function() { 
-
-                      //Crear                       
-                      $('#alertModal').modal('show');                      
-                   });
-
-              } else {                
-
-                $('#alert-content').text('La campaña ' + campaign_name + ' ha sido creada con exito.');
-                $('#alertModal').modal('show');
-
-              }
-            
-          }).catch((error) => {     
-            console.error("Error adding document: ", error);           
-          });   
-       
-
-      }
-
-      $("#excel-file").on('change', function() {});
-
-    });  
+      
       
     </script>  
    
