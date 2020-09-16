@@ -461,7 +461,7 @@
                     },
                     "json" : true 
                   }`;       
-                  
+                   
                   console.log("option_received: " + option_received);
 
                   let receive_json = JSON.parse(option_received);
@@ -1698,7 +1698,7 @@
       });    
 
     };*/
-    
+
 
   var SendPromises = async function (promises) {        
       

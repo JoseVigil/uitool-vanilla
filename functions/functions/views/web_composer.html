@@ -79,13 +79,13 @@
             <div class="tabbable" id="tabs-381741">
               <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link active" href="#preview-tab" data-toggle="tab">Preview</a>
+                  <a class="nav-link active" id="preview-tab-click" href="#preview-tab" data-toggle="tab">Preview</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#web-tab" data-toggle="tab">Web</a>
+                  <a class="nav-link" id="web-tab-click" href="#web-tab" data-toggle="tab">Web</a>
                 </li>                
               </ul>
-              <div class="tab-content">
+              <div class="tab-content clearfix">
                 
                 <div id="preview-tab" class="tab-pane active">
                   
@@ -146,7 +146,7 @@
                       <input type="text" class="form-control" id="insaludo">
                       <p class="help-block">Saludo de cortecia</p>
                     </div>
-                   
+                    
                     <div id="cuerpo" class="form-group draggable">
                       <label for="cuerpo" ><b>Cuerpo</b></label>  
                       <input type="text" class="form-control">
@@ -259,7 +259,7 @@
             <label>Arrastrar y soltar elementos en los campos.</label>
             <div class="row" id="composer"></div>
             <hr/>
-            <div class="row form-body">
+            <div id="drop-body" class="row form-body">
               <div id="drop-area" class="col-md-12 droppable sortable">
               </div>              
             </div>
@@ -544,112 +544,111 @@
 
                       if (window.type=="web") {                         
 
-                        let modules_web = docWeb.data().inputs_web;                             
-                        var mlength = Object.keys(modules_web).length;
+                        let modules_web = docWeb.data().inputs_web; 
+
+                        if (modules_web!=undefined) {
+
+                            var mlength = Object.keys(modules_web).length;
                         
-                        if ( mlength > 0 ) {
+                            if ( mlength > 0 ) {
 
-                            var flags_web = [];                                     
+                                var flags_web = [];                                     
 
-                            for ($m in modules_web) {
+                                for ($m in modules_web) {
 
-                              let module_web = modules_web[$m];
-                              
-                              var $orig, name, flag;
+                                  let module_web = modules_web[$m];
+                                  
+                                  var $orig, name, flag;
 
-                              switch (module_web.key) {
-
-                                case "saludo":
-                                  $orig = $("#saludo");                                                                
-                                  flag = 1;
-                                  break;
-
-                                case "cuerpo":
-                                  $orig = $("#cuerpo");                                                                
-                                  flag = 2;                                
-                                  break;
-
-                                case "contacto":
-                                  $orig = $("#contacto");                                                                
-                                  flag = 3;                                
-                                  break;
-
-                                case "pagos":
-                                  $orig = $("#pagos");                                                                
-                                  flag = 4;                                
-                                  break;
-
-                                case "facturas":
-                                  $orig = $("#facturas");                                                                
-                                  flag = 5;                                
-                                  break;
-
-                                case "color":
-                                  $orig = $("#color");                                                                
-                                  flag = 6;                                
-                                  break;
-                              }
-
-                              name = module_web.key;
-
-                              var $ele = $orig.clone()
-                                .addClass("dropped")
-                                .css({"position": "static", "left": null, "right": null})                            
-                                .appendTo( "#drop-area" );
-
-                              drop($ele, name, $orig);                        
-                              
-                              flags_web[flag]= [module_web.value, $ele]; 
-
-                            } 
-                            
-                            var wtimer = setTimeout(function() { 
-
-                              for (flag in flags_web) { 
-                                
-                                  let value = flags_web[flag][0];
-                                  let $ele  = flags_web[flag][1];
-
-                                  let f = parseInt(flag);
-
-                                  switch (f) {
-                                      case 1:
-                                        $ele.find("#insaludo").val(value);
+                                  switch (module_web.key) {
+                                    case "saludo":
+                                      $orig = $("#saludo");                                                                
+                                      flag = 1;
                                       break;
-                                      case 2:                                      
-                                        tinymce.activeEditor.setContent(value);
+                                    case "cuerpo":
+                                      $orig = $("#cuerpo");                                                                
+                                      flag = 2;                                
                                       break;
-                                      case 3:                                      
-                                        $ele.find('#inGrabar').prop('checked', value.rec);
-                                        $ele.find('#inLlamar').prop('checked', value.call);
-                                        $ele.find('#inWhatsapp').prop('checked', value.wa);
-                                        $ele.find('#inEmail').prop('checked', value.email);
-                                        break;
-                                      case 4:                               
-                                        $ele.find('#inMercado').prop('checked', value.rec);
-                                        $ele.find('#inRapi').prop('checked', value.call);
-                                        $ele.find('#inFacil').prop('checked', value.wa);
-                                        $ele.find('#inOtros').prop('checked', value.email);
-                                        break;
-                                      case 5:                                                                           
-                                        $ele.find('#inDescargar').prop('checked', value.des);
-                                        $ele.find('#inDetalle').prop('checked', value.det);                                            
-                                        $ele.find('#inMonto').prop('checked', value.mon);   
-                                        if (value.tit) {
-                                          $ele.find("#infacturas").val(value.tit);                                         
-                                        }                                        
-                                        break;
-                                      case 6:
-                                        $ele.find("#incolor").val(value);
-                                        break;
+                                    case "contacto":
+                                      $orig = $("#contacto");                                                                
+                                      flag = 3;                                
+                                      break;
+                                    case "pagos":
+                                      $orig = $("#pagos");                                                                
+                                      flag = 4;                                
+                                      break;
+                                    case "facturas":
+                                      $orig = $("#facturas");                                                                
+                                      flag = 5;                                
+                                      break;
+                                    case "color":
+                                      $orig = $("#color");                                                                
+                                      flag = 6;                                
+                                      break;
                                   }
+
+                                  name = module_web.key;
+
+                                  var $ele = $orig.clone()
+                                    .addClass("dropped")
+                                    .css({"position": "static", "left": null, "right": null})                            
+                                    .appendTo( "#drop-area" );
+
+                                  drop($ele, name, $orig);                        
+                                  
+                                  flags_web[flag]= [module_web.value, $ele]; 
+
+                                } 
+                                
+                                var wtimer = setTimeout(function() { 
+
+                                  for (flag in flags_web) { 
+                                    
+                                      let value = flags_web[flag][0];
+                                      let $ele  = flags_web[flag][1];
+
+                                      let f = parseInt(flag);
+
+                                      switch (f) {
+                                          case 1:
+                                            $ele.find("#insaludo").val(value);
+                                          break;
+                                          case 2:                                      
+                                            tinymce.activeEditor.setContent(value);
+                                          break;
+                                          case 3:                                      
+                                            $ele.find('#inGrabar').prop('checked', value.rec);
+                                            $ele.find('#inLlamar').prop('checked', value.call);
+                                            $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                            $ele.find('#inEmail').prop('checked', value.email);
+                                            break;
+                                          case 4:                               
+                                            $ele.find('#inMercado').prop('checked', value.rec);
+                                            $ele.find('#inRapi').prop('checked', value.call);
+                                            $ele.find('#inFacil').prop('checked', value.wa);
+                                            $ele.find('#inOtros').prop('checked', value.email);
+                                            break;
+                                          case 5:                                                                           
+                                            $ele.find('#inDescargar').prop('checked', value.des);
+                                            $ele.find('#inDetalle').prop('checked', value.det);                                            
+                                            $ele.find('#inMonto').prop('checked', value.mon);   
+                                            if (value.tit) {
+                                              $ele.find("#infacturas").val(value.tit);                                         
+                                            }                                        
+                                            break;
+                                          case 6:
+                                            $ele.find("#incolor").val(value);
+                                            break;
+                                      }
+                                  }
+
+                                  getInputsHTML();
+
+                                  clearTimeout(wtimer);
+
+                                }, 500);
+
                               }
-
-                              getInputsHTML();
-
-                              clearTimeout(wtimer);
-
-                            }, 500);
 
                         } 
 
@@ -657,95 +656,93 @@
 
                         let modules_preview = docWeb.data().modules_preview;
 
-                        var plength = Object.keys(modules_preview).length;
-                        
-                        if (plength > 0 ) {
+                        if (modules_preview != undefined) { 
 
-                          var flags_preview = [];                                     
-
-                          for ($m in modules_preview) {
-
-                            let module_preview = modules_preview[$m];
-
-                            var $orig, name, flag;
-
-                            switch (module_preview.key) {
-
-                              case "llamada":
-                                $orig = $("#llamada");                                                                
-                                flag = 1;
-                                break;
-
-                              case "mensaje":
-                                $orig = $("#mensaje");                                                                
-                                flag = 2;                                
-                                break;
-
-                              case "fondo":
-                                $orig = $("#fondo");                                                                
-                                flag = 3;                                
-                                break;
-
-                              case "pie":
-                                $orig = $("#pie");                                                                
-                                flag = 4;                                
-                                break;
-
-                            }
-
-                            name = module_preview.key;
-
-                            var $ele = $orig.clone()
-                              .addClass("dropped")
-                              .css({"position": "static", "left": null, "right": null})                            
-                              .appendTo( "#drop-area" );
-
-                            drop($ele, name, $orig);                        
+                            var plength = Object.keys(modules_preview).length;
                             
-                            flags_preview[flag] = [module_preview.value, $ele]; 
+                            if (plength > 0 ) {
 
-                          } 
+                              var flags_preview = [];                                     
 
-                          var ptimer = setTimeout(function() { 
+                              for ($m in modules_preview) {
 
-                            for (flag in flags_preview) { 
-                              
-                                let value = flags_preview[flag][0];
-                                let $ele  = flags_preview[flag][1];
+                                let module_preview = modules_preview[$m];
 
-                                let f = parseInt(flag);
+                                var $orig, name, flag;
 
-                                switch (f) {
-                                    case 1:
-                                      $ele.find("#inllamada").val(value);
+                                switch (module_preview.key) {
+                                  case "llamada":
+                                    $orig = $("#llamada");                                                                
+                                    flag = 1;
                                     break;
-                                    case 2:                                      
-                                      tinymce.activeEditor.setContent(value);
+                                  case "mensaje":
+                                    $orig = $("#mensaje");                                                                
+                                    flag = 2;                                
                                     break;
-                                    case 3:                                      
-                                      $ele.find('#inGrabar').prop('checked', value.rec);
-                                      $ele.find('#inLlamar').prop('checked', value.call);
-                                      $ele.find('#inWhatsapp').prop('checked', value.wa);
-                                      $ele.find('#inEmail').prop('checked', value.email);
-                                      break;
-                                    case 4:                               
-                                      $ele.find('#inMercado').prop('checked', value.rec);
-                                      $ele.find('#inRapi').prop('checked', value.call);
-                                      $ele.find('#inFacil').prop('checked', value.wa);
-                                      $ele.find('#inOtros').prop('checked', value.email);
-                                      break;                                       
-                                    case 5:
-                                      $ele.find("#incolor").val(value);
-                                      break;
+                                  case "fondo":
+                                    $orig = $("#fondo");                                                                
+                                    flag = 3;                                
+                                    break;
+                                  case "pie":
+                                    $orig = $("#pie");                                                                
+                                    flag = 4;                                
+                                    break;
                                 }
+
+                                name = module_preview.key;
+
+                                var $ele = $orig.clone()
+                                  .addClass("dropped")
+                                  .css({"position": "static", "left": null, "right": null})                            
+                                  .appendTo( "#drop-area" );
+
+                                drop($ele, name, $orig);                        
+                                
+                                flags_preview[flag] = [module_preview.value, $ele]; 
+
+                              } 
+
+                              var ptimer = setTimeout(function() { 
+
+                                for (flag in flags_preview) { 
+                                  
+                                    let value = flags_preview[flag][0];
+                                    let $ele  = flags_preview[flag][1];
+
+                                    let f = parseInt(flag);
+
+                                    switch (f) {
+                                        case 1:
+                                          $ele.find("#inllamada").val(value);
+                                        break;
+                                        case 2:                                      
+                                          tinymce.activeEditor.setContent(value);
+                                        break;
+                                        case 3:                                      
+                                          $ele.find('#inGrabar').prop('checked', value.rec);
+                                          $ele.find('#inLlamar').prop('checked', value.call);
+                                          $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                          $ele.find('#inEmail').prop('checked', value.email);
+                                          break;
+                                        case 4:                               
+                                          $ele.find('#inMercado').prop('checked', value.rec);
+                                          $ele.find('#inRapi').prop('checked', value.call);
+                                          $ele.find('#inFacil').prop('checked', value.wa);
+                                          $ele.find('#inOtros').prop('checked', value.email);
+                                          break;                                       
+                                        case 5:
+                                          $ele.find("#incolor").val(value);
+                                          break;
+                                    }
+                                }
+
+                                getInputsHTML();
+
+                                clearTimeout(ptimer);
+
+                              }, 1000);
+
                             }
-
-                            getInputsHTML();
-
-                            clearTimeout(ptimer);
-
-                          }, 500);
-
                         } 
                     }
                   }
@@ -753,17 +750,29 @@
             });  
 
           }
+
+
           
-          $( "#preview-tab" ).click(function() { 
-            
+          $( "#preview-tab-click" ).click(function(e) { 
+
+            e.preventDefault();
+
+            $("#preview").empty();
+            $("#drop-area").empty();    
+           
             count_drop=0;
             window.type = "preview";
             LoadTypes(window.docDesign);
 
           });
 
-          $( "#web-tab" ).click(function() {
+          $( "#web-tab-click" ).click(function(e) {
+
+            e.preventDefault();      
             
+            $("#preview").empty();
+            $("#drop-area").empty();                         
+
             count_drop=0;
             window.type = "web";
             LoadTypes(window.docDesign);
@@ -988,7 +997,9 @@
                     <a class="text-primary edit-link">Visualizar<a> | \
                     <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
 
-                  var timer = setTimeout(function() {                                        
+                  var timer = setTimeout(function() {    
+                    
+                    
 
                     $("#insaludo").focus(function(){
                       $(this).css("background-color", "#EFF0F1");                      
@@ -1030,7 +1041,7 @@
 
                     clearTimeout(timer);
 
-                  }, 500);
+                  }, 700);
 
 
                 } else if (window.type=="preview") {
