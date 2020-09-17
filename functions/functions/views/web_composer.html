@@ -79,11 +79,11 @@
             <ul class="nav nav-tabs" role="tablist">
               
               <li class="nav-item">
-                <a class="nav-link  active" href="#apreview" role="tab" onclick="window.loadPreview()" data-toggle="tab" aria-selected="true">Preview</a>
+                <a class="nav-link  active" href="#apreview" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Preview</a>
               </li>
               
               <li class="nav-item">
-                <a class="nav-link" href="#aweb" role="tab" onclick="window.loadWeb()" data-toggle="tab">Web Page</a>
+                <a class="nav-link" href="#aweb" role="tab" onclick="window.LoadWeb()" data-toggle="tab">Web Page</a>
               </li>              
 
             </ul>            
@@ -144,59 +144,59 @@
                     
                   <br>
 
-                  <div id="saludo" class="form-group draggable">
-                    <label for="saludo" ><b>Saludo</b></label>
-                    <input type="text" class="form-control" id="insaludo">
+                  <div id="ori-saludo" class="form-group draggable">
+                    <label for="ori-for-saludo" ><b>Saludo</b></label>
+                    <input type="text" class="form-control" id="ori-insaludo">
                     <p class="help-block">Saludo de cortecia</p>
                   </div>
                   
-                  <div id="cuerpo" class="form-group draggable">
-                    <label for="cuerpo" ><b>Cuerpo</b></label>  
+                  <div id="ori-cuerpo" class="form-group draggable">
+                    <label for="ori-for-cuerpo" ><b>Cuerpo</b></label>  
                     <input type="text" class="form-control">
                     <p>Crea el cuerpo del mensaje</p>                        
                   </div>                    
                   
 
-                  <div id="contacto" class="form-group draggable">
-                    <label for="contacto" ><b>Contacto</b></label>
+                  <div id="ori-contacto" class="form-group draggable">
+                    <label for="ori-for-contacto" ><b>Contacto</b></label>
                     <div class="control-group">                        
                       <div class="controls span2">
                           <label class="checkbox">
-                            <input type="checkbox" id="inGrabar"> Grabar mensaje
+                            <input type="checkbox" id="ori-inGrabar"> Grabar mensaje
                           </label>
                           <label class="checkbox">
-                              <input type="checkbox" id="inLlamar"> Llamame
+                              <input type="checkbox" id="ori-inLlamar"> Llamame
                           </label>
                           <label class="checkbox">
-                              <input type="checkbox" id="inWhatsapp"> Whatsapp
+                              <input type="checkbox" id="ori-inWhatsapp"> Whatsapp
                           </label>
                           <label class="checkbox">
-                              <input type="checkbox" id="inEmail"> Email
+                              <input type="checkbox" id="ori-inEmail"> Email
                           </label>                            
                       </div>                        
                     </div>
                     <p class="help-block">Modo de contacto</p>
                   </div>
 
-                  <div id="pagos" class="form-group draggable">
-                    <label for="pagos" ><b>Pagos</b></label>
-                    <input type="text" class="form-control" id="inpagos">
+                  <div id="ori-pagos" class="form-group draggable">
+                    <label for="ori-for-pagos" ><b>Pagos</b></label>
+                    <input type="text" class="form-control" id="ori-inpagos">
                     <div class="control-group">                        
                       <div class="controls">
                           <div class="row">
                             <label class="checkbox">
-                                <input type="checkbox" id="inMercado"> Mercadopago
+                                <input type="checkbox" id="ori-inMercado"> Mercadopago
                             </label>                              
                             <label class="checkbox">
-                                <input type="checkbox" id="inRapi"> Rapipago
+                                <input type="checkbox" id="ori-inRapi"> Rapipago
                             </label>
                           </div>
                           <div class="row">
                             <label class="checkbox">
-                                <input type="checkbox" id="inFacil"> Pago Facil
+                                <input type="checkbox" id="ori-inFacil"> Pago Facil
                             </label>
                             <label class="checkbox">
-                              <input type="checkbox" id="inOtros"> Otros
+                              <input type="checkbox" id="ori-inOtros"> Otros
                             </label>           
                           </div>                   
                       </div>                        
@@ -204,20 +204,20 @@
                       <p class="help-block">Medio de pago</p>
                   </div>  
 
-                  <div id="facturas" class="form-group draggable">
-                    <label for="facturas" ><b>Detalle de facturas</b></label>
-                    <input type="text" class="form-control" id="infacturas">
+                  <div id="ori-facturas" class="form-group draggable">
+                    <label for="ori-for-facturas" ><b>Detalle de facturas</b></label>
+                    <input type="text" class="form-control" id="ori-infacturas">
                     <div class="control-group">                        
                       <div class="controls">
                           <div class="row">                                                           
                             <label class="checkbox">
-                              <input type="checkbox" id="inMonto"> Monto
+                              <input type="checkbox" id="ori-inMonto"> Monto
                             </label> 
                             <label class="checkbox">
-                              <input type="checkbox" id="inDetalle"> Ver detalle
+                              <input type="checkbox" id="ori-inDetalle"> Ver detalle
                             </label>
                             <label class="checkbox">
-                                <input type="checkbox" id="inDescargar"> Descargar PDF
+                                <input type="checkbox" id="ori-inDescargar"> Descargar PDF
                             </label>                                                            
                           </div>                                             
                         </div>                        
@@ -225,14 +225,14 @@
                       <p class="help-block">Detalle de facturas</p>
                   </div>  
                   
-                  <div id="imagen" class="form-group draggable">
-                    <label for="imagen" ><b>Imagen</b></label>
-                    <input id="inimagen" type="file" name="files[]">
+                  <div id="ori-imagen" class="form-group draggable">
+                    <label for="ori-for-imagen" ><b>Imagen</b></label>
+                    <input id="ori-inimagen" type="file" name="files[]">
                     <p class="help-block">Agregar imagen</p>
                   </div>
 
-                  <div id="color" class="form-group draggable">
-                    <label for="color" ><b>Color de fondo</b></label>                   
+                  <div id="ori-color" class="form-group draggable">
+                    <label for="ori-for-color" ><b>Color de fondo</b></label>                   
                     <input type="text" value="rgb(0, 0, 0)" />
                     <p class="help-block">Cambiar color de fondo</p>                    
                   </div>
@@ -261,8 +261,7 @@
               <div id="drop-area" class="col-md-12 droppable sortable">
               </div>              
             </div>
-
-        </div>
+          </div>
           
         </div>       
         <div class="col-md-4">
@@ -369,7 +368,23 @@
                   return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
               }
           }
-      };         
+      };  
+      
+      window.LoadPreview = function() {      
+        $("#preview").empty();
+        $("#drop-area").empty();               
+        count_drop=0;
+        window.type = "preview";
+        LoadTypes(window.docDesign);
+      }
+
+      window.LoadWeb = function() {         
+        $("#preview").empty();
+        $("#drop-area").empty();   
+        count_drop=0;
+        window.type = "web";
+        LoadTypes(window.docDesign);
+      }
       
     
       $( "#login" ).click(function() {    
@@ -397,13 +412,7 @@
           window.type = getUrlParameter('type');
           window.account = getUrlParameter('account');         
           window.campaignId = getUrlParameter('campaignId');  
-          window.designId = getUrlParameter('designId'); 
-
-          if (window.type=="web") {                       
-            $('a[href="#aweb"]').tab('show');
-          } else if (window.type=="preview") {            
-            $('a[href="#apreview"]').tab('show');
-          }
+          window.designId = getUrlParameter('designId');           
 
           window.documentPath = `accounts/${window.account}/campaigns/${window.campaignId}`; ///web/sample`;
           
@@ -514,18 +523,30 @@
 
                   }
 
-                  window.docDesign = doc;
-                  //LoadTypes(doc);
+                  window.docDesign = doc;                  
+
+                  var atimer = setTimeout(function() { 
+
+                    if (window.type=="web") {                       
+                      $('a[href="#aweb"]').tab('show');
+                      window.LoadWeb();
+                    } else if (window.type=="preview") {            
+                      $('a[href="#apreview"]').tab('show');
+                      window.LoadPreview();
+                    }
+
+                    clearTimeout(atimer);
+
+                  }, 500);
                                   
               }
-          });  
+          });       
           
-          
-          var LoadTypes = function(doc) {
+          LoadTypes = function(doc) {
 
             doc.ref.collection("designs") 
                 .doc(window.designId).get()
-                .then(function(docWeb) { 
+                .then( async function(docWeb) { 
 
                   if (docWeb.exists) {                        
 
@@ -560,28 +581,32 @@
 
                                   switch (module_web.key) {
                                     case "saludo":
-                                      $orig = $("#saludo");                                                                
+                                      $orig = $("#ori-saludo");                                                                
                                       flag = 1;
                                       break;
                                     case "cuerpo":
-                                      $orig = $("#cuerpo");                                                                
+                                      $orig = $("#ori-cuerpo");                                                                
                                       flag = 2;                                
                                       break;
                                     case "contacto":
-                                      $orig = $("#contacto");                                                                
+                                      $orig = $("#ori-contacto");                                                                
                                       flag = 3;                                
                                       break;
                                     case "pagos":
-                                      $orig = $("#pagos");                                                                
+                                      $orig = $("#ori-pagos");                                                                
                                       flag = 4;                                
                                       break;
                                     case "facturas":
-                                      $orig = $("#facturas");                                                                
+                                      $orig = $("#ori-facturas");                                                                
                                       flag = 5;                                
                                       break;
-                                    case "color":
-                                      $orig = $("#color");                                                                
+                                    case "imagen":
+                                      $orig = $("#ori-imagen");                                                                
                                       flag = 6;                                
+                                      break;
+                                    case "color":
+                                      $orig = $("#ori-color");                                                                
+                                      flag = 7;                                
                                       break;
                                   }
 
@@ -592,60 +617,98 @@
                                     .css({"position": "static", "left": null, "right": null})                            
                                     .appendTo( "#drop-area" );
 
-                                  drop($ele, name, $orig);                        
+                                    switch(flag) {
+                                      case 1:
+                                        $ele.find("#ori-saludo").attr("id","saludo");
+                                        $ele.find("#ori-for-saludo").attr("id","for-saludo");
+                                        $ele.find("#ori-insaludo").attr("id","insaludo");
+                                        break;
+                                      case 2:
+                                        $ele.find("#ori-cuerpo").attr("id","cuerpo");
+                                        $ele.find("#ori-for-cuerpo").attr("id","for-cuerpo");
+                                        break;
+                                      case 3:                                                                                
+                                        $ele.find("#ori-contacto").attr("id","contacto");  
+                                        $ele.find("#ori-for-contacto").attr("id","for-contacto");
+                                        $ele.find("#ori-inGrabar").attr("id","inGrabar");
+                                        $ele.find("#ori-inLlamar").attr("id","inLlamar");
+                                        $ele.find("#ori-inWhatsapp").attr("id","inWhatsapp");
+                                        $ele.find("#ori-inEmail").attr("id","inEmail");                             
+                                        break;
+                                      case 4:
+                                        $ele.find("#ori-pagos").attr("id","pagos");
+                                        $ele.find("#ori-for-pagos").attr("id","for-pagos");
+                                        $ele.find("#ori-inpagos").attr("id","inpagos");
+                                        $ele.find("#ori-inMercado").attr("id","inMercado");
+                                        $ele.find("#ori-inFacil").attr("id","inFacil");
+                                        $ele.find("#ori-inOtros").attr("id","inOtros");
+                                        break;
+                                      case 5:
+                                        $ele.find("#ori-facturas").attr("id","facturas");
+                                        $ele.find("#ori-for-facturas").attr("id","for-facturas");
+                                        $ele.find("#ori-infacturas").attr("id","infacturas");
+                                        $ele.find("#ori-inMonto").attr("id","inMonto");
+                                        $ele.find("#ori-inDetalle").attr("id","inDetalle");
+                                        $ele.find("#ori-inDescargar").attr("id","inDescargar");
+                                        break;
+                                      case 6:
+                                        $ele.find("#ori-imagen").attr("id","imagen");
+                                        $ele.find("#ori-for-imagen").attr("id","for-imagen");
+                                        break;
+                                      case 7:
+                                        $ele.find("#ori-color").attr("id","color");
+                                        $ele.find("#ori-for-color").attr("id","color");
+                                        break;
+                                    } 
+
+                                    await drop_element($ele, name, $orig);                        
                                   
-                                  flags_web[flag]= [module_web.value, $ele]; 
+                                    flags_web[flag]= [module_web.value, $ele]; 
 
-                                } 
-                                
-                                var wtimer = setTimeout(function() { 
+                                }                                 
 
-                                  for (flag in flags_web) { 
-                                    
-                                      let value = flags_web[flag][0];
-                                      let $ele  = flags_web[flag][1];
+                                for (flag in flags_web) { 
+                                  
+                                    let value = flags_web[flag][0];
+                                    let $ele  = flags_web[flag][1];
 
-                                      let f = parseInt(flag);
+                                    let f = parseInt(flag);
 
-                                      switch (f) {
-                                          case 1:
-                                            $ele.find("#insaludo").val(value);
+                                    switch (f) {
+                                        case 1:
+                                          $ele.find("#insaludo").val(value);
+                                        break;
+                                        case 2:                                      
+                                          tinymce.activeEditor.setContent(value);
+                                        break;
+                                        case 3:                                      
+                                          $ele.find('#inGrabar').prop('checked', value.rec);
+                                          $ele.find('#inLlamar').prop('checked', value.call);
+                                          $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                          $ele.find('#inEmail').prop('checked', value.email);
                                           break;
-                                          case 2:                                      
-                                            tinymce.activeEditor.setContent(value);
+                                        case 4:                               
+                                          $ele.find('#inMercado').prop('checked', value.rec);
+                                          $ele.find('#inRapi').prop('checked', value.call);
+                                          $ele.find('#inFacil').prop('checked', value.wa);
+                                          $ele.find('#inOtros').prop('checked', value.email);
                                           break;
-                                          case 3:                                      
-                                            $ele.find('#inGrabar').prop('checked', value.rec);
-                                            $ele.find('#inLlamar').prop('checked', value.call);
-                                            $ele.find('#inWhatsapp').prop('checked', value.wa);
-                                            $ele.find('#inEmail').prop('checked', value.email);
-                                            break;
-                                          case 4:                               
-                                            $ele.find('#inMercado').prop('checked', value.rec);
-                                            $ele.find('#inRapi').prop('checked', value.call);
-                                            $ele.find('#inFacil').prop('checked', value.wa);
-                                            $ele.find('#inOtros').prop('checked', value.email);
-                                            break;
-                                          case 5:                                                                           
-                                            $ele.find('#inDescargar').prop('checked', value.des);
-                                            $ele.find('#inDetalle').prop('checked', value.det);                                            
-                                            $ele.find('#inMonto').prop('checked', value.mon);   
-                                            if (value.tit) {
-                                              $ele.find("#infacturas").val(value.tit);                                         
-                                            }                                        
-                                            break;
-                                          case 6:
-                                            $ele.find("#incolor").val(value);
-                                            break;
-                                      }
-                                  }
+                                        case 5:                                                                           
+                                          $ele.find('#inDescargar').prop('checked', value.des);
+                                          $ele.find('#inDetalle').prop('checked', value.det);                                            
+                                          $ele.find('#inMonto').prop('checked', value.mon);   
+                                          if (value.tit) {
+                                            $ele.find("#infacturas").val(value.tit);                                         
+                                          }                                        
+                                          break;
+                                        case 6:
+                                          $ele.find("#incolor").val(value);
+                                          break;
+                                    }
+                                }
 
-                                  getInputsHTML();
-
-                                  clearTimeout(wtimer);
-
-                                }, 500);
-
+                                GetHTML();
+                                  
                               }
 
                         } 
@@ -694,51 +757,45 @@
                                   .css({"position": "static", "left": null, "right": null})                            
                                   .appendTo( "#drop-area" );
 
-                                drop($ele, name, $orig);                        
+                                await drop_element($ele, name, $orig);                        
                                 
                                 flags_preview[flag] = [module_preview.value, $ele]; 
 
                               } 
+                          
+                              for (flag in flags_preview) { 
+                                
+                                  let value = flags_preview[flag][0];
+                                  let $ele  = flags_preview[flag][1];
 
-                              var ptimer = setTimeout(function() { 
+                                  let f = parseInt(flag);
 
-                                for (flag in flags_preview) { 
-                                  
-                                    let value = flags_preview[flag][0];
-                                    let $ele  = flags_preview[flag][1];
-
-                                    let f = parseInt(flag);
-
-                                    switch (f) {
-                                        case 1:
-                                          $ele.find("#inllamada").val(value);
+                                  switch (f) {
+                                      case 1:
+                                        $ele.find("#inllamada").val(value);
+                                      break;
+                                      case 2:                                      
+                                        tinymce.activeEditor.setContent(value);
+                                      break;
+                                      case 3:                                      
+                                        $ele.find('#inGrabar').prop('checked', value.rec);
+                                        $ele.find('#inLlamar').prop('checked', value.call);
+                                        $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                        $ele.find('#inEmail').prop('checked', value.email);
                                         break;
-                                        case 2:                                      
-                                          tinymce.activeEditor.setContent(value);
+                                      case 4:                               
+                                        $ele.find('#inMercado').prop('checked', value.rec);
+                                        $ele.find('#inRapi').prop('checked', value.call);
+                                        $ele.find('#inFacil').prop('checked', value.wa);
+                                        $ele.find('#inOtros').prop('checked', value.email);
+                                        break;                                       
+                                      case 5:
+                                        $ele.find("#incolor").val(value);
                                         break;
-                                        case 3:                                      
-                                          $ele.find('#inGrabar').prop('checked', value.rec);
-                                          $ele.find('#inLlamar').prop('checked', value.call);
-                                          $ele.find('#inWhatsapp').prop('checked', value.wa);
-                                          $ele.find('#inEmail').prop('checked', value.email);
-                                          break;
-                                        case 4:                               
-                                          $ele.find('#inMercado').prop('checked', value.rec);
-                                          $ele.find('#inRapi').prop('checked', value.call);
-                                          $ele.find('#inFacil').prop('checked', value.wa);
-                                          $ele.find('#inOtros').prop('checked', value.email);
-                                          break;                                       
-                                        case 5:
-                                          $ele.find("#incolor").val(value);
-                                          break;
-                                    }
-                                }
+                                  }
+                              }
 
-                                getInputsHTML();
-
-                                clearTimeout(ptimer);
-
-                              }, 1000);
+                              GetHTML();
 
                             }
                         } 
@@ -746,30 +803,11 @@
                   }
                 }
             });  
-
           }          
           
-
-          window.loadPreview = function() {      
-            $("#preview").empty();
-            $("#drop-area").empty();               
-            count_drop=0;
-            window.type = "preview";
-            LoadTypes(window.docDesign);
-          }
-
-          window.loadWeb = function() {         
-            $("#preview").empty();
-            $("#drop-area").empty();   
-            count_drop=0;
-            window.type = "web";
-            LoadTypes(window.docDesign);
-          }
-
-
           $("#save-web").on('click', async function() {                                  
             
-              let inputsHtml = await getInputsHTML();  
+              let inputsHtml = await GetHTML();  
 
               let _html_ = inputsHtml[0];
               var modules = inputsHtml[1];
@@ -881,7 +919,7 @@
             accept: ".draggable",
             helper: "clone",
             hoverClass: "droppable-active",
-            drop: function( event, ui ) {
+            drop: async function( event, ui ) {
               
               $(".empty-form").remove();
               var $orig = $(ui.draggable);
@@ -896,7 +934,7 @@
                   .css({"position": "static", "left": null, "right": null})
                   .appendTo(this);
                   
-                  drop($el, name, $orig);                
+                  await drop_element($el, name, $orig);                
                
               } else {
                
@@ -914,13 +952,15 @@
             }
           }).sortable();
 
-          var drop = async function ($el, name, $orig) {
+          var drop_element = async function ($el, name, $orig) {
+
+            const dropPromise = new Promise(async (resolve, reject) => {
 
                 count_drop++;
 
                 if (window.type=="web") {
 
-                  switch(name) {
+                  switch (name) {
 
                     case "saludo":
                       $el.find("p").remove();
@@ -929,24 +969,24 @@
                       $el.find("p").remove();                   
                       $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
                       $el.find("textarea").removeAttr('placeholder');
-                      initTinyEMC();
+                      await InitTinyEMC();
                       break;
                     case "contacto":
                       $el.find("p").remove();   
                       $('#contacto input[type="checkbox"]').click(function(){
-                        getInputsHTML();
+                        GetHTML();
                       });         
                       break;
                     case "pagos":
                       $el.find("p").remove();      
                       $('#pagos input[type="checkbox"]').click(function(){
-                        getInputsHTML();
+                        GetHTML();
                       });
                       break;
                     case "facturas":
                       $el.find("p").remove();      
                       $('#facturas input[type="checkbox"]').click(function(){
-                        getInputsHTML();
+                        GetHTML();
                       });
                       break;
                     case "imagen":
@@ -971,22 +1011,20 @@
                   }
 
                   // update id
-                  var id = $orig.find(":input").attr("id");                  
+                  /*var id = $orig.find(":input").attr("id");                  
                   if (id) {
                     id = id.split("-").slice(0,-1).join("-") + "-" 
                       + (parseInt(id.split("-").slice(-1)[0]) + 1);                
                     $orig.find(":input").attr("id", id);
                     $orig.find("label").attr("for", id);
-                  }            
+                  }*/            
 
                   // tools
                   $('<p class="tools">\
                     <a class="text-primary edit-link">Visualizar<a> | \
                     <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
 
-                  var timer = setTimeout(function() {    
-                    
-                    
+                  var timer = await setTimeout(function() {   
 
                     $("#insaludo").focus(function(){
                       $(this).css("background-color", "#EFF0F1");                      
@@ -1004,7 +1042,7 @@
                     });
 
                     $("#insaludo").change(function() {
-                      getInputsHTML();
+                      GetHTML();
                     });
 
                     $("#infacturas").focus(function(){
@@ -1023,12 +1061,14 @@
                     });
 
                     $("#infacturas").change(function() {
-                      getInputsHTML();
+                      GetHTML();
                     });
 
                     clearTimeout(timer);
 
-                  }, 700);
+                    resolve();
+
+                  }, 100);
 
 
                 } else if (window.type=="preview") {
@@ -1039,14 +1079,14 @@
                       break;
                     case "mensaje":
                       $el.find("p").remove();                   
-                      $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
+                      $el.find("input").replaceWith(`<textarea id="inmensaje"></textarea>`);                              
                       $el.find("textarea").removeAttr('placeholder');
-                      initTinyEMC();
+                      await InitTinyEMC();
                       break;
                     case "pagos":
                       $el.find("p").remove();      
                       $('#pagos input[type="checkbox"]').click(function(){
-                        getInputsHTML();
+                        GetHTML();
                       });
                       break;
                     case "fondo":
@@ -1071,13 +1111,13 @@
                     }
 
                     // update id
-                    var id = $orig.find(":input").attr("id");                  
+                    /*var id = $orig.find(":input").attr("id");                  
                     if (id) {
                     id = id.split("-").slice(0,-1).join("-") + "-" 
                       + (parseInt(id.split("-").slice(-1)[0]) + 1);                
                     $orig.find(":input").attr("id", id);
                     $orig.find("label").attr("for", id);
-                    }            
+                    }*/            
 
                     // tools
                     $('<p class="tools">\
@@ -1101,14 +1141,20 @@
                       });
 
                       $("#insaludo").change(function() {
-                        getInputsHTML();
+                        GetHTML();
                       });
 
                       clearTimeout(timer);
 
-                    }, 500);
+                      resolve();
+
+                    }, 100);
 
                 }
+
+              });
+
+              return dropPromise;
 
           }
 
@@ -1136,16 +1182,16 @@
                 .catch(error => {
                     // deal any errors
                 });
-                getInputsHTML();
+                GetHTML();
             }            
             reader.readAsDataURL(this.files[0]);
           }
 
-          var getInputsHTML = async function () {           
+          var GetHTML = async function () {           
 
             $("#preview").empty();      
             
-            const myPromise = new Promise(async (resolve, reject) => {  
+            const htmlPromise = new Promise(async (resolve, reject) => {  
 
               var count = 0;
               var _html = "";
@@ -1366,7 +1412,7 @@
 
             });
 
-            return myPromise;
+            return htmlPromise;
 
           };        
 
@@ -1561,7 +1607,7 @@
         
         $(document).on("click", ".edit-link", function(ev) {   
           
-          getInputsHTML();
+          GetHTML();
           
           /*var $el = $(this).parent().parent();
           var $el_copy = $el.clone();
@@ -1582,85 +1628,98 @@
             return false;
           });*/
 
-        });       
-        
-        
+        });                 
 
-          $("#login").text("Logged");
+          
 
-          function initTinyEMC() {  
+          var InitTinyEMC = async function () {  
 
-            var camposFields = {
-              one: "first",
-              two: "second",
-              three: "third"
-            };         
-            
-            /**
-             * SAMPLE
-             * https://www.tiny.cloud/docs/demo/basic/
-             * */
+            const tinyPromise = new Promise(async (resolve, reject) => {
 
-            tinymce.init({
-              selector: 'textarea#incuerpo',
-              menubar: false,
-              height: 200,             
-              plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
-                'searchreplace visualblocks code fullscreen',
-                'insertdatetime media table paste code wordcount'
-              ],
-              toolbar: 'undo redo | formatselect | ' +
-              'bold italic backcolor | alignleft aligncenter ' +
-              'alignright alignjustify | bullist numlist outdent indent | ' +
-              'removeformat',
-              content_css: '//www.tiny.cloud/css/codepen.min.css',
-
-              setup: function(editor) {
-
-                editor.on('change', function(ed) {              
-                  let _content = editor.getContent();      
-                  getInputsHTML();  
-                });
+                var camposFields = {
+                  one: "first",
+                  two: "second",
+                  three: "third"
+                };         
                 
-                /** Campos **/              
-                editor.ui.registry.addMenuButton('campos', {
-                  text: 'Campos',
-                  fetch: function(callback) {
-                    var items = [];
-                    for (var fieldName in camposFields) {
-                      var menuItem = {
-                        type: 'menuitem',
-                        text: camposFields[fieldName],
-                        value:fieldName,
-                        onSetup: function(buttonApi) {
-                          var $this = this;
-                          this.onAction = function() {
-                            editor.insertContent($this.data.value);
+                /**
+                 * SAMPLE
+                 * https://www.tiny.cloud/docs/demo/basic/
+                 * */
+
+                if (tinymce.activeEditor) {                  
+                  tinymce.activeEditor.destroy();
+                }
+
+                tinymce.init({
+                  selector: 'textarea#incuerpo',
+                  menubar: false,
+                  height: 200,             
+                  plugins: [
+                    'advlist autolink lists link image charmap print preview anchor',
+                    'searchreplace visualblocks code fullscreen',
+                    'insertdatetime media table paste code wordcount'
+                  ],
+                  toolbar: 'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat',
+                  content_css: '//www.tiny.cloud/css/codepen.min.css',                  
+
+                  setup: function(editor) {
+
+                    editor.on('init', function(e) {
+                        //console.log('init event', e);
+                        resolve();
+                    });
+
+                    editor.on('change', function(ed) {              
+                      let _content = editor.getContent();      
+                      GetHTML();  
+                    });
+                    
+                    /** Campos **/              
+                    editor.ui.registry.addMenuButton('campos', {
+                      text: 'Campos',
+                      fetch: function(callback) {
+                        var items = [];
+                        for (var fieldName in camposFields) {
+                          var menuItem = {
+                            type: 'menuitem',
+                            text: camposFields[fieldName],
+                            value:fieldName,
+                            onSetup: function(buttonApi) {
+                              var $this = this;
+                              this.onAction = function() {
+                                editor.insertContent($this.data.value);
+                              };
+                            },
                           };
-                        },
-                      };
-                      items.push(menuItem);
-                    }
-                    callback(items);
-                  },
+                          items.push(menuItem);
+                        }
+                        callback(items);
+                      },
+                    });
+                  }
+                });                
+
+                tinymce.activeEditor.on('focus', function(e) {
+                  active.cuerpo = true;
+                  active.saludo = false;
+                  active.from_button = false;               
                 });
-              }
-            });
 
-            tinymce.activeEditor.on('focus', function(e) {
-              active.cuerpo = true;
-              active.saludo = false;
-              active.from_button = false;               
-            });
+                tinymce.activeEditor.on('blur', function(e) {                       
+                  if (active.from_button) {
+                    active.cuerpo = false;
+                  }                
+                });
+           
+              });     
+              
+              return tinyPromise;
 
-            tinymce.activeEditor.on('blur', function(e) {                       
-              if (active.from_button) {
-                active.cuerpo = false;
-              }                
-            });
-
-          }
+          };
 
         } else  {
 
