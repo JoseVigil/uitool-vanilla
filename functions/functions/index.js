@@ -99,6 +99,58 @@
 
     exports.app = functions.https.onRequest(app);
 
+    var SERVER_ACTION           = 'action';
+    var SERVER_GATEWAY          = 'gateway';
+    var ACTION_EXPORT           = 'export'; 
+
+    exports.server = functions.https.onRequest( async (req, res) => {
+
+        console.log("<<<<<<<<<<<<<<<<<<<<======================");
+
+        console.log("req.path:", req.path); 
+        
+        var path = req.path.split('/')[1];
+
+        var user, pass;
+
+        if ( path === SERVER_GATEWAY || path === SERVER_ACTION ) {          
+
+            var autorization = req.body.data.autorization;      
+      
+            var buff = Buffer.from(autorization, 'base64'); 
+            let key = buff.toString('ascii');
+
+            var keys = key.split(":");   
+
+            user = keys[0];
+            pass = keys[1];
+
+        } else {
+
+          user = "admin";
+          pass = "Notimation2020";
+
+        }
+
+        console.log("user: " + user);
+        console.log("pass: " + pass); 
+
+        if ( (user === "admin") && (pass === "Notimation2020") ) {
+
+          console.log("req.path.split('/')[1]:" + path);
+
+          switch (path) {                        
+            case SERVER_GATEWAY: GatewayOperations(req, res); break;
+            case SERVER_ACTION: Action(req, res); break;              
+          } 
+
+        } else {
+          res.status(401).send("Invalid authorization");  
+        }    
+
+    });
+
+
     // NOTI
     const noti = async function(req, res) {            
         
@@ -197,57 +249,7 @@
 
     }; 
 
-    var SERVER_ACTION           = 'action';
-    var SERVER_GATEWAY          = 'gateway';
-    var ACTION_EXPORT           = 'export'; 
-
-    exports.server = functions.https.onRequest( async (req, res) => {
-
-        console.log("<<<<<<<<<<<<<<<<<<<<======================");
-
-        console.log("req.path:", req.path); 
-        
-        var path = req.path.split('/')[1];
-
-        var user, pass;
-
-        if ( path === SERVER_GATEWAY || path === SERVER_ACTION ) {          
-
-            var autorization = req.body.data.autorization;      
-      
-            var buff = Buffer.from(autorization, 'base64'); 
-            let key = buff.toString('ascii');
-
-            var keys = key.split(":");   
-
-            user = keys[0];
-            pass = keys[1];
-
-        } else {
-
-          user = "admin";
-          pass = "Notimation2020";
-
-        }
-
-        console.log("user: " + user);
-        console.log("pass: " + pass); 
-
-        if ( (user === "admin") && (pass === "Notimation2020") ) {
-
-          console.log("req.path.split('/')[1]:" + path);
-
-          switch (path) {                        
-            case SERVER_GATEWAY: GatewayOperations(req, res); break;
-            case SERVER_ACTION: Action(req, res); break;              
-          } 
-
-        } else {
-          res.status(401).send("Invalid authorization");  
-        }    
-
-    });
-
+    
     const Action = async function(req, res) { 
 
       let option = req.path.split('/')[2]; 
@@ -287,230 +289,7 @@
         //break;
       }   
       
-    };
-
-
-
-    var OPTION_GET_SIM_NUMBERS      = 'simnumber';
-    var OPTION_USING                = 'using';
-    var OPTION_SWITCH               = 'switch';
-    var OPTION_SWITCH_RANDOM        = 'switchradom';
-    var OPTION_SMS_RECEIVED         = 'received';
-    var OPTION_SMS_SEND_AND_RECEIVE = 'sendreceive';          
-  
-    var GatewayOperations = async function(req, res) {
-      
-      console.log("gateway: " + req.path.split('/')[2]);      
-      
-      switch (req.path.split('/')[2]) {      
-
-        case OPTION_USING: {           
-          console.log("url_remote: " + req.body.data.url_remote);     
-          let uurl = req.body.data.url_remote; //'https://us-central1-notims.cloudfunctions.net/backend/gateway/using';          
-          return using(req, res, uurl);          
-        }
-        
-        case OPTION_SWITCH: 
-          switchsim(req, res); 
-        break;        
-
-        case OPTION_SMS_SEND_AND_RECEIVE: {     
-
-            let gateway = req.body.data.gateway;
-            let channel = req.body.data.channel;
-            let recipient = req.body.data.recipient;
-            let message = req.body.data.message;
-            let url = req.body.data.url;
-            let card = req.body.data.card;
-
-            var options_send_and_receive = `{
-              "method": "POST",
-              "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/send", 
-              "timeout": "10000",
-              "body": {
-                "data" : {
-                  "gateway" : "${gateway}",
-                  "channel" : "${channel}",
-                  "recipient" : "${recipient}",
-                  "message" : "${message}",
-                  "url": "${url}", 
-                  "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                }
-              },
-              "json": true 
-            }`;       
-            
-            let sar_json = JSON.parse(options_send_and_receive);
-
-            var current = new Date();
-
-            await rp(sar_json)
-            .then( async (response_sent) => {
-              
-              var resutl = response_sent.result;            
-              let sent = resutl.sent;
-              let sentlength = sent.length;
-              let last = sent[sentlength-1];
-              
-              console.log("last.time: "+ last.time);
-              
-              const timereceived = new Date(last.day + " " + last.time);
-
-              console.log("current: " + JSON.stringify(current));
-              console.log("timereceived: " + JSON.stringify(timereceived));
-
-              if ( (last.status === "Success") && 
-                  (last.number === "264") &&
-                  (current.getTime() < timereceived.getTime()) ) {
-
-                return {
-                  gateway : resutl.gateway,                 
-                  channel : resutl.channel,     
-                  card : card
-                };
-
-              } else {
-                console.log("FAAAIIILLLLL");
-                res.status(500).send("fail");
-              }  
-              
-              return {};
-
-            }).then( async (response_send) => {       
-
-              //console.log("results_sends :::: " + JSON.stringify(response_send));                             
-              var option_received = `{
-                "method": "POST",
-                "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
-                "body": {
-                  "data": {
-                    "gateway": "${response_send.gateway}",            
-                    "url" : ".notimation.com/en/5-3-1SMSinfo.php?ch=",
-                    "channel" : "${response_send.channel}",
-                    "card" : "${response_send.card}",
-                    "pagenumber" : "1",
-                    "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                  }
-                },
-                "json" : true 
-              }`;       
-
-              let receive_json = JSON.parse(option_received);
-              
-              return rp(receive_json);                        
-
-            }).then( async (response_receive) => {   
-              
-              console.log("results_sent: " + JSON.stringify(response_receive));
-
-              let sim_number = response_receive.sim_numbers[0].sim_number;
-              let remote_number = response_receive.sim_numbers[0].remote_number;
-
-              console.log("sim_number: " + sim_number);
-              console.log("remote_number: " + remote_number);
-
-              let response = {
-                number : {
-                  sim_number: sim_number,
-                  remote_number : remote_number
-                }
-              }
-
-              res.status(200).send(response);            
-
-              return response;
-            
-            }).catch((error) => {
-        
-              console.log("error: " + error);
-              return error;           
-      
-            });
-        }  
-        break;      
-
-        case OPTION_SMS_RECEIVED: {
-
-              var gatewaysRef = firestore.collection('gateways')
-              .doc("urls").get().then( async (document) => {   
-                
-                  let url_send = document.data().url_send;
-
-                  console.log("url_send: " +url_send);
-
-                  let gateway = req.body.data.gateway;                  
-                  let channel = req.body.data.channel;
-                  let pagenumber = req.body.data.pagenumber;
-                  let card = req.body.data.card;
-                  let url = req.body.data.url;
-
-                  console.log("gateway: "+ gateway);
-                  console.log("channel: "+ channel);
-                  console.log("pagenumber: "+ pagenumber);
-
-                  var option_received = `{
-                    "method": "POST",
-                    "uri": "https://us-central1-notims.cloudfunctions.net/backend/gateway/smsreceived",
-                    "body": {
-                      "data": {
-                        "gateway": "${gateway}",            
-                        "url" : "${url}",
-                        "channel" : "${channel}",
-                        "card" : "${card}",
-                        "pagenumber" : "${pagenumber}",
-                        "autorization":"YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                      }
-                    },
-                    "json" : true 
-                  }`;       
-                   
-                  console.log("option_received: " + option_received);
-
-                  let receive_json = JSON.parse(option_received);
-            
-                  await rp(receive_json)
-                      .then( async (results_sent) => {
-                        
-                        console.log("results_sent: " + JSON.stringify(results_sent));
-
-                        let sim_number = results_sent.sim_numbers[0].sim_number;
-                        let remote_number = results_sent.sim_numbers[0].remote_number;
-
-                        console.log("sim_number: " + sim_number);
-                        console.log("remote_number: " + remote_number);
-
-                        let response = {
-                          number : {
-                            sim_number: sim_number,
-                            remote_number : remote_number
-                          }
-                        }
-
-                        res.status(200).send(response);
-                        return {};
-
-                  }).catch((error) => {
-      
-                    console.log("error: " + error);
-
-                    res.status(400).send({"error":error});
-                    return {};
-            
-                  });
-
-                  return {};
-
-              }); 
-          }                 
-          break; 
-
-          case OPTION_SWITCH_RANDOM:            
-            await SwitchRandom(req, res);
-          break;
-
-          default: noti(req, res);
-      }
-    };  
+    };   
 
     exports.triggerCampaign = functions.firestore
       .document('accounts/{accountId}/campaigns/{camapignId}/designs/{designId}')
