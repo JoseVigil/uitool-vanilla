@@ -228,25 +228,128 @@
       .document('gateways/{gatewayId}')
       .onUpdate( async (change, context) => {  
 
-        const newValue = change.after.data();                                        
-        
+        const newValue = change.after.data();                                                
         let port_status = newValue.port_status;        
+
         if ( port_status ) { 
 
-            let icard = {
-                gateway: doc.data().gateway,
-                number: number,
-                position: doc.data().position,
-                id: doc.id,
+            let parent = change.after.ref.parent;
+            const urls = await new Promise(async (resolve, reject) => {
+               await parent.get()
+                    .then((snapshot) => {
+                    snapshot.forEach((doc) => {                    
+                        if (doc.id === "urls") {                        
+                            let urls = URLS(doc);
+                            console.log("doc: " + doc.id);
+                            resolve(urls);
+                        }
+                    });
+                }); 
+            });
+
+            let uri_remote = urls.url_base_remote + urls.parmas_using;
+            let url_gateway = urls.url_domain + urls.url_using;
+
+            let options_using = {
+                method: "POST",
+                uri: uri_remote,
+                body: {
+                    data: {
+                        gateway: newValue.number,
+                        url: url_gateway,
+                        autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                    }
+                },
+                json: true,
             };
+            
+            console.log(JSON.stringify(options_using));
+
+            await rp(options_using)
+                    .then(async function (results_using) {
+
+                let response = results_using.response;
+                let gateway = "S" + response.gateway;
+                let channels = response.channels;
+                let ports = response.ports;
+
+                var length_sims = response.sims.length;
+
+                let promisesims = await response.sims.forEach(async (obj) => {
+
+                    let promises_sims = [];
+
+                    let portName = "port" + obj.port;
+                    let jsonCards = `{`;
+                    let countAdded = 0;
+                    let countSims = 0;
+
+                    obj.channel.forEach(async (channel) => {
+                        jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;
+
+                        if (countAdded === 3) {
+                            
+                            jsonCards += `}`;
+                            let jsonPorts = JSON.parse(jsonCards);
+                            countAdded = 0;
+                            
+                            promises_sims.push(
+                                firestore
+                                .collection("gateways")
+                                .doc(gateway)
+                                .collection("sims")
+                                .doc(portName)
+                                .set(jsonPorts, { merge: true })
+                            );
+
+                            if (countSims===(length_sims-1)) {       
+                                return promises_sims;
+                            }
+
+                        } else {
+                            jsonCards += `,`;
+                            countAdded++;
+                        }
+
+                        countSims++;
+
+                    });
+                });
+
+                var promises_gateway = [];
+                promises_gateway.push(
+                    firestore
+                        .collection("gateways")
+                        .doc(gateway)
+                        .set({ channels: channels, ports: ports }, { merge: true })
+                    );
+                
+                return Promise.all([promises_gateway, promisesims]);
+
+            });
 
         }
 
     }); 
 
 
-
-
+    URLS = async function (doc) {
+        urlObj = {};
+        urlObj.url_domain = doc.data().url_domain;
+        urlObj.url_using = doc.data().url_using;
+        urlObj.url_base = doc.data().url_base;
+        urlObj.url_management = doc.data().url_management;
+        urlObj.url_base = doc.data().url_base;
+        urlObj.url_switch = doc.data().url_switch;
+        urlObj.url_base_remote = doc.data().url_base_remote;
+        urlObj.url_base_local = doc.data().url_base_local;
+        urlObj.parmas_using = doc.data().parmas_using;
+        urlObj.url_status = doc.data().url_status;
+        urlObj.params_status = doc.data().params_status;
+        urlObj.url_send = doc.data().url_send;
+        urlObj.params_send = doc.data().params_send;
+        return urlObj;
+    };
 
     Using = async function (req, res) {        
 
