@@ -46,7 +46,7 @@
       databaseURL: db_url,        
     });
     
-    const firestore = admin.firestore();    
+    firestore = admin.firestore();    
     //const storage = admin.storage();
 
     const firebaseConfig = {
