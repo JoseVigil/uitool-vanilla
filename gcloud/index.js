@@ -15,8 +15,6 @@
 	  timestampsInSnapshots: true,
 	});
 
-
-
 	var MODULE_GATEWAY		= 'gateway';
 	var MODULE_BUILD_IMAGE	= 'buildimage';
 
@@ -50,7 +48,6 @@
 	};
 
 	const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }	
-
 
 	var BUILD_IMAGE_WEB			= 'web';
 	var BUILD_IMAGE_PREVIEW		= 'preview';
@@ -215,6 +212,8 @@
 	var OPTION_SEND 				= 'send';
 	var OPTION_SMS_RECEIVED    		= 'smsreceived';
 	var OPTION_REBOOT		    	= 'reboot';		
+	var OPTION_USSD_SEND	    	= 'ussdsend';	
+	var OPTION_USSD_READ	    	= 'ussdread';		
 	
 	const gateway = async function(req, res) {
 
@@ -249,16 +248,18 @@
 				return browse(req, res, separams);
 				break;	
 
-			case OPTION_SMS_RECEIVED: 	
-
+			case OPTION_SMS_RECEIVED:
 				let reurl = "http://s" + gateway + req.body.data.url + req.body.data.channel + "&type=r&card=" + req.body.data.card + "&page=" + req.body.data.pagenumber;
 				let reparams = { "option" : option, "url" : reurl };
 				return browse(req, res, reparams);
 				break;		
 
-			case OPTION_BUILD_IMAGE:
-				return buildimage(req, res);
-				break;
+			case OPTION_USSD_SEND:
+			case OPTION_USSD_READ: 								 
+				let usurl = "http://s" + gateway + req.body.data.url;
+				let usparams = { "option" : option, "url" : usurl };
+				return browse(req, res, usparams);
+				break;	
 
 			default: 	
 				res.status(402).send("Option not found");
@@ -703,12 +704,84 @@
 						await page.on('dialog', async dialog => {              
 							await dialog.accept();	                  
 							return res.status(200).send({"status":"rebooted"});
-						});
-						                           
+						});						                           
 			
 						await page.click('#Reboot1');    
 
-					break;					
+					break;
+
+					case OPTION_USSD_SEND:
+
+						try {    														
+
+							await page.select('.select', '1');
+
+							const selection = req.body.data.selection;
+
+							console.log("selection: " + JSON.stringify(selection));
+
+							for ( i in selection ) {
+								let sel = selection[i];
+								console.log("sel: " + sel);
+								let checkSelector = '#Checkbox' + sel;
+								await page.click(checkSelector);
+								await page.waitFor(1000);								
+							}
+
+					        const requestInput = '#USSDAll';
+					        const msg = req.body.data.message;
+					        await page.waitForSelector( requestInput, { timeout: 0 });
+					        await page.focus(requestInput);
+					        await page.keyboard.type(msg);											           	              						
+
+							const phoneInput = 'input[value="Send"][type="button"]';
+							await page.click(phoneInput);						
+
+							return res.status(200).send({"result":JSON.parse(true)}); 												
+
+						} catch (e) {							
+							return res.status(500).send({"error":e});							
+						}
+
+					break;
+
+					case OPTION_USSD_RECEIVE:
+
+						var sjson = `{"numbers":[`;
+
+							let selection_lenght = selection.length;
+							var countSel = 0;
+
+							console.log("__4____");
+					        
+							for ( sel in selection ) {
+
+								let listSelector = 'USSDR' + sel;
+
+								var el = await page.$(listSelector);
+								var resutl = await page.evaluate(el => el.value, el);
+
+								let pattern = 'Tu linea Claro ';
+								
+								if( resutl.indexOf(pattern) >= 0) {
+									let phone = resutl.split(pattern)[1].split(" ")[0];
+									sjson += `{"phone":"${phone}, "channel": "${sel}"}`;
+								}
+
+								if (countSel==(selection_lenght-1)) {									
+									sjson += `]}`;
+								} else {	
+									sjson += `,`;
+								}
+								countSel++;		
+
+								await page.waitFor(200);	
+
+							};
+
+					        return res.status(200).send({"result":JSON.parse(sjson)}); 	
+
+					break;
 
 					default: 	
 						return res.status(400).send("Bad Request");
