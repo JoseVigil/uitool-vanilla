@@ -1052,9 +1052,7 @@
 
                       $("#inllamada").focus(function() {
                         $(this).css("background-color", "#EFF0F1");                                       
-                        active.facturas     = false;                     
-                        active.cuerpo       = false;
-                        active.from_button  = false;                                         
+                        active.mensaje     = false;                                             
                         active.from_button  = false;
                         active.llamada      = true;
                       });
@@ -1184,7 +1182,7 @@
 
                   var timer = await setTimeout(function() {   
 
-                    $("#insaludo").focus(function(){
+                    $("#insaludo").focus(function() {
                       $(this).css("background-color", "#EFF0F1");                      
                       active.facturas     = false;                     
                       active.cuerpo       = false;
@@ -1192,7 +1190,7 @@
                       active.saludo       = true; 
                     });
 
-                    $("#insaludo").blur(function(){
+                    $("#insaludo").blur(function() {
                       $(this).css("background-color", "white");
                       if (active.from_button) {
                         active.saludo     = false;
@@ -1203,7 +1201,7 @@
                       GetHTML();
                     });
 
-                    $("#infacturas").focus(function(){
+                    $("#infacturas").focus(function() {
                       $(this).css("background-color", "#EFF0F1");
                       active.saludo       = false;                      
                       active.cuerpo       = false;
@@ -1211,7 +1209,7 @@
                       active.facturas     = true;                      
                     });
 
-                    $("#infacturas").blur(function(){
+                    $("#infacturas").blur(function() {
                       $(this).css("background-color", "white");
                       if (active.from_button) {
                         active.facturas = false;
@@ -1787,7 +1785,7 @@
                 tinymce.activeEditor.on('focus', function(e) {                  
                   if (window.type=="preview") {
                     active.mensaje      = true;
-                    active.llamado      = false;
+                    active.llamada      = false;
                   } else if (window.type=="web") {
                     active.cuerpo       = true;
                     active.saludo       = false;
@@ -1797,8 +1795,11 @@
 
                 tinymce.activeEditor.on('blur', function(e) {                       
                   if (active.from_button) {
-                    active.cuerpo   = false;
-                    active.mensaje  = false;
+                    if (window.type=="preview") {
+                      active.mensaje  = false;
+                    } else if (window.type=="web") {
+                      active.cuerpo   = false;
+                    }                    
                   }                
                 });
            
