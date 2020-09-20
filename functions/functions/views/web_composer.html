@@ -96,25 +96,25 @@
                     
                   <br>
 
-                  <div id="llamada" class="form-group draggable">
-                    <label for="llamada" ><b>Llamada</b></label>
-                    <input type="text" class="form-control" id="inllamada">
+                  <div id="ori-llamada" class="form-group draggable">
+                    <label for="ori-for-llamada" ><b>Llamada</b></label>
+                    <input type="text" class="form-control" id="ori-inllamada">
                     <p class="help-block">Crear llamada a la acción</p>
                   </div>
 
-                  <div id="mensaje" class="form-group draggable">
-                    <label for="mensaje" ><b>Mensaje</b></label>  
-                    <input type="text" class="form-control">
+                  <div id="ori-mensaje" class="form-group draggable">
+                    <label for="ori-for-mensaje" ><b>Mensaje</b></label>  
+                    <input id="ori-inmensaje" type="text" class="form-control">
                     <p>Crea el mensaje</p>                        
                   </div>
 
-                  <div id="fondo" class="form-group draggable">
-                    <label for="fondo" ><b>Imagen de fondo</b></label>                                            
-                    <input id="infondo" type="file" accept=".jpg, .jpeg, .png">
+                  <div id="ori-fondo" class="form-group draggable">
+                    <label for="ori-for-fondo" ><b>Imagen de fondo</b></label>                                            
+                    <input id="ori-infondo" type="file" accept=".jpg, .jpeg, .png">
                   </div>
 
-                  <div id="pie" class="form-group draggable">
-                    <label for="pie" ><b>Pie de preview</b></label>
+                  <div id="ori-pie" class="form-group draggable">
+                    <label for="ori-for-pie" ><b>Pie de preview</b></label>
                     <div class="control-group">                        
                       <div class="controls span2">
                           <label class="checkbox">
@@ -132,7 +132,19 @@
                       </div>                        
                     </div>
                     <p class="help-block">Pie de preview</p>
-                  </div>                    
+                  </div>   
+
+                  <div id="ori-imagen-preview" class="form-group draggable">
+                    <label for="ori-for-imagen-preview" ><b>Imagen</b></label>
+                    <input id="ori-inimagen-preview" type="file" name="files[]">
+                    <p class="help-block">Agregar imagen</p>
+                  </div>
+                  
+                  <div id="ori-color-preview" class="form-group draggable">
+                    <label for="ori-for-color-preview" ><b>Color de fondo</b></label>                   
+                    <input type="text" value="rgb(0, 0, 0)" />
+                    <p class="help-block">Cambiar color de fondo</p>                    
+                  </div>
 
                 </form>
 
@@ -225,14 +237,14 @@
                       <p class="help-block">Detalle de facturas</p>
                   </div>  
                   
-                  <div id="ori-imagen" class="form-group draggable">
-                    <label for="ori-for-imagen" ><b>Imagen</b></label>
-                    <input id="ori-inimagen" type="file" name="files[]">
+                  <div id="ori-imagen-web" class="form-group draggable">
+                    <label for="ori-for-imagen-web" ><b>Imagen</b></label>
+                    <input id="ori-inimagen-web" type="file" name="files[]">
                     <p class="help-block">Agregar imagen</p>
                   </div>
 
-                  <div id="ori-color" class="form-group draggable">
-                    <label for="ori-for-color" ><b>Color de fondo</b></label>                   
+                  <div id="ori-color-web" class="form-group draggable">
+                    <label for="ori-for-color-web" ><b>Color de fondo</b></label>                   
                     <input type="text" value="rgb(0, 0, 0)" />
                     <p class="help-block">Cambiar color de fondo</p>                    
                   </div>
@@ -324,12 +336,19 @@
       //var active.cuerpo = false;
       //var active.from_button = false;
 
-      var active = {
-        saludo:false,
-        cuerpo: false,
-        from_button:false,
-        facturas:false
+      var InitActive = function() {
+        active = {
+          saludo : false,
+          cuerpo : false,
+          from_button : false,
+          facturas : false,
+          llamada : false,
+          mensaje : false
+        };
       };
+
+      var active;
+      InitActive();
 
       var target_result;
 
@@ -369,12 +388,15 @@
               }
           }
       };  
+
+      
       
       window.LoadPreview = function() {      
         $("#preview").empty();
         $("#drop-area").empty();               
         count_drop=0;
         window.type = "preview";
+        InitActive();
         LoadTypes(window.docDesign);
       }
 
@@ -383,6 +405,7 @@
         $("#drop-area").empty();   
         count_drop=0;
         window.type = "web";
+        InitActive();
         LoadTypes(window.docDesign);
       }
       
@@ -418,6 +441,8 @@
           
           db.doc(window.documentPath).get()
               .then(function(doc) {   
+
+                // LOAD FIELDS
                 
                 if (doc.exists) {
 
@@ -470,7 +495,9 @@
                       count++;
                   } 
 
-                  data = JSON.parse(json);            
+                  data = JSON.parse(json);     
+
+                  // CLICK FIELD BUTTONS       
 
                   for (var key of Object.keys(data)) {
                     
@@ -491,37 +518,57 @@
                       
                         var id = $(e.target).attr('id'); 
                         var variable;
-                        variable = "{" + nombre + "}";                      
+                        variable = "{" + nombre + "}";  
 
-                        if (active.saludo) {
+                        if ( type === "web" ) {                    
 
-                          let cursorPos = $('#insaludo').prop('selectionStart');
-                          let v = $('#insaludo').val();
-                          let textBefore = v.substring(0,  cursorPos );
-                          let textAfter  = v.substring( cursorPos, v.length );
-                          $('#insaludo').val( textBefore + variable + textAfter ); 
+                            if (active.saludo) {
 
-                        } else if (active.cuerpo) {                
-                        
-                          tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
-                        
-                        } else if (active.facturas) {
+                              let cursorPos = $('#insaludo').prop('selectionStart');
+                              let v = $('#insaludo').val();
+                              let textBefore = v.substring(0,  cursorPos );
+                              let textAfter  = v.substring( cursorPos, v.length );
+                              $('#insaludo').val( textBefore + variable + textAfter ); 
 
-                          let cursorPos = $('#infacturas').prop('selectionStart');
-                          let v = $('#infacturas').val();
-                          let textBefore = v.substring(0,  cursorPos );
-                          let textAfter  = v.substring( cursorPos, v.length );
-                          $('#infacturas').val( textBefore + variable + textAfter ); 
+                            } else if (active.cuerpo) {                
+                            
+                              tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
+                            
+                            } else if (active.facturas) {
 
-                        }
+                              let cursorPos = $('#infacturas').prop('selectionStart');
+                              let v = $('#infacturas').val();
+                              let textBefore = v.substring(0,  cursorPos );
+                              let textAfter  = v.substring( cursorPos, v.length );
+                              $('#infacturas').val( textBefore + variable + textAfter ); 
+
+                            }
+
+                        } else if ( type === "preview" ) {
+
+                          if (active.llamada) {
+
+                            let cursorPos = $('#inllamada').prop('selectionStart');
+                            let v = $('#inllamada').val();
+                            let textBefore = v.substring(0,  cursorPos );
+                            let textAfter  = v.substring( cursorPos, v.length );
+                            $('#inllamada').val( textBefore + variable + textAfter ); 
+
+                          } else if (active.mensaje) {                
+
+                              tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
+                          }
+
+                        } 
 
                         clearTimeout(timer_click);
 
                       }, 200);
 
                     });
-
                   }
+
+                  // LOAD WEB OR PREVIWE FROM PARAMS
 
                   window.docDesign = doc;                  
 
@@ -560,6 +607,8 @@
                       
                       $("#web-image").remove();
                       $("#web").append(img);
+
+                      // LOAD WEB
 
                       if (window.type=="web") {                         
 
@@ -604,8 +653,8 @@
                                       $orig = $("#ori-imagen");                                                                
                                       flag = 6;                                
                                       break;
-                                    case "color":
-                                      $orig = $("#ori-color");                                                                
+                                    case "color-web":
+                                      $orig = $("#ori-color-web");                                                                
                                       flag = 7;                                
                                       break;
                                   }
@@ -615,53 +664,9 @@
                                   var $ele = $orig.clone()
                                     .addClass("dropped")
                                     .css({"position": "static", "left": null, "right": null})                            
-                                    .appendTo( "#drop-area" );
+                                    .appendTo( "#drop-area" );                                    
 
-                                    switch(flag) {
-                                      case 1:
-                                        $ele.find("#ori-saludo").attr("id","saludo");
-                                        $ele.find("#ori-for-saludo").attr("id","for-saludo");
-                                        $ele.find("#ori-insaludo").attr("id","insaludo");
-                                        break;
-                                      case 2:
-                                        $ele.find("#ori-cuerpo").attr("id","cuerpo");
-                                        $ele.find("#ori-for-cuerpo").attr("id","for-cuerpo");
-                                        break;
-                                      case 3:                                                                                
-                                        $ele.find("#ori-contacto").attr("id","contacto");  
-                                        $ele.find("#ori-for-contacto").attr("id","for-contacto");
-                                        $ele.find("#ori-inGrabar").attr("id","inGrabar");
-                                        $ele.find("#ori-inLlamar").attr("id","inLlamar");
-                                        $ele.find("#ori-inWhatsapp").attr("id","inWhatsapp");
-                                        $ele.find("#ori-inEmail").attr("id","inEmail");                             
-                                        break;
-                                      case 4:
-                                        $ele.find("#ori-pagos").attr("id","pagos");
-                                        $ele.find("#ori-for-pagos").attr("id","for-pagos");
-                                        $ele.find("#ori-inpagos").attr("id","inpagos");
-                                        $ele.find("#ori-inMercado").attr("id","inMercado");
-                                        $ele.find("#ori-inFacil").attr("id","inFacil");
-                                        $ele.find("#ori-inOtros").attr("id","inOtros");
-                                        break;
-                                      case 5:
-                                        $ele.find("#ori-facturas").attr("id","facturas");
-                                        $ele.find("#ori-for-facturas").attr("id","for-facturas");
-                                        $ele.find("#ori-infacturas").attr("id","infacturas");
-                                        $ele.find("#ori-inMonto").attr("id","inMonto");
-                                        $ele.find("#ori-inDetalle").attr("id","inDetalle");
-                                        $ele.find("#ori-inDescargar").attr("id","inDescargar");
-                                        break;
-                                      case 6:
-                                        $ele.find("#ori-imagen").attr("id","imagen");
-                                        $ele.find("#ori-for-imagen").attr("id","for-imagen");
-                                        break;
-                                      case 7:
-                                        $ele.find("#ori-color").attr("id","color");
-                                        $ele.find("#ori-for-color").attr("id","color");
-                                        break;
-                                    } 
-
-                                    await drop_element($ele, name, $orig);                        
+                                    await drop_element($ele, name, $orig, flag);                        
                                   
                                     flags_web[flag]= [module_web.value, $ele]; 
 
@@ -688,7 +693,7 @@
                                           $ele.find('#inEmail').prop('checked', value.email);
                                           break;
                                         case 4:                               
-                                          $ele.find('#inMercado').prop('checked', value.rec);
+                                          $ele.find('#inMercado').prop('checked', value.mer);
                                           $ele.find('#inRapi').prop('checked', value.call);
                                           $ele.find('#inFacil').prop('checked', value.wa);
                                           $ele.find('#inOtros').prop('checked', value.email);
@@ -702,7 +707,7 @@
                                           }                                        
                                           break;
                                         case 6:
-                                          $ele.find("#incolor").val(value);
+                                          $ele.find("#incolor-web").val(value);
                                           break;
                                     }
                                 }
@@ -712,6 +717,8 @@
                               }
 
                         } 
+
+                    // LOAD PREVIEW
 
                     } else if (window.type=="preview") {                             
 
@@ -733,19 +740,23 @@
 
                                 switch (module_preview.key) {
                                   case "llamada":
-                                    $orig = $("#llamada");                                                                
+                                    $orig = $("#ori-llamada");                                                                
                                     flag = 1;
                                     break;
                                   case "mensaje":
-                                    $orig = $("#mensaje");                                                                
+                                    $orig = $("#ori-mensaje");                                                                
                                     flag = 2;                                
                                     break;
                                   case "fondo":
-                                    $orig = $("#fondo");                                                                
+                                    $orig = $("#ori-fondo");                                                                
                                     flag = 3;                                
                                     break;
                                   case "pie":
-                                    $orig = $("#pie");                                                                
+                                    $orig = $("#ori-pie");                                                                
+                                    flag = 4;                                
+                                    break;
+                                  case "color-preview":
+                                    $orig = $("#ori-color-preview");                                                                
                                     flag = 4;                                
                                     break;
                                 }
@@ -790,7 +801,7 @@
                                         $ele.find('#inOtros').prop('checked', value.email);
                                         break;                                       
                                       case 5:
-                                        $ele.find("#incolor").val(value);
+                                        $ele.find("#incolor-web").val(value);
                                         break;
                                   }
                               }
@@ -799,11 +810,12 @@
 
                             }
                         } 
+                      }
                     }
                   }
-                }
-            });  
-          }          
+              });  
+          }   
+        
           
           $("#save-web").on('click', async function() {                                  
             
@@ -815,7 +827,7 @@
               var background_color; 
               for ($m in modules) {
                 let module = modules[parseInt($m)];                              
-                if (module.key == "color") {
+                if (module.key == "color-web") {
                   background_color = module.value;
                 }
               }             
@@ -902,7 +914,7 @@
               
               function reverseArr(input) {
                   var ret = new Array;
-                  for(var i = input.length-1; i >= 0; i--) {
+                  for (var i = input.length-1; i >= 0; i--) {
                       ret.push(input[i]);
                   }
                   return ret;
@@ -933,8 +945,10 @@
                   .addClass("dropped")
                   .css({"position": "static", "left": null, "right": null})
                   .appendTo(this);
-                  
-                  await drop_element($el, name, $orig);                
+
+                  let sname = name.split("ori-for-")[1];
+                 
+                  await drop_element($el, sname, $orig);                
                
               } else {
                
@@ -952,77 +966,221 @@
             }
           }).sortable();
 
-          var drop_element = async function ($el, name, $orig) {
+          var drop_element = async function ($ele, name, $orig) {
 
             const dropPromise = new Promise(async (resolve, reject) => {
 
                 count_drop++;
 
-                if (window.type=="web") {
+                if (window.type=="preview") {                 
 
-                  switch (name) {
+                  switch(name) {
 
-                    case "saludo":
-                      $el.find("p").remove();
+                    case "llamada":
+                      
+                      $ele.find("#ori-llamada").attr("id","llamada");
+                      $ele.find("#ori-for-llamada").attr("id","for-llamada");
+                      $ele.find("#ori-inllamada").attr("id","inllamada");
+
+                      $ele.find("p").remove();
                       break;
-                    case "cuerpo":
-                      $el.find("p").remove();                   
-                      $el.find("input").replaceWith(`<textarea id="incuerpo"></textarea>`);                              
-                      $el.find("textarea").removeAttr('placeholder');
-                      await InitTinyEMC();
+
+                    case "mensaje":
+                    
+                      $ele.find("#ori-mensaje").attr("id","mensaje");
+                      $ele.find("#ori-for-mensaje").attr("id","for-mensaje");
+                      let inmensaje = "inmensaje";
+                      $ele.find("#ori-inmensaje").attr("id",inmensaje);                      
+
+                      $ele.find("p").remove();                   
+                      $ele.find("input").replaceWith(`<textarea id="${inmensaje}"></textarea>`);                              
+                      $ele.find("textarea").removeAttr('placeholder');
+                      await InitTinyEMC(inmensaje);
                       break;
-                    case "contacto":
-                      $el.find("p").remove();   
-                      $('#contacto input[type="checkbox"]').click(function(){
-                        GetHTML();
-                      });         
-                      break;
-                    case "pagos":
-                      $el.find("p").remove();      
-                      $('#pagos input[type="checkbox"]').click(function(){
-                        GetHTML();
-                      });
-                      break;
-                    case "facturas":
-                      $el.find("p").remove();      
-                      $('#facturas input[type="checkbox"]').click(function(){
-                        GetHTML();
-                      });
-                      break;
-                    case "imagen":
-                      $el.find("p").remove(); 
-                      $el.find("input").attr('id', 'inimage');                   
-                      $el.find("input").change(function() {                      
+
+                    case "fondo":
+
+                      $ele.find("#ori-fondo").attr("id","fondo");  
+                      $ele.find("#ori-for-fondo").attr("id","for-fondo");  
+                      $ele.find("#ori-infondo").attr("id","infondo");                            
+
+                      $ele.find("p").remove(); 
+                      $ele.find("input").attr('id', 'inimage');                   
+                      $ele.find("input").change(function() {                      
                           if (this.files && this.files[0]) {
                             saveImage(files);
                           }
                       });
                       break;
-                    case "color":
-                      $el.find("p").remove();
-                      $el.find("input").attr('id', 'incolor');                 
-                      $('#incolor').colorpicker();                        
-                      $('#incolor').on('colorpickerChange', function(event) {
+
+                      case "imagen-preview":
+
+                        $ele.find("#ori-imagen-preview").attr("id","imagen-preview");
+                        $ele.find("#ori-for-imagen-preview").attr("id","for-imagen-preview");
+
+                        $ele.find("p").remove(); 
+                        $ele.find("input").attr('id', 'inimage-preview');                   
+                        $ele.find("input").change(function() {                      
+                            if (this.files && this.files[0]) {
+                              saveImage(files);
+                            }
+                        });
+                        break;  
+
+                    case "color-preview":
+
+                      $ele.find("#ori-color-preview").attr("id","color-preview");
+                      $ele.find("#ori-for-color-preview").attr("id","color-preview");
+
+                      $ele.find("p").remove();
+                      $ele.find("input").attr('id', 'incolor-preview');                 
+                      $('#incolor-preview').colorpicker();                        
+                      $('#incolor-preview').on('colorpickerChange', function(event) {
                         let c = event.color.toString();
                         $( "#color" ).data( "data-color", c );
                         $('#preview').css('background-color', c);
                       });
                       break;
-                  }
 
-                  // update id
-                  /*var id = $orig.find(":input").attr("id");                  
-                  if (id) {
-                    id = id.split("-").slice(0,-1).join("-") + "-" 
-                      + (parseInt(id.split("-").slice(-1)[0]) + 1);                
-                    $orig.find(":input").attr("id", id);
-                    $orig.find("label").attr("for", id);
-                  }*/            
+                    }                    
+                    
+                    $('<p class="tools">\
+                    <a class="text-primary edit-link">Visualizar<a> | \
+                    <a class="text-primary remove-link">Remover</a></p>').appendTo($ele);                             
 
-                  // tools
+                    var timer = setTimeout(function() {                                        
+
+                      $("#inllamada").focus(function() {
+                        $(this).css("background-color", "#EFF0F1");                                       
+                        active.facturas     = false;                     
+                        active.cuerpo       = false;
+                        active.from_button  = false;                                         
+                        active.from_button  = false;
+                        active.llamada      = true;
+                      });
+
+                      $("#inllamada").blur(function() {
+                        $(this).css("background-color", "white");
+                        if (active.from_button) {
+                          active.llamada = false;
+                        }
+                      });
+
+                      $("#inllamada").change(function() {
+                        GetHTML();
+                      });
+
+                      clearTimeout(timer);
+
+                      resolve();
+
+                    }, 100);
+
+                } else if (window.type=="web") {
+                 
+                  switch (name) {
+
+                    case "saludo":
+
+                      $ele.find("#ori-saludo").attr("id","saludo");
+                      $ele.find("#ori-for-saludo").attr("id","for-saludo");
+                      $ele.find("#ori-insaludo").attr("id","insaludo");
+
+                      $ele.find("p").remove();
+                      break;
+
+                    case "cuerpo":
+
+                      $ele.find("#ori-cuerpo").attr("id","cuerpo");
+                      $ele.find("#ori-for-cuerpo").attr("id","for-cuerpo");
+                      let incuerpo = "incuerpo";
+                      $ele.find("#ori-incuerpo").attr("id",incuerpo);
+
+                      $ele.find("p").remove();                   
+                      $ele.find("input").replaceWith(`<textarea id="${incuerpo}"></textarea>`);                              
+                      $ele.find("textarea").removeAttr('placeholder');
+                      await InitTinyEMC(incuerpo);
+                      break;
+
+                    case "contacto":
+
+                      $ele.find("#ori-contacto").attr("id","contacto");  
+                      $ele.find("#ori-for-contacto").attr("id","for-contacto");
+                      $ele.find("#ori-inGrabar").attr("id","inGrabar");
+                      $ele.find("#ori-inLlamar").attr("id","inLlamar");
+                      $ele.find("#ori-inWhatsapp").attr("id","inWhatsapp");
+                      $ele.find("#ori-inEmail").attr("id","inEmail");
+
+                      $ele.find("p").remove();   
+                      $('#contacto input[type="checkbox"]').click(function(){
+                        GetHTML();
+                      });         
+                      break;
+
+                    case "pagos":
+
+                      $ele.find("#ori-pagos").attr("id","pagos");
+                      $ele.find("#ori-for-pagos").attr("id","for-pagos");
+                      $ele.find("#ori-inpagos").attr("id","inpagos");
+                      $ele.find("#ori-inMercado").attr("id","inMercado");
+                      $ele.find("#ori-inFacil").attr("id","inFacil");
+                      $ele.find("#ori-inOtros").attr("id","inOtros");
+
+                      $ele.find("p").remove();      
+                      $('#pagos input[type="checkbox"]').click(function(){
+                        GetHTML();
+                      });
+                      break;
+
+                    case "facturas":
+
+                      $ele.find("#ori-facturas").attr("id","facturas");
+                      $ele.find("#ori-for-facturas").attr("id","for-facturas");
+                      $ele.find("#ori-infacturas").attr("id","infacturas");
+                      $ele.find("#ori-inMonto").attr("id","inMonto");
+                      $ele.find("#ori-inDetalle").attr("id","inDetalle");
+                      $ele.find("#ori-inDescargar").attr("id","inDescargar");
+
+                      $ele.find("p").remove();      
+                      $('#facturas input[type="checkbox"]').click(function(){
+                        GetHTML();
+                      });
+                      break;
+
+                    case "imagen-web":
+
+                      $ele.find("#ori-imagen-web").attr("id","imagen-web");
+                      $ele.find("#ori-for-imagen-web").attr("id","for-imagen-web");
+
+                      $ele.find("p").remove(); 
+                      $ele.find("input").attr('id', 'inimage-web');                   
+                      $ele.find("input").change(function() {                      
+                          if (this.files && this.files[0]) {
+                            saveImage(files);
+                          }
+                      });
+                      break;
+
+                    case "color-web":
+
+                      $ele.find("#ori-color-web").attr("id","color-web");
+                      $ele.find("#ori-for-color-web").attr("id","color-web");
+
+                      $ele.find("p").remove();
+                      $ele.find("input").attr('id', 'incolor-web');                 
+                      $('#incolor-web').colorpicker();                        
+                      $('#incolor-web').on('colorpickerChange', function(event) {
+                        let c = event.color.toString();
+                        $( "#color-web" ).data( "data-color", c );
+                        $('#preview').css('background-color', c);
+                      });
+                      break;
+                      
+                  }                
+                  
                   $('<p class="tools">\
                     <a class="text-primary edit-link">Visualizar<a> | \
-                    <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
+                    <a class="text-primary remove-link">Remover</a></p>').appendTo($ele);                             
 
                   var timer = await setTimeout(function() {   
 
@@ -1071,86 +1229,7 @@
                   }, 100);
 
 
-                } else if (window.type=="preview") {
-
-                  switch(name) {
-                    case "llamada":
-                      $el.find("p").remove();
-                      break;
-                    case "mensaje":
-                      $el.find("p").remove();                   
-                      $el.find("input").replaceWith(`<textarea id="inmensaje"></textarea>`);                              
-                      $el.find("textarea").removeAttr('placeholder');
-                      await InitTinyEMC();
-                      break;
-                    case "pagos":
-                      $el.find("p").remove();      
-                      $('#pagos input[type="checkbox"]').click(function(){
-                        GetHTML();
-                      });
-                      break;
-                    case "fondo":
-                      $el.find("p").remove(); 
-                      $el.find("input").attr('id', 'inimage');                   
-                      $el.find("input").change(function() {                      
-                          if (this.files && this.files[0]) {
-                            saveImage(files);
-                          }
-                      });
-                      break;                                          
-                    case "color":
-                      $el.find("p").remove();
-                      $el.find("input").attr('id', 'incolor');                 
-                      $('#incolor').colorpicker();                        
-                      $('#incolor').on('colorpickerChange', function(event) {
-                        let c = event.color.toString();
-                        $( "#color" ).data( "data-color", c );
-                        $('#preview').css('background-color', c);
-                      });
-                      break;
-                    }
-
-                    // update id
-                    /*var id = $orig.find(":input").attr("id");                  
-                    if (id) {
-                    id = id.split("-").slice(0,-1).join("-") + "-" 
-                      + (parseInt(id.split("-").slice(-1)[0]) + 1);                
-                    $orig.find(":input").attr("id", id);
-                    $orig.find("label").attr("for", id);
-                    }*/            
-
-                    // tools
-                    $('<p class="tools">\
-                    <a class="text-primary edit-link">Visualizar<a> | \
-                    <a class="text-primary remove-link">Remover</a></p>').appendTo($el);                             
-
-                    var timer = setTimeout(function() {                                        
-
-                      $("#inllamado").focus(function(){
-                        $(this).css("background-color", "#EFF0F1");
-                        active.saludo = true;                      
-                        active.cuerpo = false;
-                        active.from_button = false;
-                      });
-
-                      $("#llamado").blur(function(){
-                        $(this).css("background-color", "white");
-                        if (active.from_button) {
-                          active.saludo = false;
-                        }
-                      });
-
-                      $("#insaludo").change(function() {
-                        GetHTML();
-                      });
-
-                      clearTimeout(timer);
-
-                      resolve();
-
-                    }, 100);
-
-                }
+                } 
 
               });
 
@@ -1272,9 +1351,9 @@
                               _html += inimagen;
                             }
                             break;
-                          case "color":
+                          case "color-web":
                             count++;  
-                            let color = value = $(this).find("#incolor").val();     
+                            let color = value = $(this).find("#incolor-web").val();     
                             $('#preview').css('background-color', color);                   
                             break;
                         }        
@@ -1321,24 +1400,24 @@
                           switch (this.id) {
                             case "llamada":
                               count++;
-                              let insaludo = value = $(this).find("#inllamada").val();
-                              let llamada =  `<h3 style="margin-bottom: 30px;"><p class="font-weight-bold">
-                                            ${llamada}</p></h3>`;
+                              let inllamada  = value = $(this).find("#inllamada").val();
+                              let llamada   =  `<h3 style="margin-bottom: 30px;"><p class="font-weight-bold">
+                                            ${inllamada}</p></h3>`;
                               _html += llamada;                                                                
                               break;
                             case "mensaje":
                               count++;
                               let inmensaje = value = tinymce.activeEditor.getContent();
-                              let mensaje =  `<div style="margin-bottom: 40px;">
+                              let mensaje   =  `<div style="margin-bottom: 40px;">
                                           ${inmensaje}</div>`;
                               _html += mensaje;
                               break;
                             case "fondo":
                               count++;                
-                              let inMercado = $('#inMercado').prop('checked');
-                              let inRapi = $('#inRapi').prop('checked');
-                              let inFacil = $('#inFacil').prop('checked');
-                              let inOtros = $('#inOtros').prop('checked');                           
+                              let inMercado   = $('#inMercado').prop('checked');
+                              let inRapi      = $('#inRapi').prop('checked');
+                              let inFacil     = $('#inFacil').prop('checked');
+                              let inOtros     = $('#inOtros').prop('checked');                           
                               value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
                               let pagos = getPagos();
                               if (pagos!=undefined) {
@@ -1357,9 +1436,9 @@
                                   _html += contacto;
                               }                         
                               break;
-                            case "color":
+                            case "color-web":
                               count++;  
-                              let color = value = $(this).find("#incolor").val();     
+                              let color = value = $(this).find("#incolor-web").val();     
                               $('#preview').css('background-color', color);                   
                               break;
                           }        
@@ -1632,7 +1711,7 @@
 
           
 
-          var InitTinyEMC = async function () {  
+          var InitTinyEMC = async function (id) {  
 
             const tinyPromise = new Promise(async (resolve, reject) => {
 
@@ -1651,8 +1730,10 @@
                   tinymce.activeEditor.destroy();
                 }
 
+                let _selector = 'textarea#' + id;
+
                 tinymce.init({
-                  selector: 'textarea#incuerpo',
+                  selector: _selector,
                   menubar: false,
                   height: 200,             
                   plugins: [
@@ -1703,15 +1784,21 @@
                   }
                 });                
 
-                tinymce.activeEditor.on('focus', function(e) {
-                  active.cuerpo = true;
-                  active.saludo = false;
-                  active.from_button = false;               
+                tinymce.activeEditor.on('focus', function(e) {                  
+                  if (window.type=="preview") {
+                    active.mensaje      = true;
+                    active.llamado      = false;
+                  } else if (window.type=="web") {
+                    active.cuerpo       = true;
+                    active.saludo       = false;
+                  }                  
+                  active.from_button  = false;               
                 });
 
                 tinymce.activeEditor.on('blur', function(e) {                       
                   if (active.from_button) {
-                    active.cuerpo = false;
+                    active.cuerpo   = false;
+                    active.mensaje  = false;
                   }                
                 });
            

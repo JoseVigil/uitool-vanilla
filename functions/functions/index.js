@@ -46,7 +46,7 @@
       databaseURL: db_url,        
     });
     
-    const firestore = admin.firestore();    
+    firestore = admin.firestore();    
     //const storage = admin.storage();
 
     const firebaseConfig = {
@@ -88,12 +88,63 @@
         
         var path = req.path.split('/')[1];
 
-        console.log("req.path.split('/')[1]:" + path);
+        console.log("req.path.split('/')[1]:" + path);       
+        
+        const pathParams = req.path.split('/');
+        var module = pathParams[2];
+        var url = req.url;
+        var urlParams;
+        
+        if (url.indexOf('?') !== -1) {
+          let params = url.split("?");
+          urlParams = getJsonFromUrl(params[1]);        
+        }     
 
-        switch (path) {                                  
-          case OPTION_COMPOSER: Composer(req, res); break;                
-          default: noti(req, res);
-        } 
+        var static_url;     
+
+        if ( path === OPTION_COMPOSER ) {
+        
+          switch (module) {
+            case "campaign":
+              static_url = 'campaign_composer.html';
+              break;
+            case "web":
+              static_url = 'web_composer.html';        
+              break;
+            case "preview":
+              static_url = 'preview_composer.html';        
+              break;  
+            case "thumbnail":
+              static_url = 'noti.html';
+              break;
+            default:
+              static_url = 'composer.html';
+              break;              
+          }
+
+        } else {
+
+          urlParams = "?path=/apps/" + pathParams[1];
+          static_url = 'noti.html';
+          
+        }
+
+        if (urlParams) {
+          return res.render(static_url, urlParams); 
+        } else {
+          return res.render(static_url); 
+        }
+
+        function getJsonFromUrl(url) {
+          if (!url) url = location.search;
+          var query = url.substr(1);
+          var result = {};
+          query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+          });
+          return result;
+        }
        
     });
 

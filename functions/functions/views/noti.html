@@ -106,9 +106,7 @@
                 const db = firebase.firestore();
                 const storage = firebase.storage();
                 const database = firebase.database();
-                const functions = firebase.functions();
-
-                //firebase.auth().onAuthStateChanged(function(user) {
+                const functions = firebase.functions();              
                 
                 firebase.auth().signInAnonymously()
                     .then(function() {  
