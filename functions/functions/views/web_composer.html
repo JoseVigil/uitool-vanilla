@@ -621,10 +621,115 @@
                       $("#web-image").remove();
                       $("#web").append(img);
 
-                      // LOAD WEB
+                      if (window.type=="preview") {                             
 
-                      if (window.type=="web") {                         
+                        let modules_preview = docWeb.data().modules_preview;
 
+                        if (modules_preview != undefined) { 
+
+                            var plength = Object.keys(modules_preview).length;
+                            
+                            if (plength > 0 ) {
+
+                              var flags_preview = [];                                     
+
+                              for ($m in modules_preview) {
+
+                                let module_preview = modules_preview[$m];
+
+                                var $orig, name, flag;
+
+                                switch (module_preview.key) {
+                                  case "llamada":
+                                    $orig = $("#ori-llamada");                                                                
+                                    flag = 1;
+                                    break;
+                                  case "subtitulo":
+                                    $orig = $("#ori-subtitulo");                                                                
+                                    flag = 2;
+                                    break;
+                                  case "mensaje":
+                                    $orig = $("#ori-mensaje");                                                                
+                                    flag = 3;                                
+                                    break;
+                                  case "fondo":
+                                    $orig = $("#ori-fondo");                                                                
+                                    flag = 4;                                
+                                    break;
+                                  case "pie":
+                                    $orig = $("#ori-pie");                                                                
+                                    flag = 5;                                
+                                    break;
+                                  case "imagen-preview":
+                                      $orig = $("#ori-imagen-web");                                                                
+                                      flag = 6;                                
+                                      break;
+                                  case "color-preview":
+                                    $orig = $("#ori-color-preview");                                                                
+                                    flag = 7;                                
+                                    break;
+                                }
+
+                                name = module_preview.key;
+
+                                var $ele = $orig.clone()
+                                  .addClass("dropped")
+                                  .css({"position": "static", "left": null, "right": null})                            
+                                  .appendTo( "#drop-area" );
+
+                                await drop_element($ele, name, $orig);                        
+                                
+                                flags_preview[flag] = [module_preview.value, $ele]; 
+
+                              } 
+                          
+                              for (flag in flags_preview) { 
+                                
+                                  let value = flags_preview[flag][0];
+                                  let $ele  = flags_preview[flag][1];
+
+                                  let f = parseInt(flag);
+
+                                  switch (f) {
+                                      case 1:
+                                        $ele.find("#inllamada").val(value);
+                                      break;
+                                      case 2:
+                                        $ele.find("#insubtitulo").val(value);
+                                      break;
+                                      case 3:                                      
+                                        tinymce.activeEditor.setContent(value);
+                                      break;
+                                      case 4:                                      
+                                        $ele.find('#inGrabar').prop('checked', value.rec);
+                                        $ele.find('#inLlamar').prop('checked', value.call);
+                                        $ele.find('#inWhatsapp').prop('checked', value.wa);
+                                        $ele.find('#inEmail').prop('checked', value.email);
+                                        break;
+                                      case 5:                               
+                                        $ele.find('#inMercado').prop('checked', value.rec);
+                                        $ele.find('#inRapi').prop('checked', value.call);
+                                        $ele.find('#inFacil').prop('checked', value.wa);
+                                        $ele.find('#inOtros').prop('checked', value.email);
+                                        break; 
+                                      case 6: 
+                                          $ele.find("#inimagen-preview").attr("src",value);
+                                          break;                                      
+                                      case 7:
+                                        $ele.find("#incolor-preview").val(value);
+                                        break;
+                                  }
+                              }
+
+                              GetHTML();
+
+                            }
+                        } 
+
+                      // LOAD PREVIEW
+
+                      } else if (window.type=="web") { 
+                      
                         let modules_web = docWeb.data().inputs_web; 
 
                         if (modules_web!=undefined) {
@@ -662,8 +767,8 @@
                                       $orig = $("#ori-facturas");                                                                
                                       flag = 5;                                
                                       break;
-                                    case "imagen":
-                                      $orig = $("#ori-imagen");                                                                
+                                    case "imagen-web":
+                                      $orig = $("#ori-imagen-web");                                                                
                                       flag = 6;                                
                                       break;
                                     case "color-web":
@@ -718,8 +823,11 @@
                                           if (value.tit) {
                                             $ele.find("#infacturas").val(value.tit);                                         
                                           }                                        
+                                          break;                                          
+                                        case 6: 
+                                          $ele.find("#inimagen-web").attr("src",value);
                                           break;
-                                        case 6:
+                                        case 7:
                                           $ele.find("#incolor-web").val(value);
                                           break;
                                     }
@@ -729,108 +837,10 @@
                                   
                               }
 
-                        } 
+                            }            
 
-                    // LOAD PREVIEW
+                        }           
 
-                    } else if (window.type=="preview") {                             
-
-                        let modules_preview = docWeb.data().modules_preview;
-
-                        if (modules_preview != undefined) { 
-
-                            var plength = Object.keys(modules_preview).length;
-                            
-                            if (plength > 0 ) {
-
-                              var flags_preview = [];                                     
-
-                              for ($m in modules_preview) {
-
-                                let module_preview = modules_preview[$m];
-
-                                var $orig, name, flag;
-
-                                switch (module_preview.key) {
-                                  case "llamada":
-                                    $orig = $("#ori-llamada");                                                                
-                                    flag = 1;
-                                    break;
-                                  case "subtitulo":
-                                    $orig = $("#ori-subtitulo");                                                                
-                                    flag = 1;
-                                    break;
-                                  case "mensaje":
-                                    $orig = $("#ori-mensaje");                                                                
-                                    flag = 2;                                
-                                    break;
-                                  case "fondo":
-                                    $orig = $("#ori-fondo");                                                                
-                                    flag = 3;                                
-                                    break;
-                                  case "pie":
-                                    $orig = $("#ori-pie");                                                                
-                                    flag = 4;                                
-                                    break;
-                                  case "color-preview":
-                                    $orig = $("#ori-color-preview");                                                                
-                                    flag = 4;                                
-                                    break;
-                                }
-
-                                name = module_preview.key;
-
-                                var $ele = $orig.clone()
-                                  .addClass("dropped")
-                                  .css({"position": "static", "left": null, "right": null})                            
-                                  .appendTo( "#drop-area" );
-
-                                await drop_element($ele, name, $orig);                        
-                                
-                                flags_preview[flag] = [module_preview.value, $ele]; 
-
-                              } 
-                          
-                              for (flag in flags_preview) { 
-                                
-                                  let value = flags_preview[flag][0];
-                                  let $ele  = flags_preview[flag][1];
-
-                                  let f = parseInt(flag);
-
-                                  switch (f) {
-                                      case 1:
-                                        $ele.find("#inllamada").val(value);
-                                      break;
-                                      case 2:
-                                        $ele.find("#insubtitulo").val(value);
-                                      break;
-                                      case 3:                                      
-                                        tinymce.activeEditor.setContent(value);
-                                      break;
-                                      case 4:                                      
-                                        $ele.find('#inGrabar').prop('checked', value.rec);
-                                        $ele.find('#inLlamar').prop('checked', value.call);
-                                        $ele.find('#inWhatsapp').prop('checked', value.wa);
-                                        $ele.find('#inEmail').prop('checked', value.email);
-                                        break;
-                                      case 5:                               
-                                        $ele.find('#inMercado').prop('checked', value.rec);
-                                        $ele.find('#inRapi').prop('checked', value.call);
-                                        $ele.find('#inFacil').prop('checked', value.wa);
-                                        $ele.find('#inOtros').prop('checked', value.email);
-                                        break;                                       
-                                      case 6:
-                                        $ele.find("#incolor-web").val(value);
-                                        break;
-                                  }
-                              }
-
-                              GetHTML();
-
-                            }
-                        } 
-                      }
                     }
                   }
               });  
@@ -1488,9 +1498,9 @@
                                   _html += pagos;
                               }                         
                               break;
-                            case "color-web":
+                            case "color-preview":
                               count++;  
-                              let color = value = $(this).find("#incolor-web").val();     
+                              let color = value = $(this).find("#incolor-preview").val();     
                               $('#preview').css('background-color', color);                   
                               break;
                           }        
