@@ -102,15 +102,22 @@
                     <p class="help-block">Crear llamada a la acción</p>
                   </div>
 
+                  <div id="ori-subtitulo" class="form-group draggable">
+                    <label for="ori-for-subtitulo" ><b>Subtitulo</b></label>
+                    <input type="text" class="form-control" id="ori-insubtitulo">
+                    <p class="help-block">Subtitulo</p>
+                  </div>
+
                   <div id="ori-mensaje" class="form-group draggable">
                     <label for="ori-for-mensaje" ><b>Mensaje</b></label>  
                     <input id="ori-inmensaje" type="text" class="form-control">
                     <p>Crea el mensaje</p>                        
                   </div>
 
-                  <div id="ori-fondo" class="form-group draggable">
-                    <label for="ori-for-fondo" ><b>Imagen de fondo</b></label>                                            
-                    <input id="ori-infondo" type="file" accept=".jpg, .jpeg, .png">
+                  <div id="ori-imagen-preview" class="form-group draggable">
+                    <label for="ori-for-imagen-preview" ><b>Imagen</b></label>
+                    <input id="ori-inimagen-preview" type="file" name="files[]">
+                    <p class="help-block">Agregar imagen</p>
                   </div>
 
                   <div id="ori-pie" class="form-group draggable">
@@ -118,26 +125,25 @@
                     <div class="control-group">                        
                       <div class="controls span2">
                           <label class="checkbox">
-                            <input type="checkbox" id="inInfo"> + info
+                            <input type="checkbox" id="ori-inInfo"> + info
                           </label>
                           <label class="checkbox">
-                              <input type="checkbox" id="inConocer"> Conocer mas
+                              <input type="checkbox" id="ori-inDescuento"> Descuento
                           </label>
                           <label class="checkbox">
-                              <input type="checkbox" id="inFinanciar"> Financiar
+                              <input type="checkbox" id="ori-inReclamar"> Reclamar
                           </label>
                           <label class="checkbox">
-                              <input type="checkbox" id="inDesuscribir"> Desuscribir
+                              <input type="checkbox" id="ori-inContactar"> Contactar
                           </label>                            
                       </div>                        
                     </div>
                     <p class="help-block">Pie de preview</p>
-                  </div>   
+                  </div>                 
 
-                  <div id="ori-imagen-preview" class="form-group draggable">
-                    <label for="ori-for-imagen-preview" ><b>Imagen</b></label>
-                    <input id="ori-inimagen-preview" type="file" name="files[]">
-                    <p class="help-block">Agregar imagen</p>
+                  <div id="ori-fondo" class="form-group draggable">
+                    <label for="ori-for-fondo" ><b>Imagen de fondo</b></label>                                            
+                    <input id="ori-infondo" type="file" accept=".jpg, .jpeg, .png">
                   </div>
                   
                   <div id="ori-color-preview" class="form-group draggable">
@@ -343,6 +349,7 @@
           from_button : false,
           facturas : false,
           llamada : false,
+          subtitulo : false,
           mensaje : false
         };
       };
@@ -387,9 +394,7 @@
                   return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
               }
           }
-      };  
-
-      
+      };        
       
       window.LoadPreview = function() {      
         $("#preview").empty();
@@ -553,6 +558,14 @@
                             let textBefore = v.substring(0,  cursorPos );
                             let textAfter  = v.substring( cursorPos, v.length );
                             $('#inllamada').val( textBefore + variable + textAfter ); 
+
+                          } else if (active.subtitulo) {   
+
+                            let cursorPos = $('#insubtitulo').prop('selectionStart');
+                            let v = $('#insubtitulo').val();
+                            let textBefore = v.substring(0,  cursorPos );
+                            let textAfter  = v.substring( cursorPos, v.length );
+                            $('#insubtitulo').val( textBefore + variable + textAfter ); 
 
                           } else if (active.mensaje) {                
 
@@ -743,6 +756,10 @@
                                     $orig = $("#ori-llamada");                                                                
                                     flag = 1;
                                     break;
+                                  case "subtitulo":
+                                    $orig = $("#ori-subtitulo");                                                                
+                                    flag = 1;
+                                    break;
                                   case "mensaje":
                                     $orig = $("#ori-mensaje");                                                                
                                     flag = 2;                                
@@ -785,22 +802,25 @@
                                       case 1:
                                         $ele.find("#inllamada").val(value);
                                       break;
-                                      case 2:                                      
-                                        tinymce.activeEditor.setContent(value);
+                                      case 2:
+                                        $ele.find("#insubtitulo").val(value);
                                       break;
                                       case 3:                                      
+                                        tinymce.activeEditor.setContent(value);
+                                      break;
+                                      case 4:                                      
                                         $ele.find('#inGrabar').prop('checked', value.rec);
                                         $ele.find('#inLlamar').prop('checked', value.call);
                                         $ele.find('#inWhatsapp').prop('checked', value.wa);
                                         $ele.find('#inEmail').prop('checked', value.email);
                                         break;
-                                      case 4:                               
+                                      case 5:                               
                                         $ele.find('#inMercado').prop('checked', value.rec);
                                         $ele.find('#inRapi').prop('checked', value.call);
                                         $ele.find('#inFacil').prop('checked', value.wa);
                                         $ele.find('#inOtros').prop('checked', value.email);
                                         break;                                       
-                                      case 5:
+                                      case 6:
                                         $ele.find("#incolor-web").val(value);
                                         break;
                                   }
@@ -976,37 +996,38 @@
 
                   switch(name) {
 
-                    case "llamada":
-                      
-                      $ele.find("#ori-llamada").attr("id","llamada");
-                      $ele.find("#ori-for-llamada").attr("id","for-llamada");
-                      $ele.find("#ori-inllamada").attr("id","inllamada");
-
+                    case "llamada":                      
+                      $ele.filter("#ori-llamada").attr("id","llamada");
+                      $('label[for|="ori-for-llamada"]').attr('for', "for-llamada");
+                      $("#llamada").find("#ori-inllamada").attr("id","inllamada");                  
                       $ele.find("p").remove();
                       break;
 
-                    case "mensaje":
-                    
-                      $ele.find("#ori-mensaje").attr("id","mensaje");
-                      $ele.find("#ori-for-mensaje").attr("id","for-mensaje");
-                      let inmensaje = "inmensaje";
-                      $ele.find("#ori-inmensaje").attr("id",inmensaje);                      
+                    case "subtitulo":                      
+                      $ele.filter("#ori-subtitulo").attr("id","subtitulo");
+                      $('label[for|="ori-for-subtitulo"]').attr('for', "for-subtitulo");
+                      $("#subtitulo").find("#ori-insubtitulo").attr("id","insubtitulo");                  
+                      $ele.find("p").remove();
+                      break;
 
-                      $ele.find("p").remove();                   
-                      $ele.find("input").replaceWith(`<textarea id="${inmensaje}"></textarea>`);                              
-                      $ele.find("textarea").removeAttr('placeholder');
+                    case "mensaje":                    
+                      $ele.filter("#ori-mensaje").attr("id","mensaje");
+                      $('label[for|="ori-for-mensaje"]').attr('for', "for-mensaje");
+                      let inmensaje = "inmensaje";
+                      $("#mensaje").find("#ori-inmensaje").attr("id",inmensaje); 
+                      $ele.filter("p").remove();                   
+                      $("#mensaje").find("input").replaceWith(`<textarea id="${inmensaje}"></textarea>`);                              
+                      $("#mensaje").find("textarea").removeAttr('placeholder');
                       await InitTinyEMC(inmensaje);
                       break;
 
                     case "fondo":
-
-                      $ele.find("#ori-fondo").attr("id","fondo");  
-                      $ele.find("#ori-for-fondo").attr("id","for-fondo");  
-                      $ele.find("#ori-infondo").attr("id","infondo");                            
-
-                      $ele.find("p").remove(); 
-                      $ele.find("input").attr('id', 'inimage');                   
-                      $ele.find("input").change(function() {                      
+                      $ele.filter("#ori-fondo").attr("id","fondo");  
+                      $('label[for|="ori-for-fondo"]').attr('for', "for-fondo");                      
+                      $("#fondo").find("#ori-infondo").attr("id","infondo");                            
+                      $ele.filter("p").remove(); 
+                      $("#fondo").find("input").attr('id', 'inimage');                   
+                      $("#fondo").find("input").change(function() {                      
                           if (this.files && this.files[0]) {
                             saveImage(files);
                           }
@@ -1014,26 +1035,38 @@
                       break;
 
                       case "imagen-preview":
-
-                        $ele.find("#ori-imagen-preview").attr("id","imagen-preview");
-                        $ele.find("#ori-for-imagen-preview").attr("id","for-imagen-preview");
-
-                        $ele.find("p").remove(); 
-                        $ele.find("input").attr('id', 'inimage-preview');                   
-                        $ele.find("input").change(function() {                      
+                        $ele.filter("#ori-imagen-preview").attr("id","imagen-preview");
+                        $ele.filter("#ori-for-imagen-preview").attr("id","for-imagen-preview");
+                        $ele.filter("p").remove(); 
+                        $ele.filter("input").attr('id', 'inimage-preview');                   
+                        $ele.filter("input").change(function() {                      
                             if (this.files && this.files[0]) {
                               saveImage(files);
                             }
                         });
                         break;  
 
+                      case "pie":
+                        $ele.filter("#ori-pie").attr("id","pie");
+                        $('label[for|="ori-for-pie"]').attr('for', "for-pie");                                             
+                        $("#pie").find("#ori-pie").attr("id","inpie");                        
+                        $("#pie").find("#ori-inInfo").attr("id","inInfo");
+                        $("#pie").find("#ori-inDescuento").attr("id","inDescuento");
+                        $("#pie").find("#ori-inReclamar").attr("id","inReclamar");
+                        $("#pie").find("#ori-inContactar").attr("id","inContactar");
+                        $ele.find("p").remove();      
+                        $('#pie input[type="checkbox"]').click(function(){
+                          GetHTML();
+                        });
+                        break;
+
                     case "color-preview":
 
-                      $ele.find("#ori-color-preview").attr("id","color-preview");
-                      $ele.find("#ori-for-color-preview").attr("id","color-preview");
+                      $ele.filter("#ori-color-preview").attr("id","color-preview");
+                      $ele.filter("#ori-for-color-preview").attr("id","color-preview");
 
-                      $ele.find("p").remove();
-                      $ele.find("input").attr('id', 'incolor-preview');                 
+                      $ele.filter("p").remove();
+                      $ele.filter("input").attr('id', 'incolor-preview');                 
                       $('#incolor-preview').colorpicker();                        
                       $('#incolor-preview').on('colorpickerChange', function(event) {
                         let c = event.color.toString();
@@ -1052,7 +1085,8 @@
 
                       $("#inllamada").focus(function() {
                         $(this).css("background-color", "#EFF0F1");                                       
-                        active.mensaje     = false;                                             
+                        active.mensaje      = false;                                             
+                        active.subtitulo    = false;                                             
                         active.from_button  = false;
                         active.llamada      = true;
                       });
@@ -1068,46 +1102,63 @@
                         GetHTML();
                       });
 
+                      $("#insubtitulo").focus(function() {
+                        $(this).css("background-color", "#EFF0F1");                                       
+                        active.mensaje      = false;                                             
+                        active.from_button  = false;
+                        active.llamada      = false;
+                        active.subtitulo    = true; 
+                      });
+
+                      $("#insubtitulo").blur(function() {
+                        $(this).css("background-color", "white");
+                        if (active.from_button) {
+                          active.subtitulo = false;
+                        }
+                      });
+
+                      $("#insubtitulo").change(function() {
+                        GetHTML();
+                      });
+
                       clearTimeout(timer);
 
                       resolve();
 
-                    }, 100);
+                    }, 500);
 
                 } else if (window.type=="web") {
                  
                   switch (name) {
 
-                    case "saludo":
+                    case "saludo":                      
 
-                      $ele.find("#ori-saludo").attr("id","saludo");
-                      $ele.find("#ori-for-saludo").attr("id","for-saludo");
-                      $ele.find("#ori-insaludo").attr("id","insaludo");
-
+                      $ele.filter("#ori-saludo").attr("id","saludo");
+                      $('label[for|="ori-for-saludo"]').attr('for', "for-saludo");
+                      $("#saludo").find("#ori-insaludo").attr("id","insaludo");       
                       $ele.find("p").remove();
                       break;
 
                     case "cuerpo":
 
-                      $ele.find("#ori-cuerpo").attr("id","cuerpo");
-                      $ele.find("#ori-for-cuerpo").attr("id","for-cuerpo");
+                      $ele.filter("#ori-cuerpo").attr("id","cuerpo");
+                      $('label[for|="ori-for-cuerpo"]').attr('for', "for-cuerpo");                      
                       let incuerpo = "incuerpo";
-                      $ele.find("#ori-incuerpo").attr("id",incuerpo);
-
-                      $ele.find("p").remove();                   
-                      $ele.find("input").replaceWith(`<textarea id="${incuerpo}"></textarea>`);                              
-                      $ele.find("textarea").removeAttr('placeholder');
+                      $("#cuerpo").find("#ori-incuerpo").attr("id",incuerpo); 
+                      $ele.filter("p").remove();                   
+                      $("#cuerpo").find("input").replaceWith(`<textarea id="${incuerpo}"></textarea>`);                              
+                      $("#cuerpo").find("textarea").removeAttr('placeholder');         
                       await InitTinyEMC(incuerpo);
                       break;
 
-                    case "contacto":
+                    case "contacto":                     
 
-                      $ele.find("#ori-contacto").attr("id","contacto");  
-                      $ele.find("#ori-for-contacto").attr("id","for-contacto");
-                      $ele.find("#ori-inGrabar").attr("id","inGrabar");
-                      $ele.find("#ori-inLlamar").attr("id","inLlamar");
-                      $ele.find("#ori-inWhatsapp").attr("id","inWhatsapp");
-                      $ele.find("#ori-inEmail").attr("id","inEmail");
+                      $ele.filter("#ori-contacto").attr("id","contacto");
+                      $('label[for|="ori-for-contacto"]').attr('for', "for-contacto");              
+                      $("#contacto").find("#ori-inGrabar").attr("id","inGrabar");
+                      $("#contacto").find("#ori-inLlamar").attr("id","inLlamar");
+                      $("#contacto").find("#ori-inWhatsapp").attr("id","inWhatsapp");
+                      $("#contacto").find("#ori-inEmail").attr("id","inEmail");
 
                       $ele.find("p").remove();   
                       $('#contacto input[type="checkbox"]').click(function(){
@@ -1115,14 +1166,14 @@
                       });         
                       break;
 
-                    case "pagos":
+                    case "pagos":    
 
-                      $ele.find("#ori-pagos").attr("id","pagos");
-                      $ele.find("#ori-for-pagos").attr("id","for-pagos");
-                      $ele.find("#ori-inpagos").attr("id","inpagos");
-                      $ele.find("#ori-inMercado").attr("id","inMercado");
-                      $ele.find("#ori-inFacil").attr("id","inFacil");
-                      $ele.find("#ori-inOtros").attr("id","inOtros");
+                      $ele.filter("#ori-pagos").attr("id","pagos");
+                      $('label[for|="ori-for-pagos"]').attr('for', "for-pagos");             
+                      $("#pagos").find("#ori-inpagos").attr("id","inpagos");
+                      $("#pagos").find("#ori-inMercado").attr("id","inMercado");
+                      $("#pagos").find("#ori-inFacil").attr("id","inFacil");
+                      $("#pagos").find("#ori-inOtros").attr("id","inOtros");
 
                       $ele.find("p").remove();      
                       $('#pagos input[type="checkbox"]').click(function(){
@@ -1131,13 +1182,13 @@
                       break;
 
                     case "facturas":
-
-                      $ele.find("#ori-facturas").attr("id","facturas");
-                      $ele.find("#ori-for-facturas").attr("id","for-facturas");
-                      $ele.find("#ori-infacturas").attr("id","infacturas");
-                      $ele.find("#ori-inMonto").attr("id","inMonto");
-                      $ele.find("#ori-inDetalle").attr("id","inDetalle");
-                      $ele.find("#ori-inDescargar").attr("id","inDescargar");
+                      
+                      $ele.filter("#ori-facturas").attr("id","facturas");
+                      $('label[for|="ori-for-facturas"]').attr('for', "for-facturas");                      
+                      $("#facturas").find("#ori-infacturas").attr("id","infacturas");
+                      $("#facturas").find("#ori-inMonto").attr("id","inMonto");
+                      $("#facturas").find("#ori-inDetalle").attr("id","inDetalle");
+                      $("#facturas").find("#ori-inDescargar").attr("id","inDescargar");
 
                       $ele.find("p").remove();      
                       $('#facturas input[type="checkbox"]').click(function(){
@@ -1146,13 +1197,12 @@
                       break;
 
                     case "imagen-web":
-
-                      $ele.find("#ori-imagen-web").attr("id","imagen-web");
-                      $ele.find("#ori-for-imagen-web").attr("id","for-imagen-web");
-
-                      $ele.find("p").remove(); 
-                      $ele.find("input").attr('id', 'inimage-web');                   
-                      $ele.find("input").change(function() {                      
+                      
+                      $ele.filter("#ori-imagen-web").attr("id","imagen-web");
+                      $('label[for|="ori-for-imagen-web"]').attr('for', "for-imagen-web");                      
+                      $ele.filter("p").remove(); 
+                      $("#imagen-web").find("input").attr('id', 'inimage-web');                   
+                      $("#imagen-web").find("input").change(function() {                      
                           if (this.files && this.files[0]) {
                             saveImage(files);
                           }
@@ -1160,12 +1210,12 @@
                       break;
 
                     case "color-web":
-
-                      $ele.find("#ori-color-web").attr("id","color-web");
-                      $ele.find("#ori-for-color-web").attr("id","color-web");
-
-                      $ele.find("p").remove();
-                      $ele.find("input").attr('id', 'incolor-web');                 
+                      
+                      $ele.filter("#ori-color-web").attr("id","color-web");
+                      $('label[for|="ori-for-color-web"]').attr('for', "for-color-web");                                      
+                      
+                      $ele.filter("p").remove();
+                      $("#color-web").find("input").attr('id', 'incolor-web');                 
                       $('#incolor-web').colorpicker();                        
                       $('#incolor-web').on('colorpickerChange', function(event) {
                         let c = event.color.toString();
@@ -1224,8 +1274,7 @@
 
                     resolve();
 
-                  }, 100);
-
+                  }, 500);
 
                 } 
 
@@ -1399,16 +1448,33 @@
                             case "llamada":
                               count++;
                               let inllamada  = value = $(this).find("#inllamada").val();
-                              let llamada   =  `<h3 style="margin-bottom: 30px;"><p class="font-weight-bold">
-                                            ${inllamada}</p></h3>`;
+                              let llamada   =  `<div class="card"><div class="card-block">
+                                                <h4 class="card-title">${inllamada}</h4>`;
                               _html += llamada;                                                                
+                              break;
+                            case "subtitulo":
+                              count++;
+                              let insubtitulo  = value = $(this).find("#insubtitulo").val();
+                              let subtitulo   =  `<h6 class="card-subtitle text-muted">${insubtitulo}</h6>`;                                                
+                              _html += subtitulo;                                                                
                               break;
                             case "mensaje":
                               count++;
                               let inmensaje = value = tinymce.activeEditor.getContent();
-                              let mensaje   =  `<div style="margin-bottom: 40px;">
-                                          ${inmensaje}</div>`;
+                              let mensaje   =  `<p class="card-text p-y-1">${inmensaje}</p>`;                                          
                               _html += mensaje;
+                              break;                            
+                            case "pie":
+                              count++;   
+                              let inInfo        = $('#inInfo').prop('checked');             
+                              let inDescuento     = $('#inDescuento').prop('checked');
+                              let inReclamar   = $('#inReclamar').prop('checked');
+                              let inContactar = $('#inContactar').prop('checked');                                
+                              value = JSON.parse(`{"inf":${inInfo}, "con":${inDescuento}, "fin":${inReclamar}, "des":${inContactar}}`);                                                       
+                              let pie = getPie(value);
+                              if (pie!=undefined) {
+                                  _html += pie;
+                              }
                               break;
                             case "fondo":
                               count++;                
@@ -1420,18 +1486,6 @@
                               let pagos = getPagos();
                               if (pagos!=undefined) {
                                   _html += pagos;
-                              }                         
-                              break;
-                            case "pie":
-                              count++;                
-                              let inGrabar    = $('#inGrabar').prop('checked');
-                              let inLlamar    = $('#inLlamar').prop('checked');
-                              let inWhatsapp  = $('#inWhatsapp').prop('checked');
-                              let inEmail     = $('#inEmail').prop('checked');                        
-                              value = JSON.parse(`{"rec":${inGrabar}, "call":${inLlamar}, "wa":${inWhatsapp}, "email":${inEmail}}`);
-                              let contacto = getContacto();
-                              if (contacto!=undefined) {
-                                  _html += contacto;
                               }                         
                               break;
                             case "color-web":
@@ -1447,38 +1501,18 @@
 
                           if (count_drop == count) {                                     
 
-                            let comupulsory = `
-                            <footer class="footer">
-                              <div class="container">` +
-                                /*<hr>
-                                <div class="row">
-                                  <div class="col-sm-2"/>                        
-                                  <div class="col-sm-8">
-                                    <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
-                                  </div>
-                                  <div class="col-sm-2"/>
-                                </div>*/
-                                `<hr>              
-                                <div class="row">
-                                  <div class="col-sm-2"/>                        
-                                  <div class="col-sm-8">
-                                    <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
-                                  </div>
-                                  <div class="col-sm-2"/>
-                                </div>
-                                <br>
-                              </div>
-                            </footer>`;
-
-                            _html += comupulsory;
+                            _html += `<a href="#" class="card-link">Desuscribir -></a>`;
+                            _html += `</div></div>`;                            
                             _html = replaceVariables(_html);
                             $("#preview").html(_html);                                                               
 
                             resolve([_html, modules]);
 
-                        }  
+                          }  
 
                       }
+
+                      ///https://codepen.io/modelsofidentity/pen/gRaXPg/
              
                 } catch (e) {
                     console.error(e);
@@ -1492,6 +1526,34 @@
             return htmlPromise;
 
           };        
+
+          function getPie(value) {
+
+            let _html = "";            
+
+            if (value.inf){
+              let info = $('#inInfo').closest('label').text();
+              _html += `<a href="#" class="card-link">${info}</a>`;
+            }                              
+            
+            if (value.con){
+              let cono = $('#inDescuento').closest('label').text();
+              _html += `<a href="#" class="card-link">${cono}</a>`;
+            }
+            
+            if (value.fin){
+              let fina = $('#inReclamar').closest('label').text();
+              _html += `<a href="#" class="card-link">${fina}</a>`;
+            }
+            
+            if (value.des){
+              let desc = $('#inContactar').closest('label').text();
+              _html += `<a href="#" class="card-link">${desc}</a>`;
+            }
+
+            return _html;
+
+          };
 
           function getPagos() {
 
@@ -1656,7 +1718,7 @@
             for (var key of Object.keys(data)) {                
               let nombre = "{" + key + "}";
               let datos = data[key]["datos"];
-              _html = _html.replace(nombre, datos);             
+              _html = _html.replaceAll(nombre, datos);             
             }
             return _html;
           }
@@ -1786,6 +1848,7 @@
                   if (window.type=="preview") {
                     active.mensaje      = true;
                     active.llamada      = false;
+                    active.subtitulo    = false;
                   } else if (window.type=="web") {
                     active.cuerpo       = true;
                     active.saludo       = false;
