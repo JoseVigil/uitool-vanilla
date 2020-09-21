@@ -285,8 +285,9 @@
         <div class="col-md-4">
           <div class="column-background">
             <div class="form-group draggable">
-              <div id="preview">            
-                
+              <div class="pb-2" id="preview-preview">             
+              </div>
+              <div class="pt-2" id="preview-web">             
               </div>
             </div>
           </div>
@@ -396,8 +397,11 @@
           }
       };        
       
-      window.LoadPreview = function() {      
-        $("#preview").empty();
+      window.LoadPreview = function() {  
+        if (tinymce.activeEditor) {                  
+          tinymce.activeEditor.destroy();
+        }
+        $("#preview-preview").empty();        
         $("#drop-area").empty();               
         count_drop=0;
         window.type = "preview";
@@ -405,8 +409,11 @@
         LoadTypes(window.docDesign);
       }
 
-      window.LoadWeb = function() {         
-        $("#preview").empty();
+      window.LoadWeb = function() {     
+        if (tinymce.activeEditor) {                  
+          tinymce.activeEditor.destroy();
+        }            
+        $("#preview-web").empty();
         $("#drop-area").empty();   
         count_drop=0;
         window.type = "web";
@@ -608,23 +615,11 @@
                 .doc(window.designId).get()
                 .then( async function(docWeb) { 
 
-                  if (docWeb.exists) {                        
+                  if (docWeb.exists) { 
 
-                    let inputs_web_base = docWeb.data().inputs_web; 
-
-                    if (inputs_web_base != undefined) {
-                      
-                      let html = docWeb.data().html_web;
-                      let public_image_web = docWeb.data().public_image_web;
-                      let img = `<img src="${public_image_web}"/>`;
-                      
-                      $("#web-image").remove();
-                      $("#web").append(img);
-
-                      if (window.type=="preview") {                             
-
-                        let modules_preview = docWeb.data().modules_preview;
-
+                    if (window.type=="preview") {                      
+                   
+                        let modules_preview = docWeb.data().inputs_preview;
                         if (modules_preview != undefined) { 
 
                             var plength = Object.keys(modules_preview).length;
@@ -731,8 +726,14 @@
                       } else if (window.type=="web") { 
                       
                         let modules_web = docWeb.data().inputs_web; 
-
                         if (modules_web!=undefined) {
+
+                            let html = docWeb.data().html_preview;
+                            let public_image_web = docWeb.data().public_image_web;
+                            let img = `<img src="${public_image_web}"/>`;
+                            
+                            $("#web-image").remove();
+                            $("#web").append(img);
 
                             var mlength = Object.keys(modules_web).length;
                         
@@ -835,14 +836,13 @@
 
                                 GetHTML();
                                   
-                              }
+                            }
 
-                            }            
+                          }                                               
 
-                        }           
-
-                    }
-                  }
+                      }
+                 }
+                  
               });  
           }   
         
@@ -854,43 +854,73 @@
               let _html_ = inputsHtml[0];
               var modules = inputsHtml[1];
 
-              var background_color; 
-              for ($m in modules) {
-                let module = modules[parseInt($m)];                              
-                if (module.key == "color-web") {
-                  background_color = module.value;
-                }
-              }             
-                
-              var _html = _html_.replace(/\n|\t/g, ' '); //break    
+              var _time =  new Date();  
+
+              var _html = _html_.replace(/\n|\t/g, ' ');   //break    
               _html = _html.replace(/\>[\t ]+\</g, "><");  // whitespace between tags       
 
-              var _time =  new Date();   
-              
-              var image_width         = $("#preview").width();
-              var image_height        = $("#preview").height() + 60;
-              //var image_name          = "sample"; //CAMBIAR
+              var background_color; 
+              var payload;
 
               let docPath = window.documentPath + "/designs/" + window.designId;              
               const encodedPath = window.btoa(docPath);
+              var htmlRef = db.doc(docPath); 
 
-              var webRef = db.doc(docPath);  
+              if (window.type=="preview") {
 
-              let payload = {        
-                html_web: _html,
-                inputs_web: modules,                
-                encoded_path: encodedPath,
-                image_width_web: image_width,
-                image_height_web: image_height,
-                last_update: _time,                
-                web_update: true                
-              };
+                for ($m in modules) {
+                  let module = modules[parseInt($m)];                              
+                  if (module.key == "color-preview") {
+                    background_color = module.value;
+                  }
+                }     
 
-              if (background_color) {
-                payload.background_color_web = background_color;
-              }              
+                var image_width         = $("#preview-preview").width();
+                var image_height        = $("#preview-preview").height() + 60;          
 
-              webRef.set(payload,{ merge: true }).then(docRefSet => {
+                payload = {        
+                  html_preview: _html,
+                  inputs_preview: modules,                
+                  encoded_path: encodedPath,
+                  image_width_preview: image_width,
+                  image_height_preview: image_height,
+                  last_update: _time,                
+                  preview_update: true                
+                };
+
+                if (background_color) {
+                  payload.background_color_preview = background_color;
+                } 
+
+              } else if (window.type=="web") {
+                
+                for ($m in modules) {
+                  let module = modules[parseInt($m)];                              
+                  if (module.key == "color-web") {
+                    background_color = module.value;
+                  }
+                }               
+                
+                var image_width         = $("#preview-web").width();
+                var image_height        = $("#preview-web").height() + 60;          
+
+                payload = {        
+                  html_web: _html,
+                  inputs_web: modules,                
+                  encoded_path: encodedPath,
+                  image_width_web: image_width,
+                  image_height_web: image_height,
+                  last_update: _time,                
+                  web_update: true                
+                };
+
+                if (background_color) {
+                  payload.background_color_web = background_color;
+                }   
+
+              }      
+
+              htmlRef.set(payload,{ merge: true }).then(docRefSet => {
 
                   $('#alert-content').text('La web de la campaña ' + window.camapignId + ' se ha guardado con exito.');
                   $('#alertModal').modal('show');
@@ -1052,6 +1082,7 @@
                         $ele.filter("input").change(function() {                      
                             if (this.files && this.files[0]) {
                               saveImage(files);
+                              //$('.YourContainer').css('background-image','url(http://images.visitcanberra.com.au/images/canberra_hero_image.jpg)');
                             }
                         });
                         break;  
@@ -1073,15 +1104,16 @@
                     case "color-preview":
 
                       $ele.filter("#ori-color-preview").attr("id","color-preview");
-                      $ele.filter("#ori-for-color-preview").attr("id","color-preview");
+                      $('label[for|="ori-for-color-preview"]').attr('for', "for-color-preview");   
 
                       $ele.filter("p").remove();
-                      $ele.filter("input").attr('id', 'incolor-preview');                 
+                      $("#color-preview").find("input").attr('id', 'incolor-preview');                 
                       $('#incolor-preview').colorpicker();                        
                       $('#incolor-preview').on('colorpickerChange', function(event) {
                         let c = event.color.toString();
-                        $( "#color" ).data( "data-color", c );
-                        $('#preview').css('background-color', c);
+                        $( "#color-preview" ).data( "data-color", c );
+                        $('.card').css('background-color', c);
+                        //https://stackoverflow.com/questions/60960096/can-bootstrap-4-cards-have-tiled-background-images
                       });
                       break;
 
@@ -1230,7 +1262,7 @@
                       $('#incolor-web').on('colorpickerChange', function(event) {
                         let c = event.color.toString();
                         $( "#color-web" ).data( "data-color", c );
-                        $('#preview').css('background-color', c);
+                        $('#preview-web').css('background-color', c);
                       });
                       break;
                       
@@ -1330,7 +1362,8 @@
             const htmlPromise = new Promise(async (resolve, reject) => {  
 
               var count = 0;
-              var _html = "";
+              var _html_preview = "";
+              var _html_web = "";
               var modules = {};
 
                $('#drop-area').children('div').each(function(index, value) { 
@@ -1350,14 +1383,14 @@
                             let insaludo = value = $(this).find("#insaludo").val();
                             let saludo =  `<h3 style="margin-bottom: 50px;"><p class="font-weight-bold">
                                           ${insaludo}</p></h3>`;
-                            _html += saludo;                                                                
+                            _html_web += saludo;                                                                
                             break;
                           case "cuerpo":
                             count++;
                             let inscuerpo = value = tinymce.activeEditor.getContent();
                             let cuerpo =  `<div style="margin-bottom: 40px;">
                                         ${inscuerpo}</div>`;
-                            _html += cuerpo;
+                            _html_web += cuerpo;
                             break;
                           case "pagos":
                             count++;                
@@ -1368,7 +1401,7 @@
                             value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
                             let pagos = getPagos();
                             if (pagos!=undefined) {
-                                _html += pagos;
+                                _html_web += pagos;
                             }                         
                             break;
                           case "contacto":
@@ -1380,7 +1413,7 @@
                             value = JSON.parse(`{"rec":${inGrabar}, "call":${inLlamar}, "wa":${inWhatsapp}, "email":${inEmail}}`);
                             let contacto = getContacto();
                             if (contacto!=undefined) {
-                                _html += contacto;
+                              _html_web += contacto;
                             }                         
                             break;
                           case "facturas":
@@ -1396,7 +1429,7 @@
                             value = JSON.parse(`{${fact}"des":${inDescargar}, "det":${inDetalle}, "mon":${inMonto}}`);                            
                             let facturas = getFacturas(value, infactura);
                             if (facturas!=undefined) {
-                                _html += facturas;
+                              _html_web += facturas;
                             }                         
                             break;
                           case "imagen":
@@ -1405,13 +1438,13 @@
                               let inimagen =  `<div style="width:100%; height:100%">
                                               <img style="margin-left: auto;  margin-right: auto; display: block; width: 50%;"
                                               src="${target_result}"></div>`;
-                              _html += inimagen;
+                              _html_web += inimagen;
                             }
                             break;
                           case "color-web":
                             count++;  
                             let color = value = $(this).find("#incolor-web").val();     
-                            $('#preview').css('background-color', color);                   
+                            $('#preview-web').css('background-color', color);                   
                             break;
                         }        
 
@@ -1444,11 +1477,11 @@
                             </div>
                           </footer>`;
 
-                          _html += comupulsory;
-                          _html = replaceVariables(_html);
-                          $("#preview").html(_html);                                                               
+                          _html_web += comupulsory;
+                          _html_web = replaceVariables(_html_web);
+                          $("#preview-web").html(_html_web);                                                               
 
-                          resolve([_html, modules]);
+                          resolve([_html_web, modules]);
 
                         }  
 
@@ -1460,19 +1493,19 @@
                               let inllamada  = value = $(this).find("#inllamada").val();
                               let llamada   =  `<div class="card"><div class="card-block">
                                                 <h4 class="card-title">${inllamada}</h4>`;
-                              _html += llamada;                                                                
+                              _html_preview += llamada;                                                                
                               break;
                             case "subtitulo":
                               count++;
                               let insubtitulo  = value = $(this).find("#insubtitulo").val();
                               let subtitulo   =  `<h6 class="card-subtitle text-muted">${insubtitulo}</h6>`;                                                
-                              _html += subtitulo;                                                                
+                              _html_preview += subtitulo;                                                                
                               break;
                             case "mensaje":
                               count++;
                               let inmensaje = value = tinymce.activeEditor.getContent();
                               let mensaje   =  `<p class="card-text p-y-1">${inmensaje}</p>`;                                          
-                              _html += mensaje;
+                              _html_preview += mensaje;
                               break;                            
                             case "pie":
                               count++;   
@@ -1483,7 +1516,7 @@
                               value = JSON.parse(`{"inf":${inInfo}, "con":${inDescuento}, "fin":${inReclamar}, "des":${inContactar}}`);                                                       
                               let pie = getPie(value);
                               if (pie!=undefined) {
-                                  _html += pie;
+                                _html_preview += pie;
                               }
                               break;
                             case "fondo":
@@ -1495,13 +1528,13 @@
                               value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
                               let pagos = getPagos();
                               if (pagos!=undefined) {
-                                  _html += pagos;
+                                _html_preview += pagos;
                               }                         
                               break;
                             case "color-preview":
                               count++;  
                               let color = value = $(this).find("#incolor-preview").val();     
-                              $('#preview').css('background-color', color);                   
+                              $('#preview-preview').css('background-color', color);                   
                               break;
                           }        
 
@@ -1511,12 +1544,14 @@
 
                           if (count_drop == count) {                                     
 
-                            _html += `<a href="#" class="card-link">Desuscribir -></a>`;
-                            _html += `</div></div>`;                            
-                            _html = replaceVariables(_html);
-                            $("#preview").html(_html);                                                               
+                            _html_preview += `<a href="#" class="card-link">Desuscribir -></a>`;
+                            _html_preview += `</div></div>`;                            
+                            _html_preview = replaceVariables(_html_preview);
 
-                            resolve([_html, modules]);
+
+                            $("#preview-preview").html(_html_preview);                                                               
+
+                            resolve([_html_preview, modules]);
 
                           }  
 
