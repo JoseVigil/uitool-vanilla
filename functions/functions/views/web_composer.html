@@ -711,7 +711,8 @@
                                           $ele.find("#inimagen-preview").attr("src",value);
                                           break;                                      
                                       case 7:
-                                        $ele.find("#incolor-preview").val(value);
+                                        //$ele.find("#incolor-preview").val(value);
+                                        $ele.find(".card").val(value);
                                         break;
                                   }
                               }
@@ -834,12 +835,10 @@
                                     }
                                 }
 
-                                GetHTML();
-                                  
+                                GetHTML();                                  
                             }
 
                           }                                               
-
                       }
                  }
                   
@@ -875,15 +874,15 @@
                   }
                 }     
 
-                var image_width         = $("#preview-preview").width();
+                var image_width         = 600; //$("#preview-preview").width();
                 var image_height        = $("#preview-preview").height() + 60;          
 
                 payload = {        
                   html_preview: _html,
                   inputs_preview: modules,                
                   encoded_path: encodedPath,
-                  image_width_preview: image_width,
-                  image_height_preview: image_height,
+                  image_width_preview: parseInt(image_width),
+                  image_height_preview: parseInt(image_height),
                   last_update: _time,                
                   preview_update: true                
                 };
@@ -908,8 +907,8 @@
                   html_web: _html,
                   inputs_web: modules,                
                   encoded_path: encodedPath,
-                  image_width_web: image_width,
-                  image_height_web: image_height,
+                  image_width_web: parseInt(image_width),
+                  image_height_web: parseInt(image_height),
                   last_update: _time,                
                   web_update: true                
                 };
@@ -1470,6 +1469,13 @@
                                 <div class="col-sm-2"/>                        
                                 <div class="col-sm-8">
                                   <button type="button" class="btn btn-secondary col-12">No soy esa persona</button>
+                                </div>
+                                <div class="col-sm-2"/>
+                              </div>
+                              <div class="row pt-4">
+                                <div class="col-sm-2"/>                        
+                                <div class="col-sm-8">
+                                  <button type="button" class="btn btn-primary col-12">Desuscribir</button>
                                 </div>
                                 <div class="col-sm-2"/>
                               </div>

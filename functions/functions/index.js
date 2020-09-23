@@ -18,6 +18,8 @@
     const express = require('express');
     var engines = require('consolidate');   
 
+    const fs = require('fs'); 
+
     //const readXlsxFile = require('read-excel-file/node');
 
     /**
@@ -86,9 +88,9 @@
 
         console.log("req.path:", req.path); 
         
-        var path = req.path.split('/')[1];
+        var pathParam = req.path.split('/')[1];
 
-        console.log("req.path.split('/')[1]:" + path);       
+        console.log("pathParam:" + pathParam);       
         
         const pathParams = req.path.split('/');
         var module = pathParams[2];
@@ -102,7 +104,7 @@
 
         var static_url;     
 
-        if ( path === OPTION_COMPOSER ) {
+        if ( pathParam === OPTION_COMPOSER ) {
         
           switch (module) {
             case "campaign":
@@ -115,24 +117,58 @@
               static_url = 'preview_composer.html';        
               break;  
             case "thumbnail":
-              static_url = 'noti.html';
+              static_url = 'thumbnail.html';
               break;
             default:
               static_url = 'composer.html';
               break;              
           }
 
-        } else {
+          if (urlParams) {
+            return res.render(static_url, urlParams); 
+          } else {
+            return res.render(static_url); 
+          }
 
-          urlParams = "?path=/apps/" + pathParams[1];
-          static_url = 'noti.html';
+        } else {         
           
-        }
+          const userAgent = req.headers['user-agent'].toLowerCase();
 
-        if (urlParams) {
-          return res.render(static_url, urlParams); 
-        } else {
-          return res.render(static_url); 
+          let views = path.join(__dirname, 'views');      
+          let indexHTML = fs.readFileSync(views + '/noti.html').toString();     
+
+          let appPath = "apps/" + pathParam;
+
+          console.log("appPath: " + appPath);
+
+          firestore.doc(appPath)
+          .get().then(document => {
+                          
+              var ogPlaceholder = '<meta name="functions-insert-dynamic-og">';          
+              var DesignAppIdPlaceholder = "<functions-path-design-app-id>";       
+
+                let meta_title = document.data().meta_title;
+                let meta_desc = document.data().meta_desc;
+                let meta_image = document.data().meta_image;
+                let path_design = document.data().path_design;
+
+                let html_meta = getOpenGraph(meta_image, meta_desc, meta_title);
+
+                console.log(html_meta);
+                
+                indexHTML = indexHTML.replace(ogPlaceholder, html_meta);
+                indexHTML = indexHTML.replace(DesignAppIdPlaceholder, path_design);         
+
+                res.status(200).send(indexHTML);    
+                
+                return indexHTML;
+
+          }).catch((error) => {
+            console.log("error: " + error);
+            return error;
+
+          });
+
         }
 
         function getJsonFromUrl(url) {
@@ -147,6 +183,25 @@
         }
        
     });
+
+    const defaultDesc = 'The mobsters, bootleggers and gangsters of the 1920s and 30s, such as Al Capone, Lucky Luciano, and Bugs Moran.';
+    const defaultTitle = 'Original Gangsters';
+    const defaultLogo = 'https://example.com/images/headerHQ.jpg';
+
+    const getOpenGraph = (image, desc, title) => {
+      let og = `<meta property="fb:app_id" content="921373517372" />`;
+      og += `<meta property="og:type" content="website" />`;      
+      og += `<meta property="og:title" content="${title}" />`;
+      og += `<meta property="og:description" content="${desc}" />`;
+      og += `<meta property="og:image" content="${image}" />`;
+      og += `<meta property="og:url" content="https://example.com" />`;
+      return og;      
+    };
+
+    const getMeta = () => {
+      // return other meta tags
+    };
+
 
     exports.app = functions.https.onRequest(app);
 
@@ -315,6 +370,8 @@
            
             //http://localhost:5000/export/cobranzas
             //https://noti.ms/export/cobranzas                 
+
+            //.backup(collection)
   
             try {
   
@@ -409,7 +466,62 @@
     }); 
 
 
+    exports.buildimage = functions.https.onRequest(async (request, response) => {
+        
 
+        console.log("ENTRA : BuildImage");
+
+        response.set("Access-Control-Allow-Origin", "*");
+        response.set("Access-Control-Allow-Credentials", "true"); // vital
+
+        try {
+
+            if (request.method === "OPTIONS") {
+
+            // Send response to OPTIONS requests
+            response.set("Access-Control-Allow-Methods", "GET");
+            response.set("Access-Control-Allow-Headers", "Content-Type");
+            response.set("Access-Control-Max-Age", "3600");
+            response.status(204).send("");
+
+            } else {
+
+            const data = request.body;
+            const type = data.type;
+            data.autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
+
+            var build_image_web = `{
+                        "method": "POST",
+                        "uri": "https://us-central1-notims.cloudfunctions.net/backend/buildimage/${type}", 
+                        "timeout": "10000",
+                        "body": {
+                        "data" : ${JSON.stringify(data)}                  
+                        },
+                        "json": true 
+                    }`;
+
+            let _json = JSON.parse(build_image_web);
+
+            await rp(_json)
+                .then(async (response_image) => {
+                  console.log("response: " + JSON.stringify(response_image));
+                  response.status(200).send(response_image);
+                  return response_image;
+                })
+                .catch((error) => {
+                  console.log("error: " + error);
+                  response.status(500).send({ error: error });
+                  return error;
+                });
+
+            }
+
+        } catch (e) {
+            console.error(e);
+            return e;
+        }
+
+    });
 
 
 
