@@ -709,55 +709,7 @@
             return res.status(400).send({ error: err });
         });
     };
-
-    exports.buildimage = functions.https.onRequest(async (request, response) => {
-        
-        console.log("ENTRA : BuildImage");
-
-        response.set("Access-Control-Allow-Origin", "*");
-        response.set("Access-Control-Allow-Credentials", "true"); // vital
-
-        try {
-            if (request.method === "OPTIONS") {
-            // Send response to OPTIONS requests
-            response.set("Access-Control-Allow-Methods", "GET");
-            response.set("Access-Control-Allow-Headers", "Content-Type");
-            response.set("Access-Control-Max-Age", "3600");
-            response.status(204).send("");
-            } else {
-            const data = request.body;
-            const type = data.type;
-            data.autorization = "YWRtaW46Tm90aW1hdGlvbjIwMjA=";
-
-            var build_image_web = `{
-                        "method": "POST",
-                        "uri": "https://us-central1-notims.cloudfunctions.net/backend/buildimage/${type}", 
-                        "timeout": "10000",
-                        "body": {
-                        "data" : ${JSON.stringify(data)}                  
-                        },
-                        "json": true 
-                    }`;
-
-            let _json = JSON.parse(build_image_web);
-
-            await rp(_json)
-                .then(async (response_image) => {
-                console.log("response: " + JSON.stringify(response_image));
-                response.status(200).send(response_image);
-                return response_image;
-                })
-                .catch((error) => {
-                console.log("error: " + error);
-                response.status(500).send({ error: error });
-                return error;
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            return e;
-        }
-    });
+    
 
     /**
      * Post SMS

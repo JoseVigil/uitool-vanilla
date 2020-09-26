@@ -59,8 +59,11 @@
 		var public_url, update, image_width, image_height, image_storage_name,
 			image_storage_path, page_url, documentRef; 
 
+		var file_name, public_image;
+
 		switch (option) {	
 
+			case BUILD_IMAGE_PREVIEW:
 			case BUILD_IMAGE_WEB:
 				
 				let url_path 			= req.body.data.url_path;
@@ -70,16 +73,30 @@
 
 				let paths = url_path.split("/");	
 
+				if (option===BUILD_IMAGE_PREVIEW) {
+				
+					file_name 				= "_preview.png";
+					public_image			= "public_image_preview";
+					image_storage_name		= "preview_image_storage";
+					update 					= "preview_update";	
+
+				} else if (option===BUILD_IMAGE_WEB) {	
+
+					file_name 				= "_web.png";
+					public_image			= "public_image_web";
+					image_storage_name		= "web_image_storage";
+					update 					= "web_update";						
+
+				}
+
 				let image_name 			= paths[5];				
-				let _image_ 			= image_name + "_web.png";
+				let _image_ 			= image_name + file_name;
 				var image_storage  		= url_path.split(paths[4])[0];							
 				image_width 			= req.body.data.image_width;	
-				image_height 			= req.body.data.image_height;					
+				image_height 			= req.body.data.image_height;
+
 				image_storage_path		= `${image_storage}${_image_}`;
-				image_storage_name		= "web_image_storage";
-				update 					= "web_update";				
- 
-				public_url = "https://noti.ms/composer/thumbnail?&path=/" + url_path;
+				public_url = "https://noti.ms/composer/thumbnail?&type=" + option + "&path=/" + url_path;
 
 				console.log('image_storage_path: ' + image_storage_path);				
 				console.log('url_path: ' + url_path);
@@ -88,11 +105,7 @@
 				//documentRef = firestore.collection("clients").doc(client)
 		      	//.collection("campaigns").doc(campaign).collection(option).doc(design);
 		      	
-				break;
-
-			case BUILD_IMAGE_PREVIEW:
-			
-				break;
+				break;			
 
 		}		
 		
@@ -118,13 +131,11 @@
 	        });
 
 			switch (option) {				
+				case BUILD_IMAGE_PREVIEW:
 				case BUILD_IMAGE_WEB:					
 					await page.goto(public_url, {waitUntil: 'load', timeout: 0});	
 					await timeout(5000);			
-				break;
-				case BUILD_IMAGE_PREVIEW:
-					await page.setContent(html); 
-				break;
+				break;				
 			}
 
 			screenshotBuffer = await page.screenshot({encoding: "binary"});
@@ -161,13 +172,10 @@
 		      };   
 
 		      const imageUrl = await file.getSignedUrl(config); 
-
-		      var image_url = imageUrl[0].toString();   
-
-		      let image_field = "preview_image_" + option;
+		      var image_url = imageUrl[0].toString();   	      
 
 		      var json_update = `{
-				"public_image_web": "${image_url}",
+				"${public_image}": "${image_url}",
 				"${image_storage_name}" : "${image_storage_path}",
 				"${update}": false
 			  }`;	
@@ -203,7 +211,6 @@
 	async function timeout(ms) {
 	  return new Promise(resolve => setTimeout(resolve, ms));
 	};
-
 
 	var OPTION_SWITCH_SIM    		= 'switchsim';
 	var OPTION_USING 			    = 'using';
@@ -745,27 +752,85 @@
 
 					break;
 
-					case OPTION_USSD_RECEIVE:
+					case OPTION_USSD_READ:
 
-						var sjson = `{"numbers":[`;
+							await page.waitFor(
+								() => document.querySelector('.tblcontext > tbody > tr > td textarea').title !== ''
+							);		
+
+							console.log("ENTRA");
+
+							var sjson = `{"numbers":[`;
+							var countSel = 0;
+							var selection = req.body.data.selection;							
+							let selection_lenght = selection.length;
+
+							const lrows = await page.$$('.tblcontext > tbody > tr > td textarea');
+				            var total = lrows.length;
+							console.log("total: " + total);	
+
+				           	let jsonResponse = await new Promise((resolve, reject) => {
+				              	lrows.forEach(async (tarea, i) => {  									
+									
+									const titleAttribute = await page.evaluate(tarea => tarea.title, tarea); 								
+
+									var idAttribute = await page.evaluate(tarea => tarea.id, tarea);
+									let listSelector = parseInt(idAttribute.split('USSDR')[1]);		
+
+									console.log("listSelector: " + listSelector)
+
+									if (selection.includes(listSelector)) {
+
+										let pattern = 'Tu linea Claro ';								
+										if ( titleAttribute.indexOf(pattern) >= 0) {
+											let phone = titleAttribute.split(pattern)[1].split(" ")[0];
+											sjson += `{"phone":"${phone}", "channel": "${listSelector}"}`;																					
+											if (countSel==(selection_lenght-1)) {									
+												sjson += `]}`;
+												resolve(sjson);
+											} else {	
+												sjson += `,`;
+											}
+										}
+										countSel++;	
+									}
+
+								}); 
+				            });
+
+							return res.status(200).send({ "result" :JSON.parse(sjson)});
+
+							
+
+					        //return res.status(200).send({"result":JSON.parse(sjson)});
+
+							/*var sjson = `{"numbers":[`;
+
+							const selection = req.body.data.selection;							
 
 							let selection_lenght = selection.length;
-							var countSel = 0;
 
-							console.log("__4____");
+							console.log("selection_lenght:" + selection_lenght);
+
+							var countSel = 0;
 					        
 							for ( sel in selection ) {
 
-								let listSelector = 'USSDR' + sel;
+								var selNum = selection[sel];
 
-								var el = await page.$(listSelector);
-								var resutl = await page.evaluate(el => el.value, el);
+								console.log("selNum:" + selNum);
 
+								let listSelector = '#USSDR' + selNum;
+
+								let element = await page.$$(listSelector);
+								let title = await element.getProperty('title');								
+
+								console.log("title: " + title);
 								let pattern = 'Tu linea Claro ';
 								
-								if( resutl.indexOf(pattern) >= 0) {
-									let phone = resutl.split(pattern)[1].split(" ")[0];
-									sjson += `{"phone":"${phone}, "channel": "${sel}"}`;
+								if( title.indexOf(pattern) >= 0) {
+									let phone = title.split(pattern)[1].split(" ")[0];
+									sjson += `{"phone":"${phone}", "channel": "${sel}"}`;
 								}
 
 								if (countSel==(selection_lenght-1)) {									
@@ -775,11 +840,13 @@
 								}
 								countSel++;		
 
-								await page.waitFor(200);	
+								//await page.waitFor(200);	
 
 							};
 
-					        return res.status(200).send({"result":JSON.parse(sjson)}); 	
+							console.log("sjson: " + sjson);
+
+					        return res.status(200).send({"result":JSON.parse(sjson)});*/ 	
 
 					break;
 
