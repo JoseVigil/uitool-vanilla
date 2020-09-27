@@ -65,9 +65,16 @@
 
     <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
 
-    <div id="login">
-      Web Composer - Not Logged
-    </div>  
+   
+    <div class="row">
+      <div id="login" class="pt-1 pl-4 pr-2">
+        Web Composer - Not Logged
+      </div>  
+      <div id="save" class="pt-1 pl-2">    
+          Not saved      
+      </div> 
+    </div> 
+  
     
     <div class="container-fluid">
       
@@ -260,10 +267,6 @@
               </div>              
 
             </div> 
-
-            <button id="save-web" type="button" class="btn btn-success">
-              Guardar Diseño Web
-            </button>
             
           </div> 
           
@@ -342,6 +345,8 @@
       //var active.saludo = false;
       //var active.cuerpo = false;
       //var active.from_button = false;
+
+      var timer_save = null;
 
       var InitActive = function() {
         active = {
@@ -846,8 +851,14 @@
           }   
         
           
-          $("#save-web").on('click', async function() {                                  
-            
+          //$("#save-web").on('click', async function() {                                  
+          
+          SaveComposed = async function() {
+
+              console.log("**************");
+              console.log("*** SAVING ***");
+              console.log("**************");
+
               let inputsHtml = await GetHTML();  
 
               let _html_ = inputsHtml[0];
@@ -921,51 +932,13 @@
 
               htmlRef.set(payload,{ merge: true }).then(docRefSet => {
 
-                  $('#alert-content').text('La web de la campaña ' + window.camapignId + ' se ha guardado con exito.');
-                  $('#alertModal').modal('show');
+                  htmlRef.get()
+                      .then(function(doc) {
 
-                  /*
-                  var image_storage_path  = `accounts/${account}/campaigns/${window.camapignId}`;           
-                  var type = "web";
+                        let last = formatDate(doc.data().last_update);
+                        $("#save").text("Saved: " + last);
 
-                  let post_params = { 
-                    url: _html,                     
-                    background_color: background_color,             
-                    image_width: image_width,
-                    image_height: image_height,
-                    image_name: image_name,
-                    image_storage_path: image_storage_path,
-                    account: window.account,
-                    campaign: window.camapignId,
-                    type: type,
-                    design: image_name                                             
-                  };
-
-                  var urdl = "http://localhost:5001/notims/us-central1/buildimage";
-                  //var urdr = "https://us-central1-notims.cloudfunctions.net/buildimage";       
-
-                  var params = JSON.stringify(post_params);
-
-                  console.log("params: " + params);
-
-                  var settings = {
-                  "url": urdl,
-                  "method": "POST",
-                  "timeout": 0,
-                  "headers": {
-                    "Content-Type": "application/json"
-                  },
-                  "data": params,
-                };
-
-                $.ajax(settings).done(function (response) {
-                  
-                  console.log(response);
-                  if (response.data.result) {        
-
-                  }             
-
-                });*/            
+                  }); 
                 
               }).catch((error) => {     
                 console.error("Error adding document: ", error);           
@@ -979,7 +952,21 @@
                   return ret;
               }
 
-          });
+              function formatDate(date) {
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+            
+                if (month.length < 2) 
+                    month = '0' + month;
+                if (day.length < 2) 
+                    day = '0' + day;
+            
+                return [day, month, year].join('-');
+            }
+
+          };
        
           $( ".draggable" ).draggable({
             appendTo: "body",
@@ -1455,16 +1442,8 @@
 
                           let comupulsory = `
                           <footer class="footer">
-                            <div class="container">` +
-                              /*<hr>
-                              <div class="row">
-                                <div class="col-sm-2"/>                        
-                                <div class="col-sm-8">
-                                  <button type="button" class="btn btn-primary col-12">Recibir notificaciones</button>
-                                </div>
-                                <div class="col-sm-2"/>
-                              </div>*/
-                              `<hr>              
+                            <div class="container">
+                              <hr>              
                               <div class="row">
                                 <div class="col-sm-2"/>                        
                                 <div class="col-sm-8">
@@ -1554,7 +1533,6 @@
                             _html_preview += `</div></div>`;                            
                             _html_preview = replaceVariables(_html_preview);
 
-
                             $("#preview-preview").html(_html_preview);                                                               
 
                             resolve([_html_preview, modules]);
@@ -1573,6 +1551,22 @@
               });
 
             });
+
+            if (timer_save==null) {
+
+              new Promise(function(resolve, reject) {
+
+                timer_save = setTimeout(function() { 
+                  
+                    SaveComposed();
+                    clearTimeout(timer_save);
+                    timer_save=null;
+
+                }, 7000);
+
+              });
+
+            }
 
             return htmlPromise;
 

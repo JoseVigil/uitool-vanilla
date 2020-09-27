@@ -39,7 +39,7 @@
         <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
         <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
 
-        <div class="container-fluid">
+        <div class="container">
             <main id="main"></main>
         </div>
 
@@ -76,8 +76,7 @@
                 //const functions = firebase.functions();              
                 
                 firebase.auth().signInAnonymously()
-                    .then(function() {   
-                        
+                    .then(function() {                           
                         
                         var path_design = "<functions-path-design-app-id>";
 
@@ -91,10 +90,10 @@
                             html = docDesign.data().html_web;                                              
                             background_color = docDesign.data().background_color_web;                                       
                             
-                            _html = `<div class="row">
-                                    <div class="col-xs-12 custom-background">
+                            _html = `<div class="container"><div class="row">
+                                    <div class="col-xs-12 custom-background p-2">
                                     ${html}
-                                    </div></div>`; 
+                                    </div></div></div>`; 
                             $("#main").append(_html);
 
                             $(".custom-background").css("background-color", background_color);                                  

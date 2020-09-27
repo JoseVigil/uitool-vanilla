@@ -69,12 +69,14 @@
 
     //gateway
     exports.gateway = require("./gateway");
+    //api
+    exports.api = require("./api");
 
     /**
      * SERVER ALL INCOMING
      */
 
-    var OPTION_COMPOSER         = 'composer';           
+    var OPTION_COMPOSER  = 'composer';           
 
     const app = express();
     app.engine('html', engines.hogan); 
@@ -201,6 +203,12 @@
     const getMeta = () => {
       // return other meta tags
     };
+
+    exports.api = functions.https.onRequest( async (req, res) => {
+
+
+
+    });
 
 
     exports.app = functions.https.onRequest(app);
