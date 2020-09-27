@@ -754,99 +754,62 @@
 
 					case OPTION_USSD_READ:
 
-							await page.waitFor(
-								() => document.querySelector('.tblcontext > tbody > tr > td textarea').title !== ''
-							);		
-
-							console.log("ENTRA");
-
 							var sjson = `{"numbers":[`;
-							var countSel = 0;
-							var selection = req.body.data.selection;							
-							let selection_lenght = selection.length;
 
-							const lrows = await page.$$('.tblcontext > tbody > tr > td textarea');
-				            var total = lrows.length;
-							console.log("total: " + total);	
+							try {
 
-				           	let jsonResponse = await new Promise((resolve, reject) => {
-				              	lrows.forEach(async (tarea, i) => {  									
-									
-									const titleAttribute = await page.evaluate(tarea => tarea.title, tarea); 								
+								await page.waitFor(
+									() => document.querySelector('.tblcontext > tbody > tr > td textarea').title !== ''
+								);								
+								var countSel = 0;
+								var selection = req.body.data.selection;							
+								let selection_lenght = selection.length;
+								var response_array = [];
 
-									var idAttribute = await page.evaluate(tarea => tarea.id, tarea);
-									let listSelector = parseInt(idAttribute.split('USSDR')[1]);		
+								const lrows = await page.$$('.tblcontext > tbody > tr > td textarea');
+								var total = lrows.length;
+								console.log("total: " + total);	
 
-									console.log("listSelector: " + listSelector)
+								let jsonResponse = await new Promise((resolve, reject) => {
+									lrows.forEach(async (tarea, i) => {  									
+										
+										const titleAttribute = await page.evaluate(tarea => tarea.title, tarea); 								
 
-									if (selection.includes(listSelector)) {
+										var idAttribute = await page.evaluate(tarea => tarea.id, tarea);
+										let listSelector = parseInt(idAttribute.split('USSDR')[1]);		
 
-										let pattern = 'Tu linea Claro ';								
-										if ( titleAttribute.indexOf(pattern) >= 0) {
-											let phone = titleAttribute.split(pattern)[1].split(" ")[0];
-											sjson += `{"phone":"${phone}", "channel": "${listSelector}"}`;																					
-											if (countSel==(selection_lenght-1)) {									
-												sjson += `]}`;
-												resolve(sjson);
-											} else {	
-												sjson += `,`;
-											}
+										console.log("listSelector: " + listSelector);
+										var _end = false;
+										if (countSel==(selection_lenght-1)) {
+											_end = true;
 										}
-										countSel++;	
-									}
 
-								}); 
-				            });
+										if (selection.includes(listSelector)) {
+											let pattern = 'Tu linea Claro ';								
+											if ( titleAttribute.indexOf(pattern) >= 0) {
+												let phone = titleAttribute.split(pattern)[1].split(" ")[0];
+												sjson += `{"phone":"${phone}", "channel": ${listSelector}}`;
+												response_array.push(listSelector);																					
+												if (_end) {		
+													sjson += `], "responses": ${JSON.stringify(response_array)}}`;												
+													resolve(sjson);
+												} else {	
+													sjson += `,`;
+												}
+											}											
+											countSel++;	
+										}
 
-							return res.status(200).send({ "result" :JSON.parse(sjson)});
+									}); 
+								});
 
-							
+								return res.status(200).send({ "result" :JSON.parse(sjson)});						
 
-					        //return res.status(200).send({"result":JSON.parse(sjson)});
-
-							/*var sjson = `{"numbers":[`;
-
-							const selection = req.body.data.selection;							
-
-							let selection_lenght = selection.length;
-
-							console.log("selection_lenght:" + selection_lenght);
-
-							var countSel = 0;
-					        
-							for ( sel in selection ) {
-
-								var selNum = selection[sel];
-
-								console.log("selNum:" + selNum);
-
-								let listSelector = '#USSDR' + selNum;
-
-								let element = await page.$$(listSelector);
-								let title = await element.getProperty('title');								
-
-								console.log("title: " + title);
-								let pattern = 'Tu linea Claro ';
+							} catch (e) {		
 								
-								if( title.indexOf(pattern) >= 0) {
-									let phone = title.split(pattern)[1].split(" ")[0];
-									sjson += `{"phone":"${phone}", "channel": "${sel}"}`;
-								}
-
-								if (countSel==(selection_lenght-1)) {									
-									sjson += `]}`;
-								} else {	
-									sjson += `,`;
-								}
-								countSel++;		
-
-								//await page.waitFor(200);	
-
-							};
-
-							console.log("sjson: " + sjson);
-
-					        return res.status(200).send({"result":JSON.parse(sjson)});*/ 	
+								sjson += `0], "responses":[0], "error": "${e}"}`;															
+								return res.status(500).send(JSON.parse(sjson));							
+							}
 
 					break;
 
