@@ -7,6 +7,11 @@
         databaseURL: db_url,
     });
 
+    exports.status_chron = functions.pubsub.schedule('every 2 minutes').onRun((context) => {
+        console.log('This will be run every 2 minutes!');
+        return null;
+    });
+
     //var OPTION_GET_SIM_NUMBERS = "simnumber";
     var OPTION_USING = "using";
     var OPTION_SWITCH = "switch";
@@ -64,6 +69,7 @@
 
                 await rp(sar_json)
                 .then(async (response_sent) => {
+
                     var resutl = response_sent.result;
                     let sent = resutl.sent;
                     let sentlength = sent.length;
@@ -77,9 +83,9 @@
                     console.log("timereceived: " + JSON.stringify(timereceived));
 
                     if (
-                    last.status === "Success" &&
-                    last.number === "264" &&
-                    current.getTime() < timereceived.getTime()
+                        last.status === "Success" &&
+                        last.number === "264" &&
+                        current.getTime() < timereceived.getTime()
                     ) {
                     return {
                         gateway: resutl.gateway,
@@ -87,13 +93,14 @@
                         card: card,
                     };
                     } else {
-                    console.log("FAAAIIILLLLL");
-                    res.status(500).send("fail");
+                        console.log("FAAAIIILLLLL");
+                        res.status(500).send("fail");
                     }
 
                     return {};
                 })
                 .then(async (response_send) => {
+                    
                     //console.log("results_sends :::: " + JSON.stringify(response_send));
                     var option_received = `{
                         "method": "POST",
@@ -125,10 +132,10 @@
                     console.log("remote_number: " + remote_number);
 
                     let response = {
-                    number: {
-                        sim_number: sim_number,
-                        remote_number: remote_number,
-                    },
+                        number: {
+                            sim_number: sim_number,
+                            remote_number: remote_number,
+                        },
                     };
 
                     res.status(200).send(response);
@@ -607,8 +614,6 @@
 
                 console.log("urls: " + JSON.stringify(urls));
 
-                //var send_promise = [];
-
                 let switch_prmise = await SwitchCard(gateway_number, card);
 
                 Promise.all(switch_prmise)
@@ -673,320 +678,286 @@
         });
 
         var StatusByGateway = async function (gateway_number, urls) {
-        var gateway = "S" + gateway_number;
-        var promises_status = [];
 
-        let url = urls.url_base_remote + urls.params_status;
+            var gateway = "S" + gateway_number;
+            var promises_status = [];
 
-        console.log("url: " + url);
+            let url = urls.url_base_remote + urls.params_status;
 
-        var option_status = {
-            method: "POST",
-            uri: url,
-            body: {
-            data: {
-                gateway: gateway_number,
-                    url: urls.url_domain + urls.url_status,
-                    autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                },
-            },
-            json: true,
-        };
+            console.log("url: " + url);
 
-        await rp(option_status)
-            .then(async function (results_status) {
-            console.log(
-                " ------ results_status ------- " + JSON.stringify(results_status)
-            );
-
-            var length = results_status.managment.length;
-            var count = 0;
-
-            console.log("length:- " + length);
-
-            var gateway = "S" + results_status.gateway;
-            await results_status.managment.forEach(async (obj) => {
-                let port = obj.port;
-                let portname = "port" + port;
-                let operator = obj.operator;
-                let signal = obj.signal;
-
-                var card;
-                switch (parseInt(obj.using)) {
-                case 0:
-                    card = "A";
-                    break;
-                case 1:
-                    card = "B";
-                    break;
-                case 2:
-                    card = "C";
-                    break;
-                case 3:
-                    card = "D";
-                    break;
-                }
-
-                let jsonStatus = JSON.parse(
-                `{"${card}":{"operator":"${operator}","signal":"${signal}"}}`
-                );
-
-                promises_status.push(
-                firestore
-                    .collection("gateways")
-                    .doc(gateway)
-                    .collection("sims")
-                    .doc(portname)
-                    .set(jsonStatus, { merge: true })
-                );
-
-                console.log("count: " + count);
-                console.log("length: " + length);
-
-                if (count === length - 1) {
-                console.log("PORONGA:::: " + JSON.stringify(promises_status));
-                return promises_status;
-                }
-                count++;
-
-                //send promise
-                /*var recipient, message;
-                    
-                    switch (operator) {
-                        case "Personal":
-                        recipient = "264";             
-                        message   = "Linea"; 
-                        break;
-                        case "Movistar":
-                        recipient = "321";  
-                        message   = "Numero"; 
-                        break;
-                        case "Claro":
-                        recipient = "686";
-                        message   = "NUMERO"; 
-                        break;
-                    }   */
-
-                /*var url = urls.url_base_remote + urls.params_send;
-                    var channel = port-1;
-        
-                    var options_send = `{
-                        "method": "POST",
-                        "uri": "${url}",               
-                        "body": {
-                        "data" : {
-                            "gateway" : "${results_status.gateway}",
-                            "channel" : "${channel}",
-                            "recipient" : "${recipient}",
-                            "message" : "${message}",
-                            "url": "${urls.url_domain + urls.url_send}", 
-                            "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
-                        }
-                        },
-                        "json": true 
-                    }`;                            
-                    
-                    let opt = JSON.parse(options_send);*/
-
-                //send_promise.push(opt);
-            });
-
-            return {};
-            })
-            .catch((error) => {
-            console.log("error carajo: " + error);
-            return error;
-            });
-
-        console.log("FONDDOOOOO:");
-        return promises_status;
-        };
-
-        var UsingAll = async function () {
-        var gatewaysRef = firestore.collection("gateways");
-
-        var urlObj = {};
-        var cards = [];
-
-        await gatewaysRef.get().then(async (querySnapshot) => {
-            querySnapshot.forEach(async (doc) => {
-            if (doc.id === "urls") {
-                //console.log("cards: "  + JSON.stringify(cards));
-                urlObj.url_domain = doc.data().url_domain;
-                urlObj.url_using = doc.data().url_using;
-                urlObj.url_base = doc.data().url_base;
-                urlObj.url_management = doc.data().url_management;
-                urlObj.url_base = doc.data().url_base;
-                urlObj.url_switch = doc.data().url_switch;
-                urlObj.url_base_remote = doc.data().url_base_remote;
-                urlObj.url_base_local = doc.data().url_base_local;
-                urlObj.parmas_using = doc.data().parmas_using;
-                urlObj.url_status = doc.data().url_status;
-                urlObj.params_status = doc.data().params_status;
-                urlObj.url_send = doc.data().url_send;
-                urlObj.params_send = doc.data().params_send;
-            } else {
-                let icard = {
-                gateway: doc.data().gateway,
-                number: doc.data().number,
-                position: doc.data().position,
-                id: doc.id,
-                };
-
-                cards.push(icard);
-            }
-            });
-
-            return {};
-        });
-
-        var ps = [];
-
-        await cards.forEach(async (card) => {
-            let uri_remote = urlObj.url_base_remote + urlObj.parmas_using;
-            let url_gateway = urlObj.url_domain + urlObj.url_using;
-
-            let options = {
-            method: "POST",
-            uri: uri_remote,
-            body: {
+            var option_status = {
+                method: "POST",
+                uri: url,
+                body: {
                 data: {
-                gateway: card.number,
-                url: url_gateway,
-                autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                    gateway: gateway_number,
+                        url: urls.url_domain + urls.url_status,
+                        autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                    },
                 },
-            },
-            json: true,
+                json: true,
             };
-            ps.push(rp(options));
-        });
 
-        var promises_sims = [];
+            console.log(JSON.stringify(option_status));
 
-        var promises = Promise.all(ps)
-            .then((results) => {
-            var promises_gateway = [];
+            /*await rp(option_status)
+                .then(async function (results_status) {
+                    
+                console.log(
+                    " ------ results_status ------- " + JSON.stringify(results_status)
+                );
 
-            results.forEach(async (result) => {
-                let response = result.response;
-                let gateway = "S" + response.gateway;
-                let channels = response.channels;
-                let ports = response.ports;
+                var length = results_status.managment.length;
+                var count = 0;
 
-                response.sims.forEach(async (obj) => {
-                var portName = "port" + obj.port;
-                var jsonCards = `{`;
-                var countAdded = 0;
-                obj.channel.forEach(async (channel) => {
-                    jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;
+                console.log("length:- " + length);
 
-                    if (countAdded === 3) {
-                    jsonCards += `}`;
-                    let jsonPorts = JSON.parse(jsonCards);
-                    countAdded = 0;
-                    promises_sims.push(
-                        firestore
+                var gateway = "S" + results_status.gateway;
+                await results_status.managment.forEach(async (obj) => {
+                    let port = obj.port;
+                    let portname = "port" + port;
+                    let operator = obj.operator;
+                    let signal = obj.signal;
+
+                    var card;
+                    switch (parseInt(obj.using)) {
+                    case 0:
+                        card = "A";
+                        break;
+                    case 1:
+                        card = "B";
+                        break;
+                    case 2:
+                        card = "C";
+                        break;
+                    case 3:
+                        card = "D";
+                        break;
+                    }
+
+                    let jsonStatus = JSON.parse(
+                    `{"${card}":{"operator":"${operator}","signal":"${signal}"}}`
+                    );
+
+                    promises_status.push(
+                    firestore
                         .collection("gateways")
                         .doc(gateway)
                         .collection("sims")
-                        .doc(portName)
-                        .set(jsonPorts, { merge: true })
+                        .doc(portname)
+                        .set(jsonStatus, { merge: true })
                     );
-                    } else {
-                    jsonCards += `,`;
-                    countAdded++;
+
+                    console.log("count: " + count);
+                    console.log("length: " + length);
+
+                    if (count === length - 1) {
+                    console.log("PORONGA:::: " + JSON.stringify(promises_status));
+                    return promises_status;
                     }
-                });
+                    count++;               
                 });
 
-                promises_gateway.push(
-                firestore
-                    .collection("gateways")
-                    .doc(gateway)
-                    .set({ channels: channels, ports: ports }, { merge: true })
-                );
+                return {};
+
+            }).catch((error) => {
+                console.log("error carajo: " + error);
+                return error;
+            });*/
+
+            //console.log("FONDDOOOOO:");
+            return promises_status;
+        };
+
+        var UsingAll = async function () {
+
+            var gatewaysRef = firestore.collection("gateways/S2");
+
+            var urlObj = {};
+            var cards = [];
+
+            await gatewaysRef.get().then(async (querySnapshot) => {
+                querySnapshot.forEach(async (doc) => {
+                if (doc.id === "urls") {
+                    //console.log("cards: "  + JSON.stringify(cards));
+                    urlObj.url_domain = doc.data().url_domain;
+                    urlObj.url_using = doc.data().url_using;
+                    urlObj.url_base = doc.data().url_base;
+                    urlObj.url_management = doc.data().url_management;
+                    urlObj.url_base = doc.data().url_base;
+                    urlObj.url_switch = doc.data().url_switch;
+                    urlObj.url_base_remote = doc.data().url_base_remote;
+                    urlObj.url_base_local = doc.data().url_base_local;
+                    urlObj.parmas_using = doc.data().parmas_using;
+                    urlObj.url_status = doc.data().url_status;
+                    urlObj.params_status = doc.data().params_status;
+                    urlObj.url_send = doc.data().url_send;
+                    urlObj.params_send = doc.data().params_send;
+                } else {
+                    let icard = {
+                    gateway: doc.data().gateway,
+                    number: doc.data().number,
+                    position: doc.data().position,
+                    id: doc.id,
+                    };
+
+                    cards.push(icard);
+                }
+                });
+
+                return {};
             });
 
-            return Promise.all(promises_gateway);
-            })
-            .then(async (results_gateway) => {
-            return Promise.all(promises_sims);
-            })
-            .catch((error) => {
-            console.log("error: " + error);
-            return error;
+            var ps = [];
+
+            await cards.forEach(async (card) => {
+                let uri_remote = urlObj.url_base_remote + urlObj.parmas_using;
+                let url_gateway = urlObj.url_domain + urlObj.url_using;
+
+                let options = {
+                method: "POST",
+                uri: uri_remote,
+                body: {
+                    data: {
+                    gateway: card.number,
+                    url: url_gateway,
+                    autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                    },
+                },
+                json: true,
+                };
+                ps.push(rp(options));
             });
 
-        return urlObj;
+            var promises_sims = [];
+
+            var promises = Promise.all(ps)
+                .then((results) => {
+                var promises_gateway = [];
+
+                results.forEach(async (result) => {
+                    let response = result.response;
+                    let gateway = "S" + response.gateway;
+                    let channels = response.channels;
+                    let ports = response.ports;
+
+                    response.sims.forEach(async (obj) => {
+                    var portName = "port" + obj.port;
+                    var jsonCards = `{`;
+                    var countAdded = 0;
+                    obj.channel.forEach(async (channel) => {
+                        jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;
+
+                        if (countAdded === 3) {
+                        jsonCards += `}`;
+                        let jsonPorts = JSON.parse(jsonCards);
+                        countAdded = 0;
+                        promises_sims.push(
+                            firestore
+                            .collection("gateways")
+                            .doc(gateway)
+                            .collection("sims")
+                            .doc(portName)
+                            .set(jsonPorts, { merge: true })
+                        );
+                        } else {
+                        jsonCards += `,`;
+                        countAdded++;
+                        }
+                    });
+                    });
+
+                    promises_gateway.push(
+                    firestore
+                        .collection("gateways")
+                        .doc(gateway)
+                        .set({ channels: channels, ports: ports }, { merge: true })
+                    );
+                });
+
+                return Promise.all(promises_gateway);
+                })
+                .then(async (results_gateway) => {
+                return Promise.all(promises_sims);
+                })
+                .catch((error) => {
+                console.log("error: " + error);
+                return error;
+                });
+
+            return urlObj;
         };
 
         var SwitchCard = async function (gateway_number, card) {
-        var channelstatus = card + ".status";
 
-        var promise_switch = [];
+            var channelstatus = card + ".status";
 
-        var gateway = "S" + gateway_number;
+            var promise_switch = [];
 
-        var gatewaysRef = firestore
-            .collectionGroup("sims")
-            .where(channelstatus, "in", ["Exist", "Using"])
-            .get()
-            .then(async (querySnapshot) => {
-            await querySnapshot.forEach(async (doc) => {
-                let parent = doc.ref.parent.parent;
+            var gateway = "S" + gateway_number;
 
-                if (parent.id === gateway) {
-                //var gateway_number = parent.id.replace( /^\D+/g, '');
-                var port_number = doc.id.replace(/^\D+/g, "");
+            var gatewaysRef = firestore
+                .collectionGroup("sims")
+                .where(channelstatus, "in", ["Exist", "Using"])
+                .get()
+                .then(async (querySnapshot) => {
+                
+                await querySnapshot.forEach(async (doc) => {
+                    let parent = doc.ref.parent.parent;
 
-                var num;
-                switch (card) {
-                    case "A":
-                    position = num = 0;
-                    break;
-                    case "B":
-                    position = num = 1;
-                    break;
-                    case "C":
-                    position = num = 2;
-                    break;
-                    case "D":
-                    position = num = 3;
-                    break;
-                }
+                    if (parent.id === gateway) {
+                        //var gateway_number = parent.id.replace( /^\D+/g, '');
+                        var port_number = doc.id.replace(/^\D+/g, "");
 
-                //cambiar esta posicion
-                var info = parseInt(port_number) - 1 + ":" + position;
+                        var num;
+                        switch (card) {
+                            case "A":
+                            position = num = 0;
+                            break;
+                            case "B":
+                            position = num = 1;
+                            break;
+                            case "C":
+                            position = num = 2;
+                            break;
+                            case "D":
+                            position = num = 3;
+                            break;
+                        }
 
-                var options = {
-                    method: "POST",
-                    uri:
-                    "http://s" +
-                    gateway_number +
-                    ".notimation.com/5-9-2SIMSwitch.php",
-                    headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                    Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
-                    },
-                    form: {
-                    action: "SIMSwitch",
-                    info: info,
-                    },
-                };
+                        //cambiar esta posicion
+                        var info = parseInt(port_number) - 1 + ":" + position;
 
-                console.log("options: " + JSON.stringify(options));
-                console.log("-------");
+                        var options = {
+                            method: "POST",
+                            uri:
+                            "http://s" +
+                            gateway_number +
+                            ".notimation.com/5-9-2SIMSwitch.php",
+                            headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                            Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
+                            },
+                            form: {
+                            action: "SIMSwitch",
+                            info: info,
+                            },
+                        };
 
-                promise_switch.push(rp(options));
-                }
-            });
+                        console.log("options: " + JSON.stringify(options));
+                        console.log("-------");
 
-            return {};
-            });
+                        promise_switch.push(rp(options));
+                    }
+                });
 
-        return promise_switch;
-        };
+                return {};
+                });
+
+            return promise_switch;
+        };        
 
         var SwitchRandom = async function (req, res) {
         // (gateway_number_sting) {
@@ -1119,14 +1090,14 @@
             method: "POST",
             uri: url,
             body: {
-            data: {
-                all: req.body.data.all,
-                applyto: req.body.data.applyto,
-                gateway: req.body.data.gateway,
-                switch_mode: req.body.data.switch_mode,
-                url: url,
-                autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-            },
+                data: {
+                    all: req.body.data.all,
+                    applyto: req.body.data.applyto,
+                    gateway: req.body.data.gateway,
+                    switch_mode: req.body.data.switch_mode,
+                    url: url,
+                    autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                },
             },
             json: true,
         };
@@ -1281,3 +1252,79 @@
                 callback();
             }*/
         };
+
+
+        /*var SwitchCard = async function (gateway_number, card, date) {
+
+            var channelstatus = card + ".status";
+
+            var promise_switch = [];
+
+            var gateway = "S" + gateway_number;
+
+            var port = 8000 + parseInt(gateway_number); 
+            
+            console.log("channelstatus: " + channelstatus);
+
+            var gatewaysRef = firestore
+                .collectionGroup("ports_" + date)
+                .where(channelstatus, "in", ["Exist", "Using"])
+                .get()
+                .then(async (querySnapshot) => {                    
+                
+                await querySnapshot.forEach(async (doc) => {
+
+                    let parent = doc.ref.parent.parent;
+
+                    console.log("parent.id: " + parent.id);
+
+                    if (parent.id === gateway) {
+                        
+                        //var gateway_number = parent.id.replace( /^\D+/g, '');
+                        var port_number = doc.id.replace(/^\D+/g, "");
+
+                        var num;
+
+                        switch (card) {
+                            case "A":
+                                position = num = 0;
+                            break;
+                            case "B":
+                                position = num = 1;
+                            break;
+                            case "C":
+                                position = num = 2;
+                            break;
+                            case "D":
+                                position = num = 3;
+                            break;
+                        }
+
+                        //cambiar esta posicion
+                        var info = parseInt(port_number) - 1 + ":" + position;
+
+                        var options = {
+                            method: "POST",
+                            uri: "http://synway.notimation.com:" + port + "/5-9-2SIMSwitch.php",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
+                            },
+                            form: {
+                                action: "SIMSwitch",
+                                info: info,
+                            },
+                        };
+
+                        console.log("options: " + JSON.stringify(options));
+                        console.log("-------");
+
+                        promise_switch.push(rp(options));
+                    }
+                });
+                
+            });
+
+            return promise_switch;
+        }; */   

@@ -15,10 +15,10 @@
 	  timestampsInSnapshots: true,
 	});
 
-
-
 	var MODULE_GATEWAY		= 'gateway';
 	var MODULE_BUILD_IMAGE	= 'buildimage';
+
+	const timer = ms => new Promise( res => setTimeout(res, ms));
 
  	exports.backend = async (req, res) => {	
 
@@ -207,14 +207,17 @@
 	  return new Promise(resolve => setTimeout(resolve, ms));
 	};
 
-
 	var OPTION_SWITCH_SIM    		= 'switchsim';
 	var OPTION_USING 			    = 'using';
 	var OPTION_STATUS	 			= 'status';
 	var OPTION_MANAGMENT 			= 'managment';
 	var OPTION_SEND 				= 'send';
+	var OPTION_SEND_ONLY 			= 'sendonly';
 	var OPTION_SMS_RECEIVED    		= 'smsreceived';
-	var OPTION_REBOOT		    	= 'reboot';		
+	var OPTION_REBOOT		    	= 'reboot';	
+	var OPTION_BUILD_IMAGE			= 'buildimage';	
+	var OPTION_USSD_SEND   			= 'ussdsend';
+	var OPTION_USSD_READ   			= 'ussdread';
 	
 	const gateway = async function(req, res) {
 
@@ -223,41 +226,56 @@
 		let option = req.url.split('/')[2];
 
 		console.log("gateway: " + gateway);  
-		console.log("option: " + option);  		
+		console.log("option: " + option);  	
+
+		var port = 8000 + gateway; 	
 		
 		switch (option) {								
 
 			case OPTION_USING: 											 
 			case OPTION_MANAGMENT: 
 			case OPTION_STATUS: 
-			case OPTION_REBOOT: 										 
-				let url = "http://s" + gateway + req.body.data.url;
+			case OPTION_REBOOT: 					 
+				let url = "http://synway.notimation.com:" + port + req.body.data.url;
 				let params = { "option" : option, "url" : url, "gateway" : gateway };
 				return browse(req, res, params);
 				break;		
 
 			case OPTION_SWITCH_SIM: 	
 				let applyto = parseInt(req.body.data.applyto);
-				let swurl = "http://s" + gateway + req.body.data.url + applyto;			
+				let swurl = "http://synway.notimation.com:" + port + req.body.data.url + applyto;			
 				let sparams = { "option" : option, "applyto" : applyto,	"url" : swurl	};					
 				return browse(req, res, sparams);
 				break;	
 
-			case OPTION_SEND: 								 
-				let seurl = "http://s" + gateway + req.body.data.url + "?ch=" + req.body.data.channel;
+			case OPTION_SEND:
+			case OPTION_SEND_ONLY: 								 
+				let seurl = "http://synway.notimation.com:" + port + req.body.data.url + "?ch=" + req.body.data.channel;				
 				let separams = { "option" : option, "url" : seurl };
 				return browse(req, res, separams);
 				break;	
 
 			case OPTION_SMS_RECEIVED: 	
-
-				let reurl = "http://s" + gateway + req.body.data.url + req.body.data.channel + "&type=r&card=" + req.body.data.card + "&page=" + req.body.data.pagenumber;
+				let reurl = "http://synway.notimation.com:" + port + req.body.data.url + req.body.data.channel + "&type=r&card=" + req.body.data.card + "&page=" + req.body.data.pagenumber;
 				let reparams = { "option" : option, "url" : reurl };
 				return browse(req, res, reparams);
 				break;		
 
 			case OPTION_BUILD_IMAGE:
 				return buildimage(req, res);
+				break;
+
+			case OPTION_USSD_SEND:
+			case OPTION_USSD_READ: 					 
+				let ussurl = "http://synway.notimation.com:" + port + req.body.data.url;
+				let uchannels = req.body.data.channels;
+				let ussparams = { 
+					"option" : option, 
+					"url" : ussurl, 
+					"gateway" : gateway,
+					"channels" : uchannels 
+				};
+				return browse(req, res, ussparams);
 				break;
 
 			default: 	
@@ -267,6 +285,7 @@
 
 	};
 
+	
 	const browse = async function(req, res, params) {	
 
 		var option = params.option;	
@@ -291,9 +310,10 @@
 				const page = await browser.newPage();      				
 
 				await page.setViewport({width: 1366, height: 768});
-				await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
-				
+				await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');				
 				await page.authenticate({'username':'admin', 'password': 'Notimation2020'});															
+				await page.setDefaultNavigationTimeout(0);
+
 				await page.goto(url);  
 
 				switch (option) {	
@@ -519,96 +539,196 @@
 					break;
 
 					case OPTION_SEND:
+					case OPTION_SEND_ONLY:
 
-						try {    							
+						try {
 
-							/*let all = (req.body.data.sendall === "true");
-							let waitfor = 5000;
+							//await page.evaluate("alls();"); 
+							//await page.waitFor(6000);  																
+							/*await page.evaluate("resets();");   																
+							await page.waitFor(6000);*/
 
-							console.log("all: " + all);
+							//var channels = params.channels;
+							//let slength = channels.length;
 
-							if (all) {
-								await page.waitFor(200);
-								console.log("click all");
-								await page.click('.btn4');
-								waitfor=5000;
-							}*/						 						
+							//console.log("channels: " + JSON.stringify(channels));							
+							//console.log("slength: " + slength);
+
+							/*for (var i=0; i<slength; i++) {
+								let channel = channels[i];
+								let id = "ch" + channel;	
+								console.log("id: " + id);					
+								//await page.click('#' + id);								
+								await page.click('input[name="' + id + '"]');
+							}*/							
 
 							const phoneInput = 'textarea[name=sendtoPhoneNumber]';
-					        const recipient = req.body.data.recipient;
+					        var recipient = req.body.data.recipient;
 					        await page.waitForSelector( phoneInput, { timeout: 0 });
 					        await page.focus(phoneInput);
-					        await page.keyboard.type(recipient);
+					        await page.keyboard.type(recipient);					        
 
 					        const msgInput = 'textarea[name=MessageInfo]';
 					        const msg = req.body.data.message;
 					        await page.waitForSelector( msgInput, { timeout: 0 });
 					        await page.focus(msgInput);
-					        await page.keyboard.type(msg);
+					        await page.keyboard.type(msg);					        
 
 					        await page.on('dialog', async dialog => {                               
 					          await dialog.accept();	                  
-					        });
+					        });					        
 					                     	              
 					        //submit
-					        await page.click('#send');     
-					      
-					        await page.waitForFunction('document.getElementById("SMSResult").value != ""');
-					        await page.waitFor(6000);
-					        var el = await page.$("#SMSResult");
-					        var resutl = await page.evaluate(el => el.value, el);
+					        await page.click('#send');
+					        await page.waitForFunction('document.getElementById("SMSResult").value != ""');					        
 
-							var lines = resutl.split("\n");          
-							var headers;
-							var sjson = `{"gateway":"${req.body.data.gateway}","channel":"${req.body.data.channel}","sent":[`;							
+					        if (option==OPTION_SEND) { 
 
-							for (var l = 0; l < lines.length; l++) {								
-								headers = lines[l].split(" ");
-								for (var i = 0; i < headers.length; i++) {             								
-								   var flag = false;
-								   switch (i) {
-								      case 2:
-								        sjson += `{"day":"${headers[i]}"`;
-								        flag=true;
-								        break;
-								      case 3:
-								        sjson += `"time":"${headers[i]}"`;
-								        flag=true;
-								        break;
-								      case 6:
-								        sjson += `"port":"${headers[i]}"`;
-								        flag=true;
-								        break;
-								      case 19:
-								        sjson += `"number":"${headers[i]}"`;
-								        flag=true;
-								        break;
-								      case 21:
-								      case 22:  
-								        if(headers[i] === "") {
-								            continue;
-								        }
-								        sjson += `"status":"${headers[i]}"`;
-								        flag=true;
-								        break;
-								    } 								    
-								    if (flag) {
-								      if (i === (headers.length-1)) {                  
-								        if (l === (lines.length-2)) {
-								          sjson += `}]}`;
-								        } else {
-								          sjson += `},`;
-								        }
-								      } else {                 
-								          sjson += `,`;                  
-								      }   
-								    }								    
+					        	console.log("option==OPTION_SEND");					      
+						        
+						        await page.waitFor(6000);	
+
+						        var sjson;				
+
+						        var sending = 0;
+
+						        var countGetResponse = 0;
+
+						        async function resend(page, req) { 
+
+						        	console.log("sending: " + sending);
+
+						        	if (sending>5) {
+
+										let status = "Failed";	
+										sjson += `"status":"${status}"}`;	
+										sending = 0;																	
+
+									} else {										
+									
+										await timer(2000);
+										await getResponse(page, req);									
+
+									}					        	
+
+									sending++;
+
+						        }
+
+								async function getResponse(page, req) { 
+
+									countGetResponse++;	
+
+									console.log("countGetResponse: " + countGetResponse);								
+
+									var el = await page.$("#SMSResult");
+							        var resutl = await page.evaluate(el => el.value, el);						        
+
+							        var lines = resutl.split("\n");
+							        var _channel = parseInt(req.body.data.channel) + 1;							        
+
+							        if (lines.length>0) {
+
+							        	sjson = "";
+
+							        	console.log("lines.length: " + lines.length);
+
+										var headers;
+
+										sjson = `{"gateway":"${req.body.data.gateway}","card":"${req.body.data.card}","number":"${recipient}","port":"${_channel}",`; 
+
+										var cleanedLines = [];
+
+										for (var j = 0; j < lines.length; j++) {
+
+											let line = lines[j];
+
+											if ( (line !== undefined) && (line !== "") ) {
+
+												let spaces = line.split(" ");
+
+												console.log("line: " + JSON.stringify(spaces));
+
+												var _port = 0;
+												var port5 = parseInt(spaces[5]);
+												var port6 = parseInt(spaces[6]);
+
+												console.log("port5: " + port5 + " port6: " + port6);
+
+												if ( isNaN(port5) ) {													
+													_port = port6;
+												} else {
+													_port = port5;
+												}
+
+												console.log("_port: " + _port + " _channel: " + _channel);
+												
+												if  ( _port === _channel ) {
+													cleanedLines.push(line);
+												}
+
+											}
+										}		
+
+										console.log("cleanedLines: " + JSON.stringify(cleanedLines));
+
+										if (cleanedLines.length > 0) {								
+
+											let lastId = cleanedLines.length - 1;
+											var last = cleanedLines[lastId];				
+
+											console.log("last: " + last);									
+
+											var status;										
+
+											if ( last.indexOf("Success") > 0 ) {
+												status = "Success";											
+											} else if ( last.indexOf("Failed") > 0 ) {
+												status = "Failed";																						
+											} else if ( (last.indexOf("Sending") > 0) ) {																																				
+												status = "Sending";	
+											} else if ( (last.indexOf("Timeout") > 0) ) {																																				
+												status = "Timeout";	
+											} 	
+
+											sjson += `"status":"${status}"}`;																									
+
+											console.log("status: " + status);		
+
+										} else {
+
+											resend(page, req);
+										}						
+
+									} else {
+
+										resend(page, req);
+
+									}
+									
 								}
-							}
-					        return res.status(200).send({"result":JSON.parse(sjson)}); 				
 
-						} catch (e) {							
-							return res.status(500).send({"error":e});							
+								await getResponse(page, req);
+								console.log("sjson: " + sjson);
+
+								return res.status(200).send({"result":JSON.parse(sjson)}); 				
+
+							} else {
+
+								console.log("option==OPTION_SEND_ONLY");
+
+								sjson = `{"gateway":"${req.body.data.gateway}","channel":"${req.body.data.channel}"}`;
+
+								console.log("json: " + sjson);
+							}
+
+							return res.status(200).send({"result":JSON.parse(sjson)}); 				
+					        
+						} catch (e) {		
+
+							console.log("error: "  + e);					
+							return res.status(500).send({"result":"error","detail":e});							
+
 						}
 
 					break;
@@ -631,29 +751,75 @@
 				                let lars = linkclick.split("load_messageinfo");
 				                let outputstr = lars[1].replace(/'/g,'');
 				                var rawtext = outputstr.replace("(", "").replace(");", "").toString();                                                        
+
+				                var channel = parseInt(req.body.data.channel);
 				                  
 				                if ( rawtext.includes("Bienvenido a Personal") ) {
 
 				                	let raws = rawtext.split(",");
 
 				                    let chnl = parseInt(raws[1]);
-				                    let remote = raws[2];
-				                    let time = raws[3];
-				                    let content = raws[4];
-				                    let simnumber = content.match(/{([^}]+)}/)[1];                  
-				                    let portnumber = content.split("-{")[0];                
-				                    let port = (chnl+1) + portnumber;                    
 
-				                    let jsondata = `{
-				                      "channel":"${chnl}",
-				                      "remote_number":"${remote}",
-				                      "time":"${time}",
-				                      "sim_number":"${simnumber}",
-				                      "port":"${port}"          
-				                    }`;                   
+				                    if ( channel == chnl ) {
 
-				                    jsonArray.push(jsondata);                                           
-				                }				              
+					                    let remote = raws[2];
+					                    let time = raws[3];
+					                    let content = raws[4];
+					                    let simnumber = content.match(/{([^}]+)}/)[1];                  
+					                    let portnumber = content.split("-{")[0];                
+					                    let port = (chnl+1) + portnumber;                    
+
+					                    let jsondata = `{
+					                      "channel":"${chnl}",
+					                      "time":"${time}",
+					                      "remote_number":"${remote}",
+					                      "time":"${time}",
+					                      "sim_number":"${simnumber}",
+					                      "port":"${port}"          
+					                    }`;                   
+
+					                    jsonArray.push(JSON.parse(jsondata));                                           
+					                }
+				                }	
+
+				                var movi_resp = "Su Numero de Linea es ";
+
+				                if ( rawtext.includes(movi_resp) ) {
+
+				                	//console.log("rawtext: " + rawtext);
+									
+									let raws = rawtext.split(",");
+
+				                    let chnl = parseInt(raws[1]);
+
+				                    //console.log("channel: " + channel + " chnl: " + chnl);
+
+				                    if ( channel == chnl ) {
+
+					                    let remote = raws[2];
+					                    let time = raws[3];
+					                    let content = raws[4];
+					                    //let simnumber = content.match(/{([^}]+)}/)[1];                  
+					                    let portnumber = content.split("-{")[0];                
+					                    let port = (chnl+1); // + portnumber;
+
+										let simnumber = parseInt(rawtext.split(movi_resp)[1]);
+
+										let jsondata = `{				                      
+					                      "channel":"${chnl}",
+					                      "time":"${time}",
+					                      "remote_number":"${remote}",				                      
+					                      "sim_number":"${simnumber}",
+					                      "card":"${req.body.data.card}",     
+					                      "port":"${port}"      
+					                    }`;    
+
+					                    //console.log("jsondata: " + JSON.stringify(jsondata));               
+
+					                    jsonArray.push(JSON.parse(jsondata));  
+					                }
+
+				                }		 	              
 
 				                if (i==(total-1)) { 
 				                  resolve();
@@ -661,16 +827,29 @@
 
 				              });        
 
-				            });
+				            });			            
 
-				            let jalength = jsonArray.length;
+							
+							jsonArray.sort(function(a, b) {
+							    return new Date(b.time) > new Date(a.time);
+							});							
+
+				            //const sortedArray = jsonArray.sort((a, b) => new Date(a.time) - new Date(b.time));			            
+
+							//console.log("jsonArray: " + JSON.stringify(jsonArray));               
+
+				            let first = jsonArray[0];
+
+				            //console.log("first: " + JSON.stringify(first));               
+
+				            /*let jalength = jsonArray.length;
 				            var json = `{"rows":${jalength},"sim_numbers":[`;            				            
 				              
 				            if (jalength>0) {
 
 				              for (var j=0; j<jalength;j++) {
 				                
-				                json += jsonArray[j];            
+				                json += JSON.stringify(jsonArray[j]);            
 				                
 				                if (j==(jalength-1)) {                  
 				                  json += "]}";							                    
@@ -681,9 +860,9 @@
 				              
 				            } else {           
 				              json += `0]}`;            
-				            }         
+				            }*/         
 
-				            res.status(200).send(JSON.parse(json));
+				            res.status(200).send({result:first});
 
 				      } catch (e) {
 				        console.error(e);
@@ -708,7 +887,132 @@
 			
 						await page.click('#Reboot1');    
 
-					break;					
+					break;	
+
+					case OPTION_USSD_SEND:
+
+						try { 
+
+							await page.select('#USDDDefaultEncoding', 'UCS2')
+
+							var channels = params.channels;
+							let clength = channels.length;
+
+							console.log("channels: " + JSON.stringify(channels));							
+
+							console.log("clength: " + clength);
+
+							for (var i=0; i<clength; i++) {
+								let id = channels[i];
+								let clas = "Checkbox" + id;	
+								console.log("clas: " + clas);					
+								await page.click('#' + clas);
+							}
+
+							const sendInput = 'textarea[name=USSDAll]';
+					        const mesg = "*22#";
+					        await page.waitForSelector( sendInput, { timeout: 0 });
+					        await page.focus(sendInput);
+					        await page.keyboard.type(mesg);
+
+					        await page.on('dialog', async dialog => {                               
+					          await dialog.accept();	                  
+					        });					                     	              
+					       
+					        await page.evaluate("check(NetSet);");  													
+
+							return res.status(200).send(true);
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}
+
+					break;		
+
+					case OPTION_USSD_READ:
+
+						try { 
+
+							await page.select('#USDDDefaultEncoding', 'UCS2');
+
+							await page.waitFor(12000);							
+
+							var ussdtextareas = await page.$$('textarea');							 
+
+							var channels = params.channels;
+							var ulength = channels.length;
+
+							console.log("channels: " + JSON.stringify(channels));
+
+							var count = 0;					
+
+							var jsonUssdArray = await new Promise((resolve, reject) => {			                
+
+								var tempJson = "[";
+
+								ussdtextareas.forEach(async (textarea, i) => {									
+
+									if (channels.includes(i)) {
+
+										console.log("i: " + i);
+
+										console.log("textarea: " + textarea);
+
+										var title = await (await textarea.getProperty('title')).jsonValue();                   
+										
+										console.log("title length: " + title.length);	
+										console.log("title: " + title);
+
+										var _includes = false;	
+										  
+						                if ( title.includes("Claro") ) {					                
+
+						                	var _includes = true;
+
+						                	var tempUssd = title.substring(title.indexOf("Claro") + 6);
+											var _number = tempUssd.substring(0, tempUssd.indexOf(" con Plan Control"));
+						                
+						                	console.log("_number: " + _number);
+
+						                	let j = i+1;											
+						                	let _json = `{"channel":${j},"phone":"${_number}"}`;
+
+											tempJson +=  _json;                 					                    
+
+						                }
+
+						                console.log("count: " + count);
+						                console.log("ulength: " + ulength);
+
+						                if (count == (ulength-1)) {						                	
+						                	tempJson += "]";
+						                  	resolve(tempJson);
+						                } else {
+						                	if (_includes) {
+												tempJson += ",";
+											}
+						                }
+
+						                count++;
+						            }
+
+								});
+							});		
+
+							console.log("jsonUssdArray: " + JSON.stringify(jsonUssdArray));											
+
+							var responseArray = JSON.parse(jsonUssdArray);
+
+							console.log("responseArray: " + responseArray);
+
+							return res.status(200).send(responseArray);
+
+						} catch (e) {	
+							console.log("ERRORRRR: " + e);						
+							return res.status(500).send(e);							
+						}
+
+					break;			
 
 					default: 	
 						return res.status(400).send("Bad Request");

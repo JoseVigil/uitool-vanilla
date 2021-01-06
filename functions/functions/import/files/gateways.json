@@ -1,102 +1,37 @@
 {
-    "gateways": {
-        "S1": {
-            "position": 6,
-            "gateway": "S1",
-            "number": 1,
-            "subCollection": {}
-        },
-        "S10": {
-            "position": 67,
-            "gateway": "S10",
-            "number": 10,
+    "gateways": {        
+        "S2": {
+            "number": 2,
+            "position": 13,
+            "gateway": "S2",
             "subCollection": {}
         },
         "S11": {
-            "gateway": "S11",
-            "position": 80,
             "number": 11,
-            "subCollection": {}
-        },
-        "S12": {
-            "position": 93,
-            "gateway": "S12",
-            "number": 12,
-            "subCollection": {}
-        },
-        "S13": {
-            "number": 13,
-            "gateway": "S13",
-            "position": 106,
-            "subCollection": {}
-        },
-        "S14": {
-            "position": 119,
-            "number": 14,
-            "gateway": "S14",
-            "subCollection": {}
-        },
-        "S2": {
-            "gateway": "S2",
-            "number": 2,
             "position": 13,
-            "subCollection": {
-                "gateways/S2/sims": {
-                    "port2": {
-                        "A": {
-                            "status": "Empty"
-                        },
-                        "B": {
-                            "status": "Empty"
-                        },
-                        "subCollection": {}
-                    }
-                }
-            }
-        },
-        "S3": {
-            "gateway": "S3",
-            "position": "20",
-            "number": 3,
-            "subCollection": {}
-        },
-        "S5": {
-            "position": 27,
-            "number": "5",
-            "gateway": "S5",
-            "subCollection": {}
-        },
-        "S6": {
-            "gateway": "S6",
-            "number": 6,
-            "position": 34,
-            "subCollection": {}
-        },
-        "S8": {
-            "position": 41,
-            "number": 8,
-            "gateway": "S8",
-            "subCollection": {}
-        },
-        "S9": {
-            "gateway": "S9",
-            "position": 54,
-            "number": 9,
+            "gateway": "S11",
             "subCollection": {}
         },
         "urls": {
-            "url_send": "/en/5-3-2SMSsend.php?ch",
-            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
+            "url_managment": "/en/10-6SMSManagement.php",
+            "url_send": "/en/5-3-2SMSsend.php",
             "url_base_local": "http://localhost:5001/notims/us-central1",
-            "parmas_using": "/backend/gateway/using",
-            "url_consumption": "/en/10-6SMSManagement.php",
+            "url_using": "/en/5-9SIM.php",
+            "url_ussd": "/en/5-5USSD.php",
+            "params_send": "/backend/gateway/send",
+            "params_send_only": "/backend/gateway/sendonly",
+            "url_domain": ".notimation.com",
+            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
             "url_switch": "/en/5-9-1SIMSet.php",
             "params_status": "/backend/gateway/status",
-            "url_using": "/en/5-9SIM.php",
-            "params_send": "/backend/gateway/send",
-            "url_domain": ".notimation.com",
+            "params_ussdsend": "/backend/gateway/ussdsend",
+            "params_ussdread": "/backend/gateway/ussdread",
             "url_base": "http://s",
+            "parmas_using": "/backend/gateway/using",
+            "parmas_managment": "/backend/gateway/managment",
             "url_status": "/en/1-2chstatus.php",
+            "params_received": "/backend/gateway/smsreceived",
+            "url_received": "/en/5-3-1SMSinfo.php?ch=",
             "subCollection": {}
         }
     }

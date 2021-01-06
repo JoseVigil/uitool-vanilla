@@ -166,6 +166,7 @@
                 return indexHTML;
 
           }).catch((error) => {
+            
             console.log("error: " + error);
             return error;
 
@@ -202,14 +203,7 @@
 
     const getMeta = () => {
       // return other meta tags
-    };
-
-    exports.api = functions.https.onRequest( async (req, res) => {
-
-
-
-    });
-
+    };    
 
     exports.app = functions.https.onRequest(app);
 

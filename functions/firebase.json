@@ -34,7 +34,9 @@
       "port": 8086
     },
     "ui": {
-      "enabled": true
+      "enabled": true,
+      "host": "localhost",
+      "port": 4002
     }
   },
   "firestore": {

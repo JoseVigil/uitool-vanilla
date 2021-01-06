@@ -332,9 +332,7 @@
      * https://bbbootstrap.com/snippets/modal-dialog-multi-step-form-wizard-29726524
      * */
 
-    $(document).ready(function () {  
-
-      window.account = "kairos";
+    $(document).ready(function () {        
 
       var active_saludo = false;
       var active_cuerpo = false;
@@ -418,7 +416,8 @@
 
           $( "#login" ).text("Campoaign composer - Logged");
 
-          var campaignId = getUrlParameter('id');             
+          window.account = getUrlParameter('account');
+          //var campaignId = getUrlParameter('id');             
           
           db.collection('accounts')
           .doc(window.account)
@@ -639,6 +638,8 @@
         var cname = campaign_name.split(' ').join('_');
         var _time =  new Date();
 
+        var uiid;
+
         var campaign =  db.collection('accounts')
           .doc(window.account)
           .collection("campaigns")
@@ -657,8 +658,24 @@
                 .doc("sample").set({
                   name: "sample",
                   created_date: _time                                         
-                },{ merge:true });        
-                            
+                },{ merge:true });    
+    
+          }).then(docRefSet => {
+            
+            uiid = uuidv4();            
+            return db.collection('campaigns')
+              .doc(uiid).set({
+                campaign_ref: campaign,
+                created_date: _time                                         
+              });           
+
+          }).then(docRefSet => { 
+
+           return campaign.set({        
+            campaign_id: uiid,
+            last_update: _time                      
+             },{ merge:true });
+
           }).then(docRefSet => {       
 
               let _files = document.getElementById("excel-file").files;
@@ -713,6 +730,9 @@
                 $('#alertModal').modal('show');
 
               }
+
+            
+
             
           }).catch((error) => {     
             console.error("Error adding document: ", error);           
@@ -725,9 +745,18 @@
 
         });  
 
+
+        function uuidv4() {
+          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+        }
+
+
       function filterCard(m, w, p) {        
         if ( ( w!=undefined ) && ( p!=undefined ) ) {         
-          return getCard(m, p, w);         
+          return getCard(m, p, w, p);         
         } else {
           if ( w ) {
             return getCardCustom(m, w);              
