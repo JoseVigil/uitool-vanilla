@@ -1,5 +1,4 @@
-    
-        
+           
     functions = require('firebase-functions');
     firebase = require('firebase');
     admin = require('firebase-admin');
@@ -25,13 +24,15 @@
     /**
      * Remote gateway control
      */
-    const puppeteer = require('puppeteer');
+    //const puppeteer = require('puppeteer');
 
     //var Blob = require('node-blob');
     //var blobUtil = require('blob-util');    
     //var createObjectURL = require('create-object-url');   
     
-    serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
+    //serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
+    serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-c634d4946a.json");   
+
     const { parse, join } = require('path');
     const { url } = require('inspector');
 
@@ -40,14 +41,17 @@
     
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        databaseURL: db_url,        
+        databaseURL: db_url,          
     });    
 
-    firestoreService.initializeApp({
+    /*firestoreService.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      databaseURL: db_url,        
-    });
+      databaseURL: db_url,             
+    });*/
     
+    const appName = 'notims'
+    firestoreService.initializeApp(serviceAccount, appName)
+
     firestore = admin.firestore();    
     //const storage = admin.storage();
 
@@ -61,8 +65,8 @@
         appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
         measurementId: "G-8T5N81L78J"
     };
-    firebase.initializeApp(firebaseConfig);
-    firebase.functions().useFunctionsEmulator('http://localhost:5000');    
+    firebase.initializeApp(firebaseConfig);    
+    firebase.functions().useFunctionsEmulator('http://localhost:5001');    
 
     const settings = {timestampsInSnapshots: true};          
     firestore.settings(settings);
@@ -120,6 +124,9 @@
               break;  
             case "thumbnail":
               static_url = 'thumbnail.html';
+              break;
+            case "gateways":
+              static_url = 'gateways.html';
               break;
             default:
               static_url = 'composer.html';
@@ -361,10 +368,10 @@
     const Action = async function(req, res) { 
 
       let option = req.path.split('/')[2]; 
-      var collection = req.body.data.collection; 
+      var className = req.body.data.className; 
       
       console.log("option: " + option);
-      console.log("collection: " + collection);
+      console.log("className: " + className);
   
       switch (option) {
   
@@ -378,7 +385,7 @@
             try {
   
               firestoreService
-              .backup(collection)
+              .backup(className)              
               .then(data => {  
                 return res.status(200).send(data);          
               }).catch((error) => {                

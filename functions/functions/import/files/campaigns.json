@@ -1,0 +1,60 @@
+{
+    "campaigns": {
+        "WowwOaGqfhtubBrGNR48": {
+            "campaign_ref": {
+                "_firestore": {
+                    "_settings": {
+                        "credentials": {
+                            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCo09ZwVf27Ypwx\n0Lf7H3bhDmF+h05BwBlxYymD6/s1jffhLie8oZC2F7Bpi53rn4rr9p4oNa5dSDp3\n0KDI+fXBzoh8FmaEhtp68L9mrEFz6TGgJnEiua0m7hK4gbgXdkZjRpoqpfuS6nqk\nIInU4184pOXrGk0zJehsvk9giZrU6ge8A+N/2wPcVeaTDtIS6U2CWLszI8KB7Dp4\nPtWyD8vWk5iLCzv3I2kZmD6BI9fihvETrlBzMRJ0NOMP+Ecps+8uxA04ph5r/zW0\nVKv/ynt5ocT2nbiXhsgouD7hrI8Phz3iw5WEesLZ9XipTu0BSF4oZhM7OCYIT3zz\nsukuW1jFAgMBAAECggEAAhmAvyzOmkWkboxeni/avS5+Dc8JRqrCYwuqHalYZzOn\nPssIAWHoAd+8pawv41ki87YBawiARrA26+9xpHY5W6ohvk6GaV6gLN6KhT1RfHgz\nHtkDixYQkXcGz0a4haNgRjlMgjwsuAiUmS7ZAy3UIBX3twtApQkMzjECtzWW5TZC\nHVp7FFfcrclyp3zOxZHS5Zj6yyrKiLV84C30GutcvQ7mr7xgKpUpT0rX8tPL6xIK\n6t9jkE5Y2WoP70twGZtvwPONpnKHtbNrYC+PdJ1VYAvcUUr13G7ShL/uTbmmeITP\n4Ux6nOmzu9FMqQCOkuJqKwGeXKwXsH2oEzw3PbOTqQKBgQDZb2XSdR7Q+vMufmVq\nZb0sQATgwlMPSGtftyLE2sax9zEz4VnnaYYvEuJV4i4deFteUegXBMo5iJinBWaf\nQsm9k4l4c2cyijjJoTR2cXmo84zIK1XOs4kqRG3qo4uhMsGSh3trU/gct5Yqhcgn\nUxMBd8ttvLZHGUXmjDQZWcbFbQKBgQDGxWsYTjxrZsWQ+x9T3Urj1PPir8OOFVQy\nEPVHxK+WJuv/i5lVQdzFCrLRVxjsaaYGhrEXHk4cajuGstYRC6rusWrLK71rXJ9n\nWJNjoBC4NZG1bnVMcFTzCPHpTvZzGAflVZwWFxh8uxq6/I7eGpLRsqpkcuJvO4EU\nFydYTC5BuQKBgDcq4HbJaIw1X8YII8sfDSRRCevM4i4afcPHP3ca2xcEVOOI5bql\nN3pyHCMWRAUOKICB35UXjgeS9MhLwoHd/DmxWUvKXACiuU3PLPRwTiHjyXBwLlFH\nlCG5QvopjJ/VtO9smI/eujDvE5auYt43YbcZoe+x1b2sV+Pq5r0X3irxAoGAPRGU\nWLBYwcqecm+k7Vg01RCtKX1EwJdu+b7aDQWxyJkGssmJ/3avxF4IGGcBAklnN+QT\n7n1iFDrTNQwm1q/WAWXC4M78cErRsqe1CMu5t07GCI76PNTaVJzv7fVTpILCkkQe\nI29PF6tIiCBmKHjTmNeioB/nz7LhcnG2pdsp7wkCgYATdY8enyFtqNec3NDINUvT\nGZ/4sXUt4ljFkBaLFnfobQ/gtFRZhmYh2wXe7cOZSg+OCtTjAXjIJeK2R/PLhsUX\n1BsF3E7Wbtfa3OoeDWGDAjjpQq6TYWeHNzWSvsCyszOAyLZViYT+m6dUzMt6pWyI\nmReikEkthqmP2gbNxM0Bbw==\n-----END PRIVATE KEY-----\n",
+                            "client_email": "firebase-adminsdk-rwhzg@notims.iam.gserviceaccount.com"
+                        },
+                        "projectId": "notims",
+                        "firebaseVersion": "8.13.0",
+                        "libName": "gccl",
+                        "libVersion": "3.8.6 fire/8.13.0",
+                        "timestampsInSnapshots": true,
+                        "servicePath": "firestore.googleapis.com",
+                        "port": 443,
+                        "clientConfig": {},
+                        "scopes": [
+                            "https://www.googleapis.com/auth/cloud-platform",
+                            "https://www.googleapis.com/auth/datastore"
+                        ]
+                    },
+                    "_settingsFrozen": true,
+                    "_serializer": {
+                        "allowUndefined": false
+                    },
+                    "_projectId": "notims",
+                    "registeredListenersCount": 0,
+                    "_lastSuccessfulRequest": 1610213261815,
+                    "_backoffSettings": {
+                        "initialDelayMs": 100,
+                        "maxDelayMs": 60000,
+                        "backoffFactor": 1.3
+                    },
+                    "_preferTransactions": false,
+                    "_clientPool": {
+                        "concurrentOperationLimit": 100,
+                        "maxIdleClients": 1,
+                        "activeClients": {},
+                        "terminated": false,
+                        "terminateDeferred": {
+                            "promise": {}
+                        }
+                    }
+                },
+                "_path": {
+                    "segments": [
+                        "accounts",
+                        "kairos",
+                        "campaigns",
+                        "DEUDA_345_FDG"
+                    ]
+                },
+                "_converter": {}
+            },
+            "subCollection": {}
+        }
+    }
+}

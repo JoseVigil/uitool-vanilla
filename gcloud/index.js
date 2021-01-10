@@ -586,7 +586,7 @@
 
 					        	console.log("option==OPTION_SEND");					      
 						        
-						        await page.waitFor(6000);	
+						        await page.waitFor(4000);	
 
 						        var sjson;				
 
@@ -606,7 +606,7 @@
 
 									} else {										
 									
-										await timer(2000);
+										await timer(1000);
 										await getResponse(page, req);									
 
 									}					        	

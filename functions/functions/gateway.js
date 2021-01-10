@@ -1,12 +1,5 @@
-    
-    var firestoreService = require("firestore-export-import");
     var rp = require("request-promise");
-
-    firestoreService.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        databaseURL: db_url,
-    });
-
+    
     exports.status_chron = functions.pubsub.schedule('every 2 minutes').onRun((context) => {
         console.log('This will be run every 2 minutes!');
         return null;
