@@ -213,6 +213,7 @@
 	var OPTION_MANAGMENT 			= 'managment';
 	var OPTION_SEND 				= 'send';
 	var OPTION_SEND_ONLY 			= 'sendonly';
+	var OPTION_SEND_WEB 			= 'sendweb';
 	var OPTION_SMS_RECEIVED    		= 'smsreceived';
 	var OPTION_REBOOT		    	= 'reboot';	
 	var OPTION_BUILD_IMAGE			= 'buildimage';	
@@ -249,11 +250,18 @@
 				break;	
 
 			case OPTION_SEND:
-			case OPTION_SEND_ONLY: 								 
+			case OPTION_SEND_ONLY: 
+				console.log("__1__");								 
 				let seurl = "http://synway.notimation.com:" + port + req.body.data.url + "?ch=" + req.body.data.channel;				
 				let separams = { "option" : option, "url" : seurl };
 				return browse(req, res, separams);
-				break;	
+				break;
+
+			case OPTION_SEND_WEB:							
+				let weurl = "http://synway.notimation.com:8009/en/5-3-3SMSsending.php";				
+				let wseparams = { "option" : option, "url" : weurl };
+				return browse(req, res, wseparams);
+				break;
 
 			case OPTION_SMS_RECEIVED: 	
 				let reurl = "http://synway.notimation.com:" + port + req.body.data.url + req.body.data.channel + "&type=r&card=" + req.body.data.card + "&page=" + req.body.data.pagenumber;
@@ -314,7 +322,7 @@
 				await page.authenticate({'username':'admin', 'password': 'Notimation2020'});															
 				await page.setDefaultNavigationTimeout(0);
 
-				await page.goto(url);  
+				await page.goto(url);  				
 
 				switch (option) {	
 
@@ -538,35 +546,35 @@
 
 					break;
 
+					case OPTION_SEND_WEB:
+
+						try { 
+
+							await page.evaluate("load_word(" + req.body.data.info + ");");
+
+							await page.waitFor(2000);	
+
+						} catch (e) {							
+							return res.status(500).send(e);							
+						}
+
+					break;
+
 					case OPTION_SEND:
 					case OPTION_SEND_ONLY:
 
+						console.log("__2__");								 
+
 						try {
-
-							//await page.evaluate("alls();"); 
-							//await page.waitFor(6000);  																
-							/*await page.evaluate("resets();");   																
-							await page.waitFor(6000);*/
-
-							//var channels = params.channels;
-							//let slength = channels.length;
-
-							//console.log("channels: " + JSON.stringify(channels));							
-							//console.log("slength: " + slength);
-
-							/*for (var i=0; i<slength; i++) {
-								let channel = channels[i];
-								let id = "ch" + channel;	
-								console.log("id: " + id);					
-								//await page.click('#' + id);								
-								await page.click('input[name="' + id + '"]');
-							}*/							
+												
 
 							const phoneInput = 'textarea[name=sendtoPhoneNumber]';
 					        var recipient = req.body.data.recipient;
 					        await page.waitForSelector( phoneInput, { timeout: 0 });
 					        await page.focus(phoneInput);
-					        await page.keyboard.type(recipient);					        
+					        await page.keyboard.type(recipient);
+
+					        console.log("__3__");					        
 
 					        const msgInput = 'textarea[name=MessageInfo]';
 					        const msg = req.body.data.message;
@@ -574,19 +582,27 @@
 					        await page.focus(msgInput);
 					        await page.keyboard.type(msg);					        
 
+					        console.log("__4__");
+
 					        await page.on('dialog', async dialog => {                               
 					          await dialog.accept();	                  
 					        });					        
-					                     	              
+					                     	
+							console.log("__5__");
+
 					        //submit
 					        await page.click('#send');
 					        await page.waitForFunction('document.getElementById("SMSResult").value != ""');					        
 
+					        console.log("__6__");	
+
 					        if (option==OPTION_SEND) { 
+
+								console.log("__7__");	
 
 					        	console.log("option==OPTION_SEND");					      
 						        
-						        await page.waitFor(4000);	
+						        await page.waitFor(2000);	
 
 						        var sjson;				
 
@@ -595,6 +611,8 @@
 						        var countGetResponse = 0;
 
 						        async function resend(page, req) { 
+
+						        	console.log("__10__");
 
 						        	console.log("sending: " + sending);
 
@@ -616,6 +634,8 @@
 						        }
 
 								async function getResponse(page, req) { 
+
+									console.log("__9__");
 
 									countGetResponse++;	
 
@@ -707,6 +727,8 @@
 									}
 									
 								}
+
+								console.log("__8__");
 
 								await getResponse(page, req);
 								console.log("sjson: " + sjson);

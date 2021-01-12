@@ -2,7 +2,7 @@
     functions = require('firebase-functions');
     firebase = require('firebase');
     admin = require('firebase-admin');
-    request = require('request');  
+    request = require('request');     
 
     var firestoreService = require('firestore-export-import');      
     var path = require('path');       
@@ -69,10 +69,14 @@
     firebase.functions().useFunctionsEmulator('http://localhost:5001');    
 
     const settings = {timestampsInSnapshots: true};          
-    firestore.settings(settings);
+    firestore.settings(settings);     
+    
+    //automation
+    exports.automation = require("./run/automation");    
 
     //gateway
-    exports.gateway = require("./gateway");
+    exports.gateway = require("./run/gateway");
+
     //api
     exports.api = require("./api");
 
@@ -532,6 +536,8 @@
 
     });
 
+
+    
 
 
 

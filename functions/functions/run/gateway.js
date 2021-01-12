@@ -1,9 +1,4 @@
-    var rp = require("request-promise");
-    
-    exports.status_chron = functions.pubsub.schedule('every 2 minutes').onRun((context) => {
-        console.log('This will be run every 2 minutes!');
-        return null;
-    });
+    var rp = require("request-promise");   
 
     //var OPTION_GET_SIM_NUMBERS = "simnumber";
     var OPTION_USING = "using";
