@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="icon" type="image/x-icon" href="https://vigil.com.ar/favicons/uitool.ico"/>                    
     <link type="text/css" rel="stylesheet" href="vendor/loading_indicator/jquery.loading-indicator.css" />
+    <link rel="stylesheet" type="text/css" href="css/styles_uitool.css">
   </head>
 
   <!-- Optional JavaScript -->
@@ -31,57 +32,33 @@
   <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>
 
-  <body>
+  <body class="login_body">
 
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="row">
-            <div class="col-md-4">
+      <div class="cnt_login">
+        <div class="box_login">
+          <img class="logo_login" alt="Bootstrap Image Preview" src="images\uitool_logo.png" />
+          <p class="login_text">Ingresa tu usuario y contraseña</p>
+          <form role="form">
+            <div class="form-group">                       
+              <label for="inputEmail">Email address</label>
+              <input type="email" class="form-control inp_text" id="inputEmail" placeholder="example@mail.com" />
             </div>
-            <div class="col-md-4">
-              <div class="row pt-5">
-                <div class="col-md-12">
-                  <div class="col-md-12">
-                    <img alt="Bootstrap Image Preview" width="300" height="129" src="images\uitool_logo.png" />
-                  </div>
-                  <p class="pt-2">
-                    Ingresa tu usuario y contraseña
-                  </p>
-                  <form role="form">
-                    <div class="form-group pt-2">                       
-                      <label for="inputEmail">
-                        Email address
-                      </label>
-                      <input type="email" class="form-control" id="inputEmail" />
-                    </div>
-                    <div class="form-group">                       
-                      <label for="inputPassword">
-                        Password
-                      </label>
-                      <input type="password" class="form-control" id="inputPassword" />                                                                  
-                    </div>  
-                    <div class="row">
-                      <small id="passwordHelp" class="text-danger">                        
-                      </small>      
-                    </div>                                    
-                    <br>
-                    <div class="checkbox">                       
-                      <label>
-                        <input type="checkbox" /> Recordar contraseña
-                      </label>
-                    </div>                     
-                    <button id="btn-login" type="submit" class="btn btn-primary">
-                      Ingresar
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-            </div>
-          </div>
-        </div>
+            <div class="form-group">                       
+              <label for="inputPassword">Password</label>
+              <input type="password" class="form-control inp_text" id="inputPassword" placeholder="********" />                                                                  
+            </div>  
+            <div class="row">
+              <small id="passwordHelp" class="text-danger"></small>      
+            </div>                                    
+            <div class="checkbox">                       
+              <label>
+                <input type="checkbox" /> Recordar contraseña
+              </label>
+            </div>                     
+            <button id="btn-login" type="submit" class="btn btn-primary">Ingresar</button>
+          </form>
+        </div>      
       </div>
     </div>
 

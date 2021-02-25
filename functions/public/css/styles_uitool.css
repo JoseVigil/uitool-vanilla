@@ -1,0 +1,63 @@
+.login_body{
+	background-color: #e1e1e1;
+	background-image: url('../images/fondo_login.png');
+}
+.cnt_login{
+	display: flex;
+	justify-content: center;
+}
+.box_login{
+	width: 100%;
+	max-width: 600px;
+	background-color: #fff;
+	margin-top: 50px;
+	margin-bottom: 50px;
+	padding: 50px 20px;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	-webkit-box-shadow: 2px 2px 3px 0px rgba(50, 50, 50, 0.75);
+	-moz-box-shadow:    2px 2px 3px 0px rgba(50, 50, 50, 0.75);
+	box-shadow:         2px 2px 3px 0px rgba(50, 50, 50, 0.75);
+	border-top: 1px solid #fa1500;
+	border-left: 1px solid #fa1500;
+	
+}
+.box_login .logo_login{
+	width: 100%;
+	max-width: 300px;
+	margin-bottom: 30px;
+}
+.box_login .login_text{
+	font-weight: bold;
+	font-size: 16px;
+}
+.box_login form{
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.box_login .inp_text{
+	border: none;
+	border-bottom: 1px solid #fa1500;
+	border-radius: 0px;
+}
+.box_login .inp_text:focus{
+	outline:none !important;
+	outline-width: 0 !important;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+}
+.box_login label{
+	font-weight: 400;
+}
+.box_login #passwordHelp{
+	width: 100%;
+	font-weight: bolder;
+	text-align: center;
+	margin-bottom: 15px;
+}
+#btn-login{
+	margin-top: 30px;
+}
