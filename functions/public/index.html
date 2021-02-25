@@ -170,11 +170,12 @@
                       .then(function(account) {
 
                         var name =  account.docs[0].data().name;                
-                        var name_label =  account.docs[0].data().name_label;                          
+                        var name_label =  account.docs[0].data().name_label;    
+                        var uid =  account.docs[0].data().uid;                                      
 
                         let local = window.location.href;
 
-                        let urlcampaign = local+ "composer/campaign?&account=" + name_label;
+                        let urlcampaign = local+ "composer/campaign?&account=" + uid;
 
                         window.location.href = urlcampaign;
 

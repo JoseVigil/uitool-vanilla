@@ -538,12 +538,12 @@
 
                               if (doc.exists) {
 
-                                let name = doc.id;
+                                /*let name = doc.id;
                                 let piw = doc.data().public_image_web;
                                 let pip = doc.data().public_image_preview;
-                                let card = filterCard(name, piw, pip);
+                                let card = filterCard(name, piw, pip);*/
 
-                                var card_joined = card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                                var card_joined = "<p>hola</p>";//card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
 
                                 _json += `{"name":"${name}","card":"${card_joined}"}`; 
 
@@ -589,10 +589,12 @@
 
                           });
 
-                        } else {
+                        } 
+                        
+                        /*else {
                           let newCard = getCards("A");                          
                           $("#cards").append(img);
-                        }
+                        }*/
 
                     });
 
@@ -660,13 +662,13 @@
                 $('#field-table').append(field); 
             }
 
-            var designs = category.designs;
+            /*var designs = category.designs;
 
             for (var j=0; j<designs.length; j++) {
                let design = designs[j];
                let card = design.card;
                $("#cards").append(card);                                 
-            }           
+            }*/           
 
             //$("#cards").append(card);   
                                 
@@ -839,7 +841,7 @@
     
           }).then(docRefSet => {
             
-            uiid = uuidv4();            
+            /*uiid = uuidv4();            
             return db.collection('campaigns')
               .doc(uiid).set({
                 campaign_ref: campaign,
@@ -901,18 +903,18 @@
                       $('#alertModal').modal('show');                      
                   });
 
-              } else {                
+              } else {*/                
 
                 $('#msgModalTitle').text("Guardado con éxito");
                 $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido creada con exito.');                    
                 $('#msgModal').data('type', 1);
                 $('#msgModal').modal('show');
 
-              }
+              });
             
-          }).catch((error) => {     
+          /*}).catch((error) => {     
             console.error("Error adding document: ", error);           
-          });   
+          });*/   
 
 
         }
