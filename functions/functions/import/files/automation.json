@@ -3,6 +3,8 @@
         "I4g5vWpYChvVv9SIj9Qw": {
             "collect_data": false,
             "send_data": false,
+            "read_data": false,
+            "gateway" :11,
             "subCollection": {}
         }
     }

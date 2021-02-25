@@ -2,6 +2,7 @@
     //var firebase = require('firebase');
     //var admin = require('firebase-admin');
     var rp = require('request-promise'); 
+    var request = require('request');
 
     /*exports.chron = functions.pubsub.schedule('every 2 minutes').onRun((context) => {
         console.log('This will be run every 2 minutes!');
@@ -226,7 +227,7 @@
             body: {
             data: {
                 gateway: gateway_number,
-                    url: urls.url_status,
+                    url: _urls.url_status,
                     autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
                 },
             },
@@ -337,7 +338,7 @@
 
         usingAll.push(...usingA, ...usingB, ...usingC, ...usingD);
 
-        usingAll.sort(GetSortOrder("gateway"));
+        //usingAll.sort(GetSortOrder("gateway"));
 
         //console.log("usingAll: " + JSON.stringify(usingAll));
 
@@ -360,8 +361,8 @@
             var status = card + ".status";
             var stage = card + ".stage";
 
-            console.log("status: " + status);
-            console.log("stage: " + stage);
+            //console.log("status: " + status);
+            //console.log("stage: " + stage);
 
             //let stage_idle      = `"${STAGE_SENT_IDLE}"`;
             //let stage_failed    = `"${STAGE_SENT_FAILED}"`;
@@ -374,7 +375,7 @@
                 .then(async (querySnapshot) => {
 
                 size = querySnapshot.size;
-                console.log("size: "+ size);
+                //console.log("size: "+ size);
 
                 if (size>0) {                   
                 
@@ -529,14 +530,11 @@
 
         //console.log("FONDDOOOOO:");
         return promises_managment;
-    };     
+    };        
 
+     var postSend = async function(i, gateway, movistar_phones, movistar_data_sent, date_ports) {
 
-    var callNextMovistarSend = async function(gateway, i, movistar_phones, movistar_data_sent, date_ports) { 
-        
-        var moviLength = movistar_phones.length;
-
-        var _urlm = _urls.url_base_remote + _urls.params_send;
+        var moviLength = movistar_phones.length;       
 
         var _id = movistar_phones[i];
 
@@ -544,110 +542,88 @@
         var _card = _data.card;
 
         console.log("_id: " + _id);                  
-        console.log("_card: " + _card);                  
+        console.log("_card: " + _card);  
 
-        var option_movistar_send = {
-            method: "POST",
-            uri: _urlm,
-            body: {
-                data: {
-                    "gateway": gateway,
-                    "recipient": "321",
-                    "url": _urls.url_send,
-                    "channel": _id,                                
-                    "message":"linea",                                
-                    "card" : _card,
-                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                },
+        var g;
+
+        if (gateway<10) {
+            g = "0" + gateway;
+        } else {
+            g = gateway;
+        }
+
+        var _url = 'http://synway.notimation.com:80' + g + '/5-3-3SMSsending.php';
+        
+        var options_post = {
+            'method': 'POST',
+            'url': _url,
+            'headers': {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA='                        
             },
-            json: true,
+            form: {
+                'action': 'SendSMS',
+                'info': '-1:0:' + _id + ':321:0:1:l'
+            }
         };
 
-        console.log("option_movistar_send: " + JSON.stringify(option_movistar_send));
+        console.log("options_post: " + JSON.stringify(options_post));
+        
+        request(options_post, async function (error, response)  {
+            if (error) throw new Error(error);
+            
+            console.log("body: " + response.body);
+            console.log();
 
-        await rp(option_movistar_send)
-            .then(async function (results_send) {
+            let resutl_send_post = response.body.split(":")[1].split("}")[0];
 
-            var _result = results_send.result;
+            let nr = resutl_send_post.replace(/['"]+/g, '');
 
-            console.log("results_send: " + JSON.stringify(results_send));
-
-            let portname = "port" + _result.port;
-            let card = _result.card;
-            let status = _result.status;
+            let _number = parseInt(nr);                              
 
             var stage;
 
-            if (status === "Success") {
+            if (_number > 0) {                       
                 stage = STAGE_SENT;
-            } else if (status === "Failed") {
+            }  else {
                 stage = STAGE_SENT_FAILED;
-            } else if (status === "Sending") {
-                stage = STAGE_SENT_SENDING;
-            } else if (status === "Timeout") {
-                stage = STAGE_SENT_TIMEOUT;
             }
 
-            let _json = `{"${card}":{"stage":${stage}}}`;
-            var jsonCards = JSON.parse(_json); 
+            let id = parseInt(_id);
+
+            let _portname = "port" + (_id+1);
+
+            console.log("_portname: "  + _portname);
+
+            let _json_ = `{"${_card}":{"stage":${stage}}}`;
+            var _jsonCards_ = JSON.parse(_json_); 
 
             firestore
                 .collection("gateways")
                 .doc("S" + gateway)
                 .collection(date_ports)
-                .doc(portname)
-                .set(jsonCards, { merge: true });
+                .doc(_portname)
+                .set(_jsonCards_, { merge: true });
 
-            i++;
+            if ( i < (moviLength-1) ) {              
+            
+                    console.log("--------------");
+                    await timer(3000);                
+                    i++;                    
+                    console.log("::: NEW POST SENT " + i + " :::  ");
+                    postSend(i, gateway, movistar_phones, movistar_data_sent, date_ports)                       
+                    console.log();
+                
+            } else {
 
-            if (i<=(moviLength-1)) {
-                //if (i<=3) {                       
-                console.log("--------------");
-                await timer(1000);
-                console.log("::: SENT :::  "+i);
-
-                callNextMovistarSend(gateway, i, movistar_phones, movistar_data_sent);                            
+                console.log();
+                console.log("END POST");
+                return true;  
             }
 
-            return {};
-        
-        }).catch((error) => {
-                
-                console.log("error post: " + error);
+        });
 
-                let e = JSON.stringify(error);               
-
-                let _error = JSON.parse(e).error.detail.name;
-
-                console.log("_error: " + _error);
-
-                if (_error == "TimeoutError") {
-
-                    console.log(" :::: TIMEOUT :::: ")
-
-                    let _portname = "port" + _id;
-
-                    let _json_ = `{"${_card}":{"stage":${STAGE_SENT_TIMEOUT}}}`;
-                    var _jsonCards_ = JSON.parse(_json_); 
-
-                    firestore
-                        .collection("gateways")
-                        .doc("S" + gateway)
-                        .collection(date_ports)
-                        .doc(_portname)
-                        .set(_jsonCards_, { merge: true });
-
-                    i++;
-
-                    callNextMovistarSend(gateway, i, movistar_phones, movistar_data_sent);                            
-
-                }
-
-            return error;
-        });        
-        
-    }
-    
+    }    
 
     var GW_SendPhones = async function(gateway, date_ports) {              
         
@@ -666,8 +642,7 @@
 
             var operator = using.operator;
             var card = using.card;
-            var port = parseInt(using.port);                          
-            
+            var port = parseInt(using.port);           
             
             if (operator === "Claro AR") {
                claro_phones.push(port-1);                
@@ -680,14 +655,16 @@
             }
 
             if (operator === "Personal") {
-            personal_phones.push(port);                
+                personal_phones.push(port);                
             }
 
         }            
         
         if ( claro_phones.length > 0 ) {
 
+            console.log();
             console.log("ENVIANDO CLARO");
+            console.log();
 
             var _url = _urls.url_base_remote + _urls.params_ussdsend;
 
@@ -707,7 +684,7 @@
                 json: true,
             };
 
-            console.log("option_ussdsend: " + JSON.stringify(option_ussdsend));
+            //console.log("option_ussdsend: " + JSON.stringify(option_ussdsend));
 
             await rp(option_ussdsend)
                 .then(async function (results_ussdsend) {
@@ -756,15 +733,12 @@
         if ( movistar_phones.length > 0 ) {
 
             console.log("ENVIANDO MOVISTAR");
+            console.log();    
 
-            console.log();
-            console.log("movistar_phones: " + JSON.stringify(movistar_phones));            
-           
-            callNextMovistarSend(gateway, 0, movistar_phones, movistar_data_sent, date_ports);
+            postSend(0, gateway, movistar_phones, movistar_data_sent, date_ports);            
+
         }
-    }
-
-    
+    }    
 
     var FB_StageProcessReceive = async function (gateway_number, urls, date_ports) {
 
@@ -828,12 +802,12 @@
             await firestore
                 .collectionGroup(port_date)                                      
                 .where(status, "in", ["Using"])
-                .where(stage, "in", [STAGE_SENT])     
+                .where(stage, "in", [STAGE_SENT])                     
                 .get()
                 .then(async (querySnapshot) => {
 
                 size = querySnapshot.size;
-                console.log("size: "+ size);
+                //console.log("size: "+ size);
 
                 if (size>0) {                   
                 
@@ -878,8 +852,12 @@
         }
     }
 
-    var callNextMovistarReceive =  async function(i, movistar_phones, movistar_data_receive) { 
+    var callNextMovistarReceive =  async function(i, gateway, movistar_phones, movistar_data_receive, urls, date_ports) { 
                 
+        var _url = urls.url_base_remote + urls.params_received;
+
+        console.log("_url: " + _url);  
+
         var moviLength = movistar_phones.length;        
 
         let _id = movistar_phones[i];
@@ -892,7 +870,7 @@
 
         var option_movistar_receive = {
             method: "POST",
-            uri: _urlm,
+            uri: _url,
             body: {
                 data: {
                     "gateway": gateway,
@@ -911,7 +889,7 @@
 
             var _result = results_receive.result;
 
-            console.log("results_send: " + JSON.stringify(results_receive));
+            console.log("results_receive: " + JSON.stringify(results_receive));
 
             let portname = "port" + _result.port;
             let card = _result.card;
@@ -923,7 +901,7 @@
             firestore
                 .collection("gateways")
                 .doc("S" + gateway)
-                .collection("ports_" + date)
+                .collection(date_ports)
                 .doc(portname)
                 .set(jsonCards, { merge: true });
 
@@ -934,7 +912,7 @@
                 console.log("--------------");
                 await timer(1000);
                 console.log("::: SENT :::  "+i);
-                callNextMovistarReceive(i, movistar_phones, movistar_data_receive);                            
+                callNextMovistarReceive(i, gateway, movistar_phones, movistar_data_receive, urls, date_ports);                            
             }
 
 
@@ -948,7 +926,7 @@
     }
     
 
-    var GW_ReceiveSMS = async function(gateway, urls, date_ports) {              
+    var GW_ReceiveSMS = async function(i, gateway, urls, date_ports) {              
         
         let stageArray = await FB_StageProcessReceive(gateway, urls, date_ports);             
         
@@ -971,7 +949,9 @@
             
             if (operator === "Claro AR") {
                 claro_phones.push(port-1);                
-                claro_data_receive.push({ operator:operator, card:card, port:port });
+                claro_data_receive.push({ id:port, operator:operator, card:card, port:port });                
+                claro_phones = claro_phones.slice(i,i+4);
+                claro_data_receive.slice(i,i+4);
             }
 
             if (operator === "Movistar") {
@@ -1014,11 +994,11 @@
                 await rp(option_ussdread)
                     .then(async function (results_ussdread) {
 
-                        //console.log("RESULT::: " + results_ussdread.length);
+                        console.log("RESULT::: " + results_ussdread.length);
 
                         if (results_ussdread.length>0) { 
                             
-                            //console.log("results_ussdread: " + JSON.stringify(results_ussdread));
+                            console.log("results_ussdread: " + JSON.stringify(results_ussdread));
 
                             var promises_state_receive = [];
                             var _gateway = "S" + gateway;
@@ -1049,13 +1029,35 @@
                                     firestore
                                         .collection("gateways")
                                         .doc(_gateway)
-                                        .collection("ports_" + date)
+                                        .collection(date_ports)
                                         .doc(portname)
                                         .set(jsonCards, { merge: true })
                                 );
                             }
 
-                            return Promise.all(promises_state_receive);
+                            return Promise.all(promises_state_receive).then((results) => {
+
+                                i++;
+                                GW_ReceiveSMS(i, gateway, urls, date_ports);
+
+                                console.log(" finished");
+
+                                return {};
+
+                            }).catch((error) => {
+                                console.log("error carajo: " + error);
+                                return error;
+                            });
+                            
+
+                        } else {
+
+                            console.log(" 0  found");
+
+
+                            i++;
+
+                            GW_ReceiveSMS(i, gateway, urls, date_ports); 
 
                         }
 
@@ -1071,13 +1073,9 @@
 
         if ( movistar_phones.length > 0 ) {
 
-            console.log("movistar_phones: " + JSON.stringify(movistar_phones));
-
-            var _urlm = urls.url_base_remote + urls.params_received;
-
-            console.log("_urlm: " + _urlm);                       
+            console.log("movistar_phones: " + JSON.stringify(movistar_phones));                                 
             
-            callNextMovistarReceive(0,movistar_phones, movistar_data_receive);
+            callNextMovistarReceive(0, gateway, movistar_phones, movistar_data_receive, urls, date_ports);
         }            
 
     }
@@ -1086,9 +1084,9 @@
     
     //var _urls, _cards;
 
-    var Start = async function(callback) {                                        
-        callback(await FB_GetUrlsAndCards());
-    }        
+    //var Start = async function(callback) {                                        
+    //    callback(await FB_GetUrlsAndCards());
+    //}        
 
     /*var Collect = async function(gateway_number, urls, date) {
         
@@ -1118,15 +1116,17 @@
         try {     
 
             console.log();
-            console.log("GW_CollectPorts");
+            console.log("GW_CollectPorts");            
             await GW_CollectPorts(gateway, date_ports);                                 
 
             console.log();
             console.log("GW_CollectStatus");
+            console.log();
             await GW_CollectStatus(gateway, date_ports);        
 
             console.log();
             console.log("GW_GetConsumptions");
+            console.log();
             await GW_GetConsumptions(gateway, date_ports);                       
             console.log();
             
@@ -1139,107 +1139,131 @@
         }
     } 
 
-    var _urls, _cards;
-
-    exports.automate = functions.https.onRequest( async (req, res) => {   
-            
-        console.log("<<<<<<<<<<<<<<<<<<<<======================");       
-        
-
-        Start(function(resultsArrays) {
-
-            _urls = resultsArrays.urls;
-            _cards = resultsArrays.cards;    
-
-            console.log("_urls: " + JSON.stringify(_urls) + " _cards: " + JSON.stringify(_cards));
-            
-            res.status(200).send({urls:_urls, cards: _cards});    
-
-        });
-     
-        
+    
+    exports.automate = functions.https.onRequest( async (req, res) => {             
+       
     
     });
     
-    
+    var _urls;
+    var _cards;
+
 
     exports.automate = functions.firestore
       .document('automation/{automationId}')
-      .onUpdate( async (snap, contex) => {
+      .onUpdate( async (snap, context) => {
 
-      /*const gatewaysRef = db.collection('gateways');  
-      gatewaysRef.get().then(snapshot => {
+        var documentData = snap.after.data(); 
 
-        var content = '';
+        var _id_ = snap.after.id;
 
-        snapshot.docs.forEach(doc => {
+        console.log("_id_: " +_id_);
 
-          var docData = doc.data();
-          console.log(docData);   
-          
-          if (doc.id != "urls") {
+        var resultsArrays = await FB_GetUrlsAndCards(); //async function(resultsArrays) {
+                                
+        _urls = resultsArrays.urls;
+        _cards = resultsArrays.cards;  
 
-            let html = `<tr>
-                    <td>${doc.id}</td>                      
-                    </tr>`;
-            content += html;
-            fieldsGateway.innerHTML = content;
+        //console.log();
+        //console.log("_urls: " + JSON.stringify(_urls));
+        //console.log();
+
+        var collect_data = documentData.collect_data;
+        var send_data = documentData.send_data;  
+        var read_data = documentData.read_data; 
+        var _gateway_ = documentData.gateway;  
+
+        if (collect_data || send_data || read_data) {
+        
+            var _date_ports = "ports_" + getDateLabel();            
+
+            const gatewaysRef = firestore.collection('gateways');  
+            gatewaysRef.get().then( async snapshot => {
+                
+                console.log("size: " + snapshot.size);
+
+                snapshot.docs.forEach( async doc => {
+
+                    var docData = doc.data();
+                    var id = doc.id;
+                    console.log("id: " + id);
+
+                    if ( id === "urls" ) {
+
+                        console.log("urls do nothing");
+                    
+                    } else {    
+                    
+                        var gateway_number = parseInt(id.split("S")[1]);  
+
+                        console.log("_gateway_: " + _gateway_);
+                        console.log("gateway_number: " + gateway_number);
+                        console.log("----------------------");
+                        
+                        if (_gateway_ === gateway_number) {
+
+                            console.log("gateway_number: " + gateway_number);                       
+
+                            console.log();
+                            console.log("////////////////////////");
+                            console.log("///     " + id + "      ///");
+                            console.log("////////////////////////");
+                            console.log();                                          
+
+                            if (collect_data) {
+                                
+                                console.log();
+                                console.log("GW_CollectData");           
+                                await GW_CollectData(gateway_number, _date_ports);                                
+                                
+                                firestore
+                                .collection("automation")
+                                .doc(_id_)
+                                .set({collect_data: false}, { merge: true });
+                            
+                            } else if (send_data) {
             
-          }
+                                console.log();
+                                console.log("GW_SendPhones");           
+                                await GW_SendPhones(gateway_number, _date_ports);
+                                console.log();
 
+                                firestore
+                                .collection("automation")
+                                .doc(_id_)
+                                .set({send_data: false}, { merge: true });
+                            
+                            } else if (read_data) {                               
 
-        }, error => {
-          console.log(error.message);
-        });
-     });*/
+                                console.log();
+                                console.log("GW_ReceiveSMS");           
+                                await GW_ReceiveSMS(0, gateway_number, _urls, _date_ports);
 
-        var data = snap.after.data();                
+                                console.log();
 
-        var collect_data = data.collect_data;
-        var send_data = data.send_data;    
-        
-        console.log("collect_data: " + collect_data + " send_data: " + send_data);        
+                                firestore
+                                .collection("automation")
+                                .doc(_id_)
+                                .set({read_data: false}, { merge: true });
 
-        var _date_ports = "ports_" + getDateLabel();                            
+                            }
+                                
+                        }           
+                    }
 
-        
-            Start(async function(resultsArrays) {
+                }, error => {
+                    console.log(error.message);
+                });
 
-                _urls = resultsArrays.urls;
-                _cards = resultsArrays.cards;  
-                
-                if (collect_data) {
-                
-                    console.log();
-                    console.log("GW_CollectData");           
-                    await GW_CollectData(11, _date_ports);  
-                
-                } 
-
-                if (send_data) {
-
-                    console.log();
-                    console.log("GW_SendPhones");           
-                    await GW_SendPhones(11, _date_ports);
-        
-                }
-
+                return {};
+            
+            }).catch((error) => {
+                console.log("error post: " + error);
+                return error;
             });    
 
-       
 
-        
-
-       
-        //let urls = automation._urls;
-
-        //console.log("urls: " + JSON.stringify(urls));
-
-        /*automation.Start(function(resultsArrays) {
-          //_urls = resultsArrays.urls;
-          //_cards = resultsArrays.cards;    
-            console.log(JSON.stringify(resultsArrays));
-        })*/       
+        }             
 
     });
 

@@ -77,173 +77,124 @@
     <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
 
        
-    
+
     <div class="container-fluid">
-
-
-      <div class="row" style="padding-left: 50px;">
-        <div class="col-md-12">          
+      <div class="row pt-5">
+        <div class="col-md-12">
           
-          <!--<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-dark bg-dark">
-             
-            button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-              <span class="navbar-toggler-icon"></span>
-            </button> <a class="navbar-brand" href="#">Brand</a>
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-              <ul class="navbar-nav">
-                <li class="nav-item active">
-                   <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                   <a class="nav-link" href="#">Link</a>
-                </li>
-                <li class="nav-item dropdown">
-                   <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown">Dropdown link</a>
-                  <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                     <a class="dropdown-item" href="#">Action</a> <a class="dropdown-item" href="#">Another action</a> <a class="dropdown-item" href="#">Something else here</a>
-                    <div class="dropdown-divider">
-                    </div> <a class="dropdown-item" href="#">Separated link</a>
-                  </div>
-                </li>
-              </ul>
-              <form class="form-inline">
-                <input class="form-control mr-sm-2" type="text" /> 
-                <button class="btn btn-primary my-2 my-sm-0" type="submit">
-                  Search
-                </button>
-              </form>
-              <ul class="navbar-nav ml-md-auto">
-                <li class="nav-item active">
-                   <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item dropdown">
-                   <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown">Dropdown link</a>
-                  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                     <a class="dropdown-item" href="#">Action</a> <a class="dropdown-item" href="#">Another action</a> <a class="dropdown-item" href="#">Something else here</a>
-                    <div class="dropdown-divider">
-                    </div> <a class="dropdown-item" href="#">Separated link</a>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </nav>-->
-
-          <br>
-
+          <!--HEADER-->
           <div class="row">
-            <div id="login">
-              Campoaign composer - Not Logged
-            </div>  
-            <div id="logout">
-              Logout
-            </div>
-            <div class="col-md-4">
-            </div>
-            <div class="col-md-4">
-              <h3 class="text-center">
-                Noti Designer
+            
+            <!--TITLE-->
+            <div class="col-md-6">
+              <h3 class="pl-2">
+                Editor de campañas uiTool
               </h3>
             </div>
-            <div class="col-md-4">
+
+            <div class="col-md-3">
             </div>
-          </div>
 
-          <br>
-          
-          <div class="row">
+            
 
-            <div class="col-md-12">              
+            <!--POWERED-->
+            <div class="col-md-3">
+              <div class="row">
+                <div class="col-md-12">
+                   <span class="badge badge-default">powered by</span><img alt="Bootstrap Image Preview" width="200" height="54" src="https://firebasestorage.googleapis.com/v0/b/notims.appspot.com/o/assets%2Flogo_form.png?alt=media&token=694661d2-e3b6-49b6-8c1d-e9cede3c911e" />
+                </div>
+              </div>
+            </div>
 
-              <div class="row">                
+          </div>     
 
-                <!--NEW CAMPAIGN-->
-                <div class="col-md-6">
+          <div class="row pl-3 pr-3">
+            <div class="col-md-12">
+              
+              <!--NEW-->
+              <div class="row">
+                <div class="col-md-6">                 
+                  <!--NEW FORM-->
                   <div class="row">
-                    <div class="col-md-12">
-                      <div class="row">
-                        <div class="col-md-6">
-                           <span class="badge badge-default float-right"><h5>Nombre campaña:</h5></span>
-                        </div>
-                        <div class="col-md-6">
-                          <input id="campaign-name" type="text" class="form-control">
-                          <p>Crea el cuerpo del mensaje</p>                                    
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <div class="row float-right">
-                            <span class="badge badge-default"><h5>Agregar campo</h5></span>
-                            <button id="add-field" type="button" class="btn btn-success ">
-                              +
-                            </button>
-                          </div>
-                        </div>
-                        <div class="col-md-6">                           
-                          
-                          <label class="btn btn-default">
-                            Subir archivo de Excel <input id="excel-file" type="file" hidden>
-                            <i class="fas fa-file-excel"></i>
-                          </label>
-                        </div>
-                      </div>
-                      <br>
-                      <div class="row">
-                        <div class="col-md-12">
+                    
+                      <button id="new-campaign" type="button" class="btn btn-success">
+                        Nueva Campaña
+                      </button>
+                      <button id="save-campaign" type="button" class="btn btn-info ml-auto mr-3">
+                        Guardar Campaña
+                      </button>
 
-                          <table id="field-table" class="table table-bordered table-hover table-sm">
-                            <thead>
-                              <tr>
-                                <th>                                  
-                                </th>
-                                <th>
-                                  Campo
-                                </th>
-                                <th>
-                                  Valor
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr id="field0">
-                                <td>
-                                  <span class="glyphicon glyphicon-envelope"></span>                                
-                                </td>
-                                <td>
-                                  <input id="name_0" type="text" class="form-control">
-                                </td>
-                                <td>
-                                  <input id="value_0" type="text" class="form-control">
-                                </td>                               
-                              </tr>                              
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+                  </div>
+                  <br>
+                  <div class="row">
+                    <div class="col-md-6">
+                       <span class="badge badge-default float-right"><h5>Nombre campaña:</h5></span>
+                    </div>
+                    <div class="col-md-6">
+                      <input id="campaign-name" type="text" class="form-control">
+                      <p>Crea el cuerpo del mensaje</p>                                    
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-md-12">
-                      <div class="row">
-                        <div class="col-md-6">
-                           
-                          <button type="button" class="btn btn-success">
-                            Borrar
-                          </button>
-                        </div>
-                        <div class="col-md-6">
-                           
-                          <button id="save-campaign" type="button" class="btn btn-success">
-                            Guardar Campaña
-                          </button>
-                        </div>
+                    <div class="col-md-6">
+                      <div class="row float-right">
+                        <span class="badge badge-default"><h5>Agregar campo</h5></span>
+                        <button id="add-field" type="button" class="btn btn-success ">
+                          +
+                        </button>
                       </div>
+                    </div>
+                    <div class="col-md-6">                          
+                      
+                      <label class="btn btn-default">
+                        Subir archivo de Excel <input id="excel-file" type="file" hidden>
+                        <i class="fas fa-file-excel"></i>
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                
-                <!--TABLE-->
                 <div class="col-md-6">
+                  <!--NEW FIELDS-->
+                  
+                  <table id="field-table" class="table table-bordered table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th>                                  
+                        </th>
+                        <th>
+                          Campo
+                        </th>
+                        <th>
+                          Valor
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr id="field0">
+                        <td>
+                          <span class="glyphicon glyphicon-envelope"></span>                                
+                        </td>
+                        <td>
+                          <input id="name_0" type="text" class="form-control">
+                        </td>
+                        <td>
+                          <input id="value_0" type="text" class="form-control">
+                        </td>                               
+                      </tr>                              
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!--CATEGORIES-->
+              <div class="row pl-3 pr-3">
+                <div class="col-md-12">
+
+                  <h3>
+                    Campañas
+                  </h3>
+
                   <table id="campaign-table"  class="table table-bordered table-hover table-sm">
                     <thead>
                       <tr>
@@ -262,48 +213,72 @@
                     
                     </tbody>
                   </table>
+
+                </div>
+              </div>
+
+              <!--PREVIEWS-->
+              <div class="row pt-5 pl-3 pr-3">
+                <div class="col-md-12">
+                 
+                  
+                  <div class="row">   
+                    <h3>
+                      Diseños
+                    </h3>  
+                    &nbsp;&nbsp;               
+                    <button id="add-field" type="button" class="btn btn-success">
+                      Nuevo diseño
+                    </button>
+
+                  </div>
+                  <br>    
+
+                  <div class="row">                
+                    <div class="col-md-3">                  
+                      <div id="cards" class="row">
+                      </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!--FOOTER-->
+              <div class="row">
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-4">
                 </div>
               </div>
             </div>
           </div>
-          
-          <br>
-
-          <div class="row">
-            <div class="col-md-12">
-              <h3 class="text-center">
-                Noti Designer
-              </h3>
-              <div class="row float-left">
-                <span class="badge badge-default"><h5>Nuevo diseño</h5></span>
-                <button id="add-field" type="button" class="btn btn-success ">
-                  +
-                </button>
-              </div>
-              <br><br>
-              
-              <div class="row">                
-                <div class="col-md-3">                  
-                  <div id="cards" class="row">
-                  </div>
-              </div>
-
-          <!-- Add Alert -->  
-          <div id="alertModal" class="modal fade">
-            <div class="modal-dialog">
-                <div class="modal-content">                                
-                    <div class="modal-body">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <p id="alert-content"></p>
-                    </div>                                
-                    <div data-dismiss="modal" class="modal-footer"><button type="button" class="btn btn-primary">OK</button></div>
-                </div>
-            </div>
         </div>
+      </div>
+    </div>    
 
+    <!--MODALS-->
+    <div class="modal fade" id="msgModal" tabindex="-1" role="dialog" aria-labelledby="msgModal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="msgModalTitle">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">            
+            <p id="msgModalContent"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>            
+          </div>
         </div>
       </div>
     </div>
+
+  </div>  
 
     <script>
     //<![CDATA[
@@ -344,6 +319,12 @@
       var count_drop = 0;
 
       var count_field = 1;
+
+      var fields_array = [];
+      var designs_array = [];
+
+      var jsonCat = {}; 
+      var active_category = 0;
 
       const firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
@@ -417,21 +398,29 @@
           $( "#login" ).text("Campoaign composer - Logged");
 
           window.account = getUrlParameter('account');
-          //var campaignId = getUrlParameter('id');             
+          //var campaignId = getUrlParameter('id');     
+          
+          var _json;
           
           db.collection('accounts')
           .doc(window.account)
           .collection("campaigns")
           .onSnapshot(snapshot => {
             
-              let size = snapshot.size;            
+              var size = snapshot.size;            
               let changes = snapshot.docChanges();  
 
               if (size>0) {
               
                 $("#campaign-table tbody tr").remove();
                 $("#field-table tbody tr").remove();
-                $("#campaign-name").val('');              
+                $("#campaign-name").val('');  
+                
+                var _json = `{"categories":[`;
+
+                var last = false;
+
+                var count_campaigns = 0;
 
                 changes.forEach(change => {
                     
@@ -439,49 +428,91 @@
                     let id = document.id;  
                     window.campaignId = id;
                     let last = document.data().last_update.toDate();
-                    let last_update = formatDate(last);  
+                    let last_update = formatDate(last);                     
                     
                     var campaign_name = id;                  
-                    $("#campaign-name").val(campaign_name);
+                    //$("#campaign-name").val(campaign_name);
                     
-                    let item = `<tr data-id="${document.id}">
+                    let item_category = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">
                     <td>
-                        <span class="custom-checkbox" class='clickable-row'>
-                            <input type="checkbox" id="check_${document.id}" name="options[]" value="${document.id}">
-                            <label for="${document.id}"></label>
+                        <span class=\\"custom-checkbox\\" class='clickable-row'>
+                            <input type=\\"checkbox\\" id=\\"check_${document.id}\\" name=\\"options[]\\" value=\\"${document.id}\\">
+                            <label for=\\"${document.id}\\"></label>
                         </span>
                     </td>
                     <td>${campaign_name}</td>
                     <td>${last_update}</td>               
-                    <td><a href="#" id="menu_${document.id}"><i class="fal fa-ellipsis-v"></i></a></td>        
+                    <td><a href=\\"#\\" id=\\"menu_${document.id}\\"><i class=\\"fal fa-ellipsis-v\\"></i></a></td>        
                     </tr>`;
-                    $('#campaign-table').append(item);
+                    //$('#campaign-table').append(item);
+
+                    var item_category_joined = item_category.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                        
+                    console.log(item_category_joined);
+                    console.log("");
+
+                    _json += `{"name":"${campaign_name}","item":"${item_category_joined}","fields":[`;
 
                     let fields = document.data().fields;
+
+                    var fields_html = [];
 
                     if ( fields.length>0 ) {                    
 
                       $("#field0").remove(); 
 
-                      count_field = fields.length;
+                      var count_field = fields.length;
                       
-                      for (var i=0; i < fields.length; i++) {              
+                      var count = 0;
+
+                      for (var i=0; i < count_field; i++) {              
 
                         let field = fields[i];                  
                         let name = field.name;
                         let value = field.value;
 
-                        let item = `<tr id="field${i}">
+                        let field_item = `<tr id=\\"field${i}\\">
                           <td>
-                            <span class="glyphicon glyphicon-envelope"></span>                                </td>
+                            <span class=\\"glyphicon glyphicon-envelope\\"></span>                                </td>
                           <td>
-                            <input id="name_${i}" value="${name}" type="text" class="form-control">
+                            <input id=\\"name_${i}\\" value=\\"${name}\\" type=\\"text\\" class=\\"form-control\\">
                           </td>
                           <td>
-                            <input id="value_${i}" value="${value}" type="text" class="form-control">
+                            <input id=\\"value_${i}\\" value=\\"${value}\\" type=\\"text\\" class=\\"form-control\\">
                           </td>                               
-                        </tr>`;   
-                        $('#field-table').append(item); 
+                        </tr>`;                             
+
+                        
+                        //let field_item_joined = field_item.replace(/\>\s+\</g,'');
+
+                        var field_item_joined = field_item.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                        
+                        console.log(field_item_joined);
+                        console.log("");
+
+                        //$('#field-table').append(field); 
+
+                        _json += `"${field_item_joined}"`;
+
+                        if (count == (count_field-1)) {
+
+                          _json += `],"designs":[`; 
+
+                          if (count_campaigns == (size-1)) {
+
+                            last = true;
+
+                          }
+
+                          count_campaigns++;
+
+                        } else {
+
+                          _json += `,`; 
+
+                        }
+
+                        count ++;
 
                       }
 
@@ -499,6 +530,8 @@
                         
                         if (cardSize > 0) {
 
+                          var count = 0;                         
+
                           cardChanges.forEach(cardDoc => {                           
 
                               let doc = cardDoc.doc;
@@ -509,9 +542,36 @@
                                 let piw = doc.data().public_image_web;
                                 let pip = doc.data().public_image_preview;
                                 let card = filterCard(name, piw, pip);
-                                $("#cards").append(card);   
+
+                                var card_joined = card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+
+                                _json += `{"name":"${name}","card":"${card_joined}"}`; 
+
+                                if (count == (cardSize-1)) {
+
+                                  _json += `]`; 
+
+                                  if (last) {
+
+                                    _json += `}]}`;                            
+
+                                    jsonCat = JSON.parse(_json);
+
+                                    loadCategoryById(active_category);
+
+                                  }
+
+                                } else {
+
+                                  _json += `,`; 
+
+                                }
+
+                                count++;
+
+                                //$("#cards").append(card);   
                                 
-                                $(`#preview-${name}`).on('click', function() {              
+                                /*$(`#preview-${name}`).on('click', function() {              
                                   buildLink("preview");
                                 }); 
 
@@ -523,7 +583,7 @@
                                   let web = "http://localhost:5000/composer/web";
                                   let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
                                   window.open(url, '_blank');
-                                }
+                                }*/
 
                               }
 
@@ -562,11 +622,71 @@
 
         }
 
-        $("#campaign-table tr").click(function(){
+        $("#campaign-table tbody").delegate('tr', 'click', function(e) {       
           $(this).addClass('selected').siblings().removeClass('selected');    
           var value=$(this).find('td:first').html();
-          alert(value);    
+          var id = $(this).attr('id');
+          loadCategoryById(id);
+          console.log(id);          
+          console.log(value);          
         });
+
+        function loadCategoryById(categoryId) {
+
+          $("#campaign-table tbody tr").remove();
+          $("#field-table tbody tr").remove();
+          $("#campaign-name").val('');      
+          $("#campaign-name").focus();
+          $("#cards").empty(); 
+
+          var categories = jsonCat.categories;
+
+          let length = categories.length;
+
+          for (var i=0; i<length;i++){
+
+            let category = categories[i];
+
+            let name = category.name;
+            $("#campaign-name").val(name);            
+
+            let item = category.item;
+            $('#campaign-table').append(item);
+
+            let fields = category.fields;
+
+            for (var j=0; j<fields.length; j++) {
+               let field = fields[j];
+                $('#field-table').append(field); 
+            }
+
+            var designs = category.designs;
+
+            for (var j=0; j<designs.length; j++) {
+               let design = designs[j];
+               let card = design.card;
+               $("#cards").append(card);                                 
+            }           
+
+            //$("#cards").append(card);   
+                                
+            /*$(`#preview-${name}`).on('click', function() {              
+              buildLink("preview");
+            }); 
+
+            $(`#web-${name}`).on('click', function() {       
+              buildLink("web"); 
+            }); 
+
+            function buildLink(type) {
+              let web = "http://localhost:5000/composer/web";
+              let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
+              window.open(url, '_blank');
+            }*/
+
+          }
+
+        }
 
         function formatDate(date) {
             var d = new Date(date),
@@ -599,43 +719,100 @@
           count_field++;
       });   
 
-      $("#save-campaign").on('click', function() {  
-
-        let _table_size = $("#field-table tbody tr").length;
-
-       var count = 0;
-       var fields_array = [];
-       var _break = false;
-        
-        $("#field-table tbody tr").each(function() {
-            
-          if (_break==false) {  
-
-            let _name = $("#name_" + count ).val();
-            let _value = $("#value_" + count ).val(); 
-            let _field = {
-              "name":_name,
-              "value":_value
-            };   
-            fields_array.push(_field);
-            if (count == (_table_size-1)) {
-              saveCampaig(fields_array);
-              _break = true;
-            } 
-            count++;
-          }
-
-        });
-
-        let card = getCard();          
-        $("#cards").append(card);
-
+      $("#new-campaign").on('click', function() {  
+        //$("#campaign-table tbody tr").remove();
+        $("#field-table tbody tr").remove();
+        $("#msgModalContent").val('');      
+        $("#campaign-name").val('');
+        $("#campaign-name").focus();
+        $("#cards").empty();
+        count_field=0;
       });
 
-      function saveCampaig(fields_array) {
+      $('#msgModal').on('hidden.bs.modal', function (e) {
+
+        var type = $('#msgModal').data('type');
+
+        if (type == 1) {
+
+          $("#campaign-name").focus();
+
+        } else if (type == 2) {
+
+          $("#add-field").focus();
+
+        }
+        
+      });
+
+      $("#save-campaign").on('click', function() {  
 
         var campaign_name = $("#campaign-name").val();
-        var cname = campaign_name.split(' ').join('_');
+
+        if (campaign_name=="" || campaign_name==undefined) { 
+
+          $('#msgModalTitle').text("Guardado");
+          $('#msgModalContent').text("Es necesario que ingreses un nombre para la nueva campaña.");                    
+          $('#msgModal').data('type', 1);
+          $('#msgModal').modal('show');
+
+        } else {
+
+          if (count_field == 0) { 
+
+            $('#msgModalTitle').text("Guardado");
+            $('#msgModalContent').text("Es necesario que ingreses los campos dinámicos. Cliquea en Agregar campo '+' para agregar los campos o bien subi un archivo de excel con la primera columna campo y la segunda valor. ");                    
+            $('#msgModal').data('type', 2);
+            $('#msgModal').modal('show');
+
+          } else {
+
+
+            let _table_size = $("#field-table tbody tr").length;
+
+            var count = 0;
+            var fields_array = [];
+            var _break = false;
+            
+            $("#field-table tbody tr").each(function() {
+                
+              if (_break==false) {                  
+
+                let campaign_name = $("#campaign-name").val();
+                let _name = $("#name_" + count ).val();
+                let _value = $("#value_" + count ).val(); 
+                let _field = {
+                  "name":_name,
+                  "value":_value
+                };   
+                fields_array.push(_field);
+                if (count == (_table_size-1)) {
+                  saveCampaig(campaign_name, fields_array);
+                  _break = true;
+                } 
+                count++;
+              }
+
+            });
+
+            let card = getCard();          
+            $("#cards").append(card);
+
+          }     
+
+        }
+      });
+
+      function saveCampaig(campaign_name, fields_array) {
+
+        var cname;
+
+        if (/\s/.test(campaign_name)) {
+            cname = campaign_name.split(' ').join('_');
+        } else {
+          cname = campaign_name;
+        }      
+        
         var _time =  new Date();
 
         var uiid;
@@ -726,13 +903,12 @@
 
               } else {                
 
-                $('#alert-content').text('La campaña ' + campaign_name + ' ha sido creada con exito.');
-                $('#alertModal').modal('show');
+                $('#msgModalTitle').text("Guardado con éxito");
+                $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido creada con exito.');                    
+                $('#msgModal').data('type', 1);
+                $('#msgModal').modal('show');
 
               }
-
-            
-
             
           }).catch((error) => {     
             console.error("Error adding document: ", error);           
@@ -780,41 +956,41 @@
 
       function getCard(name, img_preview, img_web) {
         
-        let card = `<div class="col-md-12" style="background-color:#E8F0FE;">                              
-              <div class="row col-md-12 mt-3 mb-2">                                
-                <div class="col-md-10">
-                  <h3 id="card${name}">${name}</h3>                                
+        let card = `<div class=\\"col-md-12\\" style=\\"background-color:#E8F0FE;\\">                              
+              <div class=\\"row col-md-12 mt-3 mb-2\\">                                
+                <div class=\\"col-md-10\\">
+                  <h3 id=\\"card${name}\\">${name}</h3>                                
                 </div>
-                <div class="col-md-2">                           
-                  <button type="button" class="float-right btn btn-success">X</button>
+                <div class=\\"col-md-2\\">                           
+                  <button type=\\"button\\" class=\\"float-right btn btn-success\\">X</button>
                 </div>
               </div>
-              <button id="preview-${name}" class="card border round w-100">`;                                        
+              <button id=\\"preview-${name}\\" class=\\"card border round w-100\\">`;                                        
               if (img_preview) {
-                card += `<img class="w-100" src="${img_preview}"/>`;
+                card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;
               } else {
-                card += `<div id="preview-image-${name}" class="card-body">
+                card += `<div id=\\"preview-image-${name}\\" class=\\"card-body\\">
                           Preview
                         </div>`;
               }
               card += `</button>                                
               <br>
-              <button id="web-${name}" class="card border rounded h-100">`;                        
+              <button id=\\"web-${name}\\" class=\\"card border rounded h-100\\">`;                        
               if (img_web) {
-                card += `<img class="w-100" src="${img_web}"/>`;                  
+                card += `<img class=\\"w-100\\" src=\\"${img_web}\\"/>`;                  
               } else {
-                card += `<div id="web-image-${name}" class="card-body">
+                card += `<div id=\\"web-image-${name}\\" class=\\"card-body\\">
                                 Web Page
                               </div>`;
               }
               card += `</button>
-                <div class="row">
-                  <div class="col-md-12">
+                <div class=\\"row\\">
+                  <div class=\\"col-md-12\\">
                 </div>
                 </div>
-                <div class="col-md-4">
+                <div class=\\"col-md-4\\">
                 </div>
-                <div class="col-md-4">
+                <div class=\\"col-md-4\\">
                 </div>
               </div>`;            
 

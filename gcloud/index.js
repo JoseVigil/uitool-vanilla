@@ -574,7 +574,7 @@
 					        await page.focus(phoneInput);
 					        await page.keyboard.type(recipient);
 
-					        console.log("__3__");					        
+					        console.log("__	__");					        
 
 					        const msgInput = 'textarea[name=MessageInfo]';
 					        const msg = req.body.data.message;

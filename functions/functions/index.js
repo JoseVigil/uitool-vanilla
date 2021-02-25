@@ -215,6 +215,13 @@
     const getMeta = () => {
       // return other meta tags
     };    
+ 
+    // When a user is created, register the account
+    exports.onCreateUser = functions.auth.user().onCreate(async (user) => {
+      let email = user.email;
+      let userId = user.uid;
+      return firestore.collection('accounts').doc(userId).set({uid:userId, email: email});
+    });
 
     exports.app = functions.https.onRequest(app);
 
