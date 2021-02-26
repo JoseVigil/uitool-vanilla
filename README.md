@@ -63,6 +63,13 @@ git commit -m "Nueva rama para maquetado"
 git push origin new_banch_name
 ```
 
+Install modules
+
+```sh
+cd noti-ms/functions/functions
+npm install
+```
+
 Init commands
 -------------
 
