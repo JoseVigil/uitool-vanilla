@@ -61,3 +61,168 @@
 #btn-login{
 	margin-top: 30px;
 }
+/* ****************************************ESTILOS CAMPAÑAS***************************************************** */
+.body_campaing{
+	background-color: #fff;
+	background-image: url('../images/fondo_campaing.png');
+}
+.body_campaing header{
+	height: 50px;
+	background: rgb(215,215,215);
+	background: -moz-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: -webkit-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d7d7d7",endColorstr="#f4f4f4",GradientType=1);
+	-webkit-box-shadow: 0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	-moz-box-shadow:    0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	box-shadow:         0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-left: 50px;
+	padding-right: 50px;
+}
+.body_campaing header .logo_ui{
+	width: 100px;
+}
+.body_campaing header .btn_loguot{
+	font-weight: bolder;
+}
+.body_campaing header .btn_loguot:focus{
+	outline:none !important;
+	outline-width: 0 !important;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+}
+.body_campaing .section_title{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 50px 0px 50px;
+	background-color: #fff;
+	margin-top: 8px;
+}
+.body_campaing .section_title h3 span{
+	color: #fa1500;
+}
+.body_campaing .section_title .powered img{
+	margin-left: -20px;
+	width: 100%;
+	max-width: 200px;
+}
+.body_campaing .cnt_campa{
+	display: flex;
+	justify-content: space-between;
+	padding: 20px;
+}
+.body_campaing .new_campa{
+	flex: 1;
+	max-width: 800px;
+	margin-right: 10px;
+	background: rgb(215,215,215);
+	background: -moz-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: -webkit-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d7d7d7",endColorstr="#f4f4f4",GradientType=1);
+	-webkit-box-shadow: 0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	-moz-box-shadow:    0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	box-shadow:         0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	padding: 10px;
+}
+.body_campaing .new_fields{
+	flex: 1;
+	max-width: 800px;
+	margin-left: 10px;
+	background: rgb(215,215,215);
+	background: -moz-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: -webkit-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d7d7d7",endColorstr="#f4f4f4",GradientType=1);
+	-webkit-box-shadow: 0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	-moz-box-shadow:    0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	box-shadow:         0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+}
+.body_campaing .new_campa .btn_campaing{
+	display: flex;
+	justify-content: space-between;
+}
+.body_campaing .new_campa .camp_nom{
+	margin-top: 10px;
+}
+.body_campaing .new_campa .camp_nom label{
+	font-size: 20px;
+	font-weight: bolder;
+}
+.body_campaing .new_campa .camp_field{
+	margin-top: 10px;
+	display: flex;
+	justify-content: space-between;
+}
+.body_campaing .new_campa .camp_field label{
+	font-size: 18px;
+	font-weight: bolder;
+}
+.body_campaing .cnt_categories{
+	display: flex;
+	justify-content: space-around;
+	padding: 20px;
+}
+.body_campaing .cnt_categories .box_categ{
+	padding: 10px;
+	width: 100%;
+	background: rgb(215,215,215);
+	background: -moz-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: -webkit-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d7d7d7",endColorstr="#f4f4f4",GradientType=1);
+	-webkit-box-shadow: 0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	-moz-box-shadow:    0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	box-shadow:         0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+}
+.body_campaing .cnt_previews{
+	display: flex;
+	justify-content: space-around;
+	padding: 20px;
+}
+.body_campaing .cnt_previews .box_prev{
+	padding: 10px;
+	width: 100%;
+	background: rgb(215,215,215);
+	background: -moz-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: -webkit-linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	background: linear-gradient(90deg, rgba(215,215,215,1) 0%, rgba(244,244,244,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d7d7d7",endColorstr="#f4f4f4",GradientType=1);
+	-webkit-box-shadow: 0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	-moz-box-shadow:    0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+	box-shadow:         0px 5px 5px 0px rgba(170, 170, 170, 0.75);
+}
+#cards{
+	display: flex;
+}
+@media only screen and (max-width: 960px){
+	.body_campaing .cnt_campa{
+		flex-direction: column;
+	}
+	.body_campaing .new_campa{
+		margin-right: 0px;
+		max-width: initial;
+	}
+	.body_campaing .new_fields{
+		margin-left: 0px;
+		margin-top: 20px;
+		max-width: initial;
+	}
+}
+@media only screen and (max-width: 768px){
+	.body_campaing .section_title{
+		flex-direction: column;
+		justify-content: center;
+	}
+	.body_campaing .section_title h3{
+		text-align: center;
+	}
+	.body_campaing .section_title .powered img{
+
+	}
+}

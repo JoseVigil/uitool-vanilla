@@ -52,10 +52,11 @@
                 
        
      </style>
+     <link rel="stylesheet" type="text/css" href="/css/styles_uitool.css">
 
   </head>
 
-  <body>    
+  <body class="body_campaing">    
 
     <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>    
@@ -78,185 +79,101 @@
 
        
 
-    <div class="container-fluid">
-      <div class="row pt-5">
-        <div class="col-md-12">
-          
-          <!--HEADER-->
-          <div class="row">
-            
-            <!--TITLE-->
-            <div class="col-md-6">
-              <h3 class="pl-2">
-                Editor de campañas uiTool
-              </h3>
-            </div>
-
-            <div class="col-md-3">
-            </div>
-
-            
-
-            <!--POWERED-->
-            <div class="col-md-3">
-              <div class="row">
-                <div class="col-md-12">
-                   <span class="badge badge-default">powered by</span><img alt="Bootstrap Image Preview" width="200" height="54" src="https://firebasestorage.googleapis.com/v0/b/notims.appspot.com/o/assets%2Flogo_form.png?alt=media&token=694661d2-e3b6-49b6-8c1d-e9cede3c911e" />
-                </div>
-              </div>
-            </div>
-
-          </div>     
-
-          <div class="row pl-3 pr-3">
-            <div class="col-md-12">
-              
-              <!--NEW-->
-              <div class="row">
-                <div class="col-md-6">                 
-                  <!--NEW FORM-->
-                  <div class="row">
-                    
-                      <button id="new-campaign" type="button" class="btn btn-success">
-                        Nueva Campaña
-                      </button>
-                      <button id="save-campaign" type="button" class="btn btn-info ml-auto mr-3">
-                        Guardar Campaña
-                      </button>
-
+    <header>
+      <img class="logo_ui" src="/images/uitool_logo.png">
+      <div class="info_user">
+        <button class="btn btn-small btn_loguot">Salir</button>
+      </div>            
+    </header>
+    <section>
+      <div class="section_title">
+        <h3>Editor de campañas <span>uiTool</span></h3>
+        <div class="powered">
+          <span class="badge badge-default">powered by</span>
+          <img alt="Bootstrap Image Preview"src="/images/logo_noti.png" />
+        </div>        
+      </div>
+      <div class="cnt_campa">
+        <div class="new_campa">
+          <div class="btn_campaing">
+            <button id="new-campaign" type="button" class="btn btn-success">Nueva Campaña</button>
+                    <button id="save-campaign" type="button" class="btn btn-info">Guardar Campaña</button>
+          </div>          
+                  <div class="camp_nom">
+            <div class="form-group">
+              <label for="campaign-name">Nombre campaña:</label>
+              <input id="campaign-name" type="text" class="form-control">
+              <small class="form-text">Crea el cuerpo del mensaje</small>
+            </div>                                   
                   </div>
-                  <br>
-                  <div class="row">
-                    <div class="col-md-6">
-                       <span class="badge badge-default float-right"><h5>Nombre campaña:</h5></span>
+                  <div class="camp_field">
+                    <div>
+                      <label>Agregar campo</label>
+              <button id="add-field" type="button" class="btn btn-sm btn-outline-success">+</button>
                     </div>
-                    <div class="col-md-6">
-                      <input id="campaign-name" type="text" class="form-control">
-                      <p>Crea el cuerpo del mensaje</p>                                    
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="row float-right">
-                        <span class="badge badge-default"><h5>Agregar campo</h5></span>
-                        <button id="add-field" type="button" class="btn btn-success ">
-                          +
-                        </button>
-                      </div>
-                    </div>
-                    <div class="col-md-6">                          
-                      
+                    <div>
                       <label class="btn btn-default">
-                        Subir archivo de Excel <input id="excel-file" type="file" hidden>
-                        <i class="fas fa-file-excel"></i>
-                      </label>
+                            Subir archivo de Excel 
+                            <input id="excel-file" type="file" hidden>
+                            <i class="fas fa-file-excel"></i>
+                        </label>
                     </div>
+            
                   </div>
-                </div>
-
-                <div class="col-md-6">
-                  <!--NEW FIELDS-->
-                  
-                  <table id="field-table" class="table table-bordered table-hover table-sm">
-                    <thead>
-                      <tr>
-                        <th>                                  
-                        </th>
-                        <th>
-                          Campo
-                        </th>
-                        <th>
-                          Valor
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr id="field0">
-                        <td>
-                          <span class="glyphicon glyphicon-envelope"></span>                                
-                        </td>
-                        <td>
-                          <input id="name_0" type="text" class="form-control">
-                        </td>
-                        <td>
-                          <input id="value_0" type="text" class="form-control">
-                        </td>                               
-                      </tr>                              
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!--CATEGORIES-->
-              <div class="row pl-3 pr-3">
-                <div class="col-md-12">
-
-                  <h3>
-                    Campañas
-                  </h3>
-
-                  <table id="campaign-table"  class="table table-bordered table-hover table-sm">
-                    <thead>
-                      <tr>
-                        <th>
-                            <span class="custom-checkbox">
-                                <input type="checkbox" id="selectAll">
-                                <label for="selectAll"></label>
-                            </span>
-                        </th>
-                        <th>Nombre</th>
-                        <th>Actualizada</th>                 
-                        <th></th>                        
-                    </tr>
-                    </thead>
-                    <tbody>
-                    
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-
-              <!--PREVIEWS-->
-              <div class="row pt-5 pl-3 pr-3">
-                <div class="col-md-12">
-                 
-                  
-                  <div class="row">   
-                    <h3>
-                      Diseños
-                    </h3>  
-                    &nbsp;&nbsp;               
-                    <button id="add-field" type="button" class="btn btn-success">
-                      Nuevo diseño
-                    </button>
-
-                  </div>
-                  <br>    
-
-                  <div class="row">                
-                    <div class="col-md-3">                  
-                      <div id="cards" class="row">
-                      </div>
-                  </div>
-
-                </div>
-              </div>
-
-              <!--FOOTER-->
-              <div class="row">
-                <div class="col-md-4">
-                </div>
-                <div class="col-md-4">
-                </div>
-                <div class="col-md-4">
-                </div>
-              </div>
-            </div>
-          </div>
+        </div>
+        <div class="new_fields">
+          <table id="field-table" class="table table-bordered table-hover table-sm">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Campo</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="field0">
+              <td><span class="glyphicon glyphicon-envelope"></span></td>
+              <td><input id="name_0" type="text" class="form-control"></td>
+              <td><input id="value_0" type="text" class="form-control"></td>                               
+            </tr>                              
+          </tbody>
+          </table>
         </div>
       </div>
-    </div>    
+      <div class="cnt_categories">
+        <div class="box_categ">
+          <h3>Campañas</h3>
+          <table id="campaign-table"  class="table table-bordered table-hover table-sm">
+            <thead>
+              <tr>
+                <th>
+                  <span class="custom-checkbox">
+                    <input type="checkbox" id="selectAll">
+                    <label for="selectAll"></label>
+                  </span>
+                </th>
+                <th>Nombre</th>
+                <th>Actualizada</th>                 
+                <th></th>                        
+              </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>      
+      </div>
+      <div class="cnt_previews">
+        <div class="box_prev">
+          <div class="d-flex">
+            <h3>Diseños</h3>
+            <button id="add-field" type="button" class="btn btn-success ml-2">Nuevo diseño</button>
+          </div>        
+          <div id="cards">
+          </div>
+        </div>      
+      </div>
+    </section>  
 
     <!--MODALS-->
     <div class="modal fade" id="msgModal" tabindex="-1" role="dialog" aria-labelledby="msgModal" aria-hidden="true">
