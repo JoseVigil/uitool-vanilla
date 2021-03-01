@@ -82,22 +82,23 @@
     <header>
       <img class="logo_ui" src="/images/uitool_logo.png">
       <div class="info_user">
-        <button class="btn btn-small btn_loguot">Salir</button>
+        <button type="button" class="btn btn_acerca" data-toggle="modal" data-target="#acercaModal"><i class="fas fa-info-circle"></i> Acerca</button>
+        <button class="btn btn_loguot"><i class="fas fa-sign-out-alt"></i> Salir</button>
       </div>            
     </header>
+    <div class="uilinea"></div>
     <section>
       <div class="section_title">
-        <h3>Editor de campañas <span>uiTool</span></h3>
-        <div class="powered">
-          <span class="badge badge-default">powered by</span>
-          <img alt="Bootstrap Image Preview"src="/images/logo_noti.png" />
+        <h3>Creador de campañas</h3>
+        <div class="info_clie">
+          <span>Juan Perez</span>
         </div>        
       </div>
       <div class="cnt_campa">
-        <div class="new_campa">
+        <div class="new_campa bg_uitool_na">
           <div class="btn_campaing">
-            <button id="new-campaign" type="button" class="btn btn-success">Nueva Campaña</button>
-            <button id="save-campaign" type="button" class="btn btn-info">Guardar Campaña</button>
+            <button id="new-campaign" type="button" class="btn btn_ui_dark">Nueva Campaña</button>
+            <button id="save-campaign" type="button" class="btn btn_ui_grey">Guardar Campaña</button>
           </div>          
           <div class="camp_nom">
             <div class="form-group">
@@ -120,8 +121,8 @@
             </div>            
           </div>
         </div>
-        <div class="new_fields">
-          <table id="field-table" class="table table-bordered table-hover table-sm">
+        <div class="new_fields bg_uitool_na">
+          <table id="field-table" class="table table-bordered table-sm">
           <thead>
             <tr>
               <th></th>
@@ -140,7 +141,7 @@
         </div>
       </div>
       <div class="cnt_categories">
-        <div class="box_categ">
+        <div class="box_categ bg_uitool_na">
           <h3>Campañas</h3>
           <table id="campaign-table"  class="table table-bordered table-hover table-sm">
             <thead>
@@ -163,16 +164,23 @@
         </div>      
       </div>
       <div class="cnt_previews">
-        <div class="box_prev">
+        <div class="box_prev bg_uitool_na">
           <div class="d-flex">
             <h3>Diseños</h3>
-            <button id="add-field" type="button" class="btn btn-success ml-2">Nuevo diseño</button>
+            <button id="add-field" type="button" class="btn btn_ui_grey ml-2">Nuevo diseño</button>
           </div>        
           <div id="cards">
           </div>
         </div>      
       </div>
-    </section>  
+    </section>
+    <div class="uilinea"></div>
+    <footer>
+      <div class="powered">
+        <span class="badge badge-default">powered by</span>
+        <img alt="Bootstrap Image Preview"src="/images/logo_noti.png" />
+      </div>
+    </footer>  
 
     <!--MODALS-->
     <div class="modal fade" id="msgModal" tabindex="-1" role="dialog" aria-labelledby="msgModal" aria-hidden="true">
@@ -193,6 +201,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Acerca-->
+    <div class="modal fade" id="acercaModal" tabindex="-1" role="dialog" aria-labelledby="acercaModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="acercaModalLabel">Acerca de UiTool</h5>
+      </div>
+      <div class="modal-body">
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn_ui_dark" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+    </div>
+    </div>
+    <!-- Fin modal Acerca -->
 
   </div>  
 
