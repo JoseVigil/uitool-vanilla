@@ -242,6 +242,8 @@
       var jsonCat = {}; 
       var active_category = 0;
 
+      var campaign_name;
+
       const firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
         authDomain: "notims.firebaseapp.com",
@@ -346,8 +348,8 @@
                     let last = document.data().last_update.toDate();
                     let last_update = formatDate(last);                     
                     
-                    var campaign_name = id;                  
-                    //$("#campaign-name").val(campaign_name);
+                    var _campaign_name = id;                  
+                    //$("#campaign-name").val(_campaign_name);
                     
                     let item_category = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">
                     <td>
@@ -356,7 +358,7 @@
                             <label for=\\"${document.id}\\"></label>
                         </span>
                     </td>
-                    <td>${campaign_name}</td>
+                    <td>${_campaign_name}</td>
                     <td>${last_update}</td>               
                     <td><a href=\\"#\\" id=\\"menu_${document.id}\\"><i class=\\"fal fa-ellipsis-v\\"></i></a></td>        
                     </tr>`;
@@ -367,7 +369,7 @@
                     console.log(item_category_joined);
                     console.log("");
 
-                    _json += `{"name":"${campaign_name}","item":"${item_category_joined}","fields":[`;
+                    _json += `{"name":"${_campaign_name}","item":"${item_category_joined}","fields":[`;
 
                     let fields = document.data().fields;
 
@@ -454,12 +456,12 @@
 
                               if (doc.exists) {
 
-                                /*let name = doc.id;
+                                let name = doc.id;
                                 let piw = doc.data().public_image_web;
                                 let pip = doc.data().public_image_preview;
-                                let card = filterCard(name, piw, pip);*/
+                                let card = filterCard(name, piw, pip);
 
-                                var card_joined = "<p>hola</p>";//card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                                var card_joined = "<p>hola</p>"; //card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
 
                                 _json += `{"name":"${name}","card":"${card_joined}"}`; 
 
@@ -487,7 +489,7 @@
 
                                 //$("#cards").append(card);   
                                 
-                                /*$(`#preview-${name}`).on('click', function() {              
+                                $(`#preview-${name}`).on('click', function() {              
                                   buildLink("preview");
                                 }); 
 
@@ -499,18 +501,19 @@
                                   let web = "http://localhost:5000/composer/web";
                                   let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
                                   window.open(url, '_blank');
-                                }*/
+                                }
 
                               }
 
                           });
 
-                        } 
-                        
-                        /*else {
+                        } else {
+
                           let newCard = getCards("A");                          
                           $("#cards").append(img);
-                        }*/
+                          loadCategoryById(active_category);
+
+                        } 
 
                     });
 
@@ -542,7 +545,7 @@
 
         $("#campaign-table tbody").delegate('tr', 'click', function(e) {       
           $(this).addClass('selected').siblings().removeClass('selected');    
-          var value=$(this).find('td:first').html();
+          var value = $(this).find('td:first').html();
           var id = $(this).attr('id');
           loadCategoryById(id);
           console.log(id);          
@@ -578,17 +581,17 @@
                 $('#field-table').append(field); 
             }
 
-            /*var designs = category.designs;
+            var designs = category.designs;
 
             for (var j=0; j<designs.length; j++) {
                let design = designs[j];
                let card = design.card;
                $("#cards").append(card);                                 
-            }*/           
+            }           
 
             //$("#cards").append(card);   
                                 
-            /*$(`#preview-${name}`).on('click', function() {              
+            $(`#preview-${name}`).on('click', function() {              
               buildLink("preview");
             }); 
 
@@ -600,7 +603,7 @@
               let web = "http://localhost:5000/composer/web";
               let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
               window.open(url, '_blank');
-            }*/
+            }
 
           }
 
@@ -740,106 +743,125 @@
           .collection("campaigns")
           .doc(cname);
 
-          $("#field-table tbody tr").remove();
+        try {
 
-          campaign.set({        
-            name: campaign_name,
-            last_update: _time,      
-            time_created: _time,
-            fields:fields_array            
-          },{ merge:true }).then(docRefSet => {              
-            
-            return campaign.collection("designs")
-                .doc("sample").set({
-                  name: "sample",
+            $("#field-table tbody tr").remove();
+
+            campaign.set({        
+              name: campaign_name,
+              last_update: _time,      
+              time_created: _time,
+              fields:fields_array            
+            },{ merge:true }).then(docRefSet => {              
+              
+              return campaign.collection("designs")
+                  .doc().set({
+                    name: "A",
+                    created_date: _time                                         
+                  },{ merge:true });    
+      
+            }).then(docRefSet => {
+              
+              uiid = uuidv4();            
+              return db.collection('campaigns')
+                .doc(uiid).set({
+                  campaign_ref: campaign,
                   created_date: _time                                         
-                },{ merge:true });    
-    
-          }).then(docRefSet => {
-            
-            /*uiid = uuidv4();            
-            return db.collection('campaigns')
-              .doc(uiid).set({
-                campaign_ref: campaign,
-                created_date: _time                                         
-              });           
+                });           
 
-          }).then(docRefSet => { 
+            }).then(docRefSet => { 
 
-           return campaign.set({        
-            campaign_id: uiid,
-            last_update: _time                      
-             },{ merge:true });
+            return campaign.set({        
+              campaign_id: uiid,
+              last_update: _time                      
+              },{ merge:true });
 
-          }).then(docRefSet => {       
+            }).then(docRefSet => {       
 
-              let _files = document.getElementById("excel-file").files;
+              $('#msgModalTitle').text("Guardado con éxito");
+              $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido creada con exito.');                    
+              $('#msgModal').data('type', 1);
+              $('#msgModal').modal('show');
+                
 
-              if (_files.length>0) {
+            });
+
+          } catch (e) {            
+              console.error("Error adding document: ", e);           
+          } 
+
+        };       
+
+        $("#excel-file").on('change', function() {
+
+          try {
+
+            let _files = document.getElementById("excel-file").files;
+
+            if (_files.length>0) {
+
+              let path = "files/excel/" + window.account;
+                
+                var storageRef = storage.ref(path);       
                   
-                  var storageRef = storage.ref(path);       
-                    
-                  var filePath =  "jose.xls";        
-                  var thisRef = storageRef.child(filePath);    
+                var filePath =  "jose.xls";        
+                var thisRef = storageRef.child(filePath);    
 
-                  var file = [0]; 
-                  var input = this;
-                  var length = input.files.length;
-                  var _file = input.files.item(0); 
-                  
-                  var metadataFiles = {
-                    customMetadata: {                
-                        'type': 'xls',
-                        'documentId' : cname,
-                        "path" : path                        
+                var file = [0]; 
+                var input = this;
+                var length = input.files.length;
+                var _file = input.files.item(0); 
+                
+                var metadataFiles = {
+                  customMetadata: {                
+                      'type': 'xls',
+                      'documentId' : cname,
+                      "path" : path                        
+                  }
+                };
+
+                var file = document.getElementById("excel-file").files[0];   
+                var filePathMuseum = "jose.xlsx";        
+                const museumRef = storageRef.child(filePathMuseum);
+                var putRef = museumRef.put(_file, metadataFiles);  
+
+                putRef.on('state_changed', function(snapshot) {
+                    var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    switch (snapshot.state) {
+                      case firebase.storage.TaskState.PAUSED: // or 'paused'
+                        console.log('Upload is paused');
+                        break;
+                      case firebase.storage.TaskState.RUNNING: // or 'running'
+                        console.log('Upload is running');
+                        break;
                     }
-                  };
+                  }, function(error) {
+                    // Handle unsuccessful uploads
+                  }, function() { 
 
-                  var file = document.getElementById("excel-file").files[0];   
-                  var filePathMuseum = "jose.xlsx";        
-                  const museumRef = storageRef.child(filePathMuseum);
-                  var putRef = museumRef.put(_file, metadataFiles);  
+                    //Crear                       
+                    $('#alertModal').modal('show');                      
+                });
 
-                  putRef.on('state_changed', function(snapshot) {
-                      var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                      console.log('Upload is ' + progress + '% done');
-                      switch (snapshot.state) {
-                        case firebase.storage.TaskState.PAUSED: // or 'paused'
-                          console.log('Upload is paused');
-                          break;
-                        case firebase.storage.TaskState.RUNNING: // or 'running'
-                          console.log('Upload is running');
-                          break;
-                      }
-                    }, function(error) {
-                      // Handle unsuccessful uploads
-                    }, function() { 
+            } else {
+              errorLoadingExcel();
+            };
 
-                      //Crear                       
-                      $('#alertModal').modal('show');                      
-                  });
+          } catch (e) {            
+              console.error("Error adding document: ", e);     
+              errorLoadingExcel();      
+          } 
 
-              } else {*/                
+        });   
 
-                $('#msgModalTitle').text("Guardado con éxito");
-                $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido creada con exito.');                    
-                $('#msgModal').data('type', 1);
-                $('#msgModal').modal('show');
-
-              });
-            
-          /*}).catch((error) => {     
-            console.error("Error adding document: ", error);           
-          });*/   
-
-
+        function errorLoadingExcel() {
+          $('#msgModalTitle').text("Error al cargar archivo");
+          $('#msgModalContent').text('No se ha podido cargar el archivo de excel.');                    
+          $('#msgModal').data('type', 3);
+          $('#msgModal').modal('show');
         }
-
-        $("#excel-file").on('change', function() {});
-
-        });  
-
-
+        
         function uuidv4() {
           return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -848,76 +870,77 @@
         }
 
 
-      function filterCard(m, w, p) {        
-        if ( ( w!=undefined ) && ( p!=undefined ) ) {         
-          return getCard(m, p, w, p);         
-        } else {
-          if ( w ) {
-            return getCardCustom(m, w);              
-          }  else if ( p ) {
-            return getCardCustom(m, p);              
+        function filterCard(m, w, p) {        
+          if ( ( w!=undefined ) && ( p!=undefined ) ) {         
+            return getCard(m, p, w, p);         
+          } else {
+            if ( w ) {
+              return getCardCustom(m, w);              
+            }  else if ( p ) {
+              return getCardCustom(m, p);              
+            }
           }
         }
-      }
 
-      function getCard(name) {
-        return getCard(name, undefined, undefined);
-      }
+        function getCard(name) {
+          return getCard(name, undefined, undefined);
+        }
 
-      function getCardCustom(name, img_preview) {
-        return getCard(name, img_preview, undefined);
-      }
+        function getCardCustom(name, img_preview) {
+          return getCard(name, img_preview, undefined);
+        }
 
-      function getCardCustom(name, img_web) {
-        return getCard(name, undefined, img_web);
-      }
+        function getCardCustom(name, img_web) {
+          return getCard(name, undefined, img_web);
+        }
 
-      function getCard(name, img_preview, img_web) {
-        
-        let card = `<div class=\\"col-md-12\\" style=\\"background-color:#E8F0FE;\\">                              
-              <div class=\\"row col-md-12 mt-3 mb-2\\">                                
-                <div class=\\"col-md-10\\">
-                  <h3 id=\\"card${name}\\">${name}</h3>                                
+        function getCard(name, img_preview, img_web) {
+          
+          let card = `<div class=\\"col-md-12\\" style=\\"background-color:#E8F0FE;\\">                              
+                <div class=\\"row col-md-12 mt-3 mb-2\\">                                
+                  <div class=\\"col-md-10\\">
+                    <h3 id=\\"card${name}\\">${name}</h3>                                
+                  </div>
+                  <div class=\\"col-md-2\\">                           
+                    <button type=\\"button\\" class=\\"float-right btn btn-success\\">X</button>
+                  </div>
                 </div>
-                <div class=\\"col-md-2\\">                           
-                  <button type=\\"button\\" class=\\"float-right btn btn-success\\">X</button>
-                </div>
-              </div>
-              <button id=\\"preview-${name}\\" class=\\"card border round w-100\\">`;                                        
-              if (img_preview) {
-                card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;
-              } else {
-                card += `<div id=\\"preview-image-${name}\\" class=\\"card-body\\">
-                          Preview
-                        </div>`;
-              }
-              card += `</button>                                
-              <br>
-              <button id=\\"web-${name}\\" class=\\"card border rounded h-100\\">`;                        
-              if (img_web) {
-                card += `<img class=\\"w-100\\" src=\\"${img_web}\\"/>`;                  
-              } else {
-                card += `<div id=\\"web-image-${name}\\" class=\\"card-body\\">
-                                Web Page
-                              </div>`;
-              }
-              card += `</button>
-                <div class=\\"row\\">
-                  <div class=\\"col-md-12\\">
-                </div>
-                </div>
-                <div class=\\"col-md-4\\">
-                </div>
-                <div class=\\"col-md-4\\">
-                </div>
-              </div>`;            
+                <button id=\\"preview-${name}\\" class=\\"card border round w-100\\">`;                                        
+                if (img_preview) {
+                  card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;
+                } else {
+                  card += `<div id=\\"preview-image-${name}\\" class=\\"card-body\\">
+                            Preview
+                          </div>`;
+                }
+                card += `</button>                                
+                <br>
+                <button id=\\"web-${name}\\" class=\\"card border rounded h-100\\">`;                        
+                if (img_web) {
+                  card += `<img class=\\"w-100\\" src=\\"${img_web}\\"/>`;                  
+                } else {
+                  card += `<div id=\\"web-image-${name}\\" class=\\"card-body\\">
+                                  Web Page
+                                </div>`;
+                }
+                card += `</button>
+                  <div class=\\"row\\">
+                    <div class=\\"col-md-12\\">
+                  </div>
+                  </div>
+                  <div class=\\"col-md-4\\">
+                  </div>
+                  <div class=\\"col-md-4\\">
+                  </div>
+                </div>`;            
 
-          return card;
-      }
+            return card;
+        }
 
+    });      
       
-      
-    </script>  
-   
+    </script>     
+
   </body>
+
 </html>
