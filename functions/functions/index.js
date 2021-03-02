@@ -19,18 +19,12 @@
 
     const fs = require('fs'); 
 
-    //const readXlsxFile = require('read-excel-file/node');
+    const readXlsxFile = require('read-excel-file/node');
 
     /**
      * Remote gateway control
-     */
-    //const puppeteer = require('puppeteer');
+     */    
 
-    //var Blob = require('node-blob');
-    //var blobUtil = require('blob-util');    
-    //var createObjectURL = require('create-object-url');   
-    
-    //serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json");
     serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-c634d4946a.json");   
 
     const { parse, join } = require('path');
@@ -540,6 +534,45 @@
             console.error(e);
             return e;
         }
+
+    });
+
+    exports.loadXmls = functions.storage.object().onFinalize(async (object) => {     
+      
+      const customMetadata = object.metadata;  
+
+      console.log("excel: " + customMetadata.excel);
+
+      if (customMetadata.excel === "true") {
+
+        var documentId = customMetadata.documentId; 
+        var path = customMetadata.path; 
+
+        console.log("documentId: " + documentId);
+        console.log("path: " + path);
+
+        const filePath = object.name;
+        
+        console.log("filePath: " + filePath);
+
+        const bucket = admin.storage().bucket(object.bucket);               
+        const file = bucket.file(filePath);
+
+        readXlsxFile(file).then((rows) => {                    
+          console.log("Rows: " + JSON.stringify(rows));
+          rows.forEach((col)=>{
+              col.forEach((data)=>{
+                    console.log(data);
+                    console.log(typeof data);
+              });
+          });
+          return rows;
+        }).catch((error) => {
+          console.log("error: " + error);            
+          return error;
+        });
+
+      }      
 
     });
 
