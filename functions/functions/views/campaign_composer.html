@@ -249,721 +249,733 @@
      * https://bbbootstrap.com/snippets/modal-dialog-multi-step-form-wizard-29726524
      * */
 
-    $(document).ready(function () {        
+     $(document).ready(function () {        
 
-      var active_saludo = false;
-      var active_cuerpo = false;
-      var active_from_button = false;
+        var active_saludo = false;
+        var active_cuerpo = false;
+        var active_from_button = false;
 
-      var target_result;
+        var target_result;
 
-      var data;
-      var count_drop = 0;
+        var data;
+        var count_drop = 0;
 
-      var count_field = 1;
+        var count_field = 1;
 
-      var fields_array = [];
-      var designs_array = [];
+        var fields_array = [];
+        var designs_array = [];
 
-      var jsonCat = {}; 
-      var active_category = 0;
+        var jsonCat = {}; 
+        var active_campaign = 0;
 
-      var campaign_name;
+        var campaign_name, client_name, client_name_label;
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
-        authDomain: "notims.firebaseapp.com",
-        databaseURL: "https://notims.firebaseio.com",
-        projectId: "notims",
-        storageBucket: "notims.appspot.com",
-        messagingSenderId: "79471870593",
-        appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
-        measurementId: "G-8T5N81L78J"
-      };
-      firebase.initializeApp(firebaseConfig);
+        const firebaseConfig = {
+          apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
+          authDomain: "notims.firebaseapp.com",
+          databaseURL: "https://notims.firebaseio.com",
+          projectId: "notims",
+          storageBucket: "notims.appspot.com",
+          messagingSenderId: "79471870593",
+          appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
+          measurementId: "G-8T5N81L78J"
+        };
+        firebase.initializeApp(firebaseConfig);
 
-      const db = firebase.firestore();
-      const storage = firebase.storage();
-      const database = firebase.database();
-      const functions = firebase.functions();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const database = firebase.database();
+        const functions = firebase.functions();
 
-      var getUrlParameter = function getUrlParameter(sParam) {
-          var sPageURL = window.location.search.substring(1),
-              sURLVariables = sPageURL.split('&'),
-              sParameterName,
-              i;
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = window.location.search.substring(1),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
 
-          for (i = 0; i < sURLVariables.length; i++) {
-              sParameterName = sURLVariables[i].split('=');
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
 
-              if (sParameterName[0] === sParam) {
-                  return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-              }
-          }
-      };           
-    
-      $( "#login" ).click(function() {       
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };           
 
-        firebase.auth()
-        .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
-        .then(function(user) {                      
+        $( "#login" ).click(function() {       
 
-          console.log(user.id);
-          window.location.reload();            
+          firebase.auth()
+          .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
+          .then(function(user) {                      
 
-        }).catch( function(error) {                         
-            var errorMessage = error.message;  
-            console.log(errorMessage);
-        });
+            console.log(user.id);
+            window.location.reload();            
 
-      });
-
-       $( "#logout" ).click(function() {       
-
-        firebase
-          .auth()
-          .signOut()
-          .then(function () {            
-
-            window.location.reload();  
-
-          }).catch(function (error) {
-            // An error happened.
-            var errorMessage = error.message;  
-            console.log(errorMessage);
+          }).catch( function(error) {                         
+              var errorMessage = error.message;  
+              console.log(errorMessage);
           });
 
-      });     
-      
-      firebase.auth().onAuthStateChanged(function (user) {
+        });
 
-        if (user) { 
+        $( "#logout" ).click(function() {       
 
-          $( "#login" ).text("Campoaign composer - Logged");
+          firebase
+            .auth()
+            .signOut()
+            .then(function () {            
 
-          window.account = getUrlParameter('account');
-          //var campaignId = getUrlParameter('id');     
-          
-          var _json;
-          
-          db.collection('accounts')
-          .doc(window.account)
-          .collection("campaigns")
-          .onSnapshot(snapshot => {
+              window.location.reload();  
+
+            }).catch(function (error) {            
+              var errorMessage = error.message;  
+              console.log(errorMessage);
+            });
+
+        });     
+
+        firebase.auth().onAuthStateChanged(function (user) {
+
+          if (user) { 
+
+            $( "#login" ).text("Campoaign composer - Logged");
+
+            window.account = getUrlParameter('account');                     
+
+            db.doc('accounts/' + window.account).get()
+                .then(function(doc) {                                   
+                if (doc.exists) {
+                  client_name =  doc.data().name;                
+                  client_name_label =  doc.data().name_label; 
+                }                
+            });
             
-              var size = snapshot.size;            
-              let changes = snapshot.docChanges();  
-
-              if (size>0) {
+            var _json;
+            
+            db.collection('accounts')
+            .doc(window.account)
+            .collection("campaigns")
+            .onSnapshot(snapshot => {
               
-                $("#campaign-table tbody tr").remove();
-                $("#field-table tbody tr").remove();
-                $("#campaign-name").val('');  
+                var size = snapshot.size;            
+                let changes = snapshot.docChanges();  
+
+                if (size>0) {
                 
-                var _json = `{"categories":[`;
+                  $("#campaign-table tbody tr").remove();
+                  $("#field-table tbody tr").remove();
+                  $("#campaign-name").val('');  
+                  
+                  var _json = `{"campaigns":[`;
 
-                var last = false;
+                  var last = false;
 
-                var count_campaigns = 0;
+                  var count_campaigns = 0;
 
-                changes.forEach(change => {
-                    
-                    let document = change.doc;
-                    let id = document.id;  
-                    window.campaignId = id;
-                    let last = document.data().last_update.toDate();
-                    let last_update = formatDate(last);                     
-                    
-                    var _campaign_name = id;                  
-                    //$("#campaign-name").val(_campaign_name);
-                    
-                    let item_category = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">
-                    <td>
-                        <span class=\\"custom-checkbox\\" class='clickable-row'>
-                            <input type=\\"checkbox\\" id=\\"check_${document.id}\\" name=\\"options[]\\" value=\\"${document.id}\\">
-                            <label for=\\"${document.id}\\"></label>
-                        </span>
-                    </td>
-                    <td>${_campaign_name}</td>
-                    <td>${last_update}</td>               
-                    <td><a href=\\"#\\" id=\\"menu_${document.id}\\"><i class=\\"fal fa-ellipsis-v\\"></i></a></td>        
-                    </tr>`;
-                    //$('#campaign-table').append(item);
-
-                    var item_category_joined = item_category.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
-                        
-                    console.log(item_category_joined);
-                    console.log("");
-
-                    _json += `{"name":"${_campaign_name}","item":"${item_category_joined}","fields":[`;
-
-                    let fields = document.data().fields;
-
-                    var fields_html = [];
-
-                    if ( fields.length>0 ) {                    
-
-                      $("#field0").remove(); 
-
-                      var count_field = fields.length;
+                  changes.forEach(change => {
                       
-                      var count = 0;
+                      let document = change.doc;
+                      let id = document.id;  
+                      window.campaignId = id;
+                      let last = document.data().last_update.toDate();
+                      let last_update = formatDate(last);                     
+                      
+                      var _campaign_name = id;                                      
+                      
+                      let item_category = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">
+                      <td>
+                          <span class=\\"custom-checkbox\\" class='clickable-row'>
+                              <input type=\\"checkbox\\" id=\\"check_${document.id}\\" name=\\"options[]\\" value=\\"${document.id}\\">
+                              <label for=\\"${document.id}\\"></label>
+                          </span>
+                      </td>
+                      <td>${_campaign_name}</td>
+                      <td>${last_update}</td>               
+                      <td><a href=\\"#\\" id=\\"menu_${document.id}\\"><i class=\\"fal fa-ellipsis-v\\"></i></a></td>        
+                      </tr>`;                    
 
-                      for (var i=0; i < count_field; i++) {              
+                      var item_category_joined = item_category.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                          
+                      console.log(item_category_joined);
+                      console.log("");
 
-                        let field = fields[i];                  
-                        let name = field.name;
-                        let value = field.value;
+                      _json += `{"name":"${_campaign_name}","item":"${item_category_joined}","fields":[`;
 
-                        let field_item = `<tr id=\\"field${i}\\">
-                          <td>
-                            <span class=\\"glyphicon glyphicon-envelope\\"></span>                                </td>
-                          <td>
-                            <input id=\\"name_${i}\\" value=\\"${name}\\" type=\\"text\\" class=\\"form-control\\">
-                          </td>
-                          <td>
-                            <input id=\\"value_${i}\\" value=\\"${value}\\" type=\\"text\\" class=\\"form-control\\">
-                          </td>                               
-                        </tr>`;                             
+                      let fields = document.data().fields;
 
+                      var fields_html = [];
+
+                      if ( fields.length>0 ) {                    
+
+                        $("#field0").remove(); 
+
+                        var count_field = fields.length;
                         
-                        //let field_item_joined = field_item.replace(/\>\s+\</g,'');
+                        var count = 0;
 
-                        var field_item_joined = field_item.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
-                        
-                        console.log(field_item_joined);
-                        console.log("");
+                        for (var i=0; i < count_field; i++) {              
 
-                        //$('#field-table').append(field); 
+                          let field = fields[i];                  
+                          let name = field.name;
+                          let value = field.value;
 
-                        _json += `"${field_item_joined}"`;
+                          let field_item = `<tr id=\\"field${i}\\">
+                            <td>
+                              <span class=\\"glyphicon glyphicon-envelope\\"></span>                                
+                            </td>
+                            <td>
+                              <input id=\\"name_${i}\\" value=\\"${name}\\" type=\\"text\\" class=\\"form-control\\">
+                            </td>
+                            <td>
+                              <input id=\\"value_${i}\\" value=\\"${value}\\" type=\\"text\\" class=\\"form-control\\">
+                            </td>                               
+                          </tr>`;                             
 
-                        if (count == (count_field-1)) {
+                          var field_item_joined = field_item.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                          
+                          console.log(field_item_joined);
+                          console.log("");
 
-                          _json += `],"designs":[`; 
+                          _json += `"${field_item_joined}"`;
 
-                          if (count_campaigns == (size-1)) {
+                          if (count == (count_field-1)) {
 
-                            last = true;
+                            _json += `],"designs":[`; 
+                            if (count_campaigns == (size-1)) {
+                              last = true;
+                            }
+                            count_campaigns++;
 
+                          } else {
+                            _json += `,`; 
                           }
-
-                          count_campaigns++;
-
-                        } else {
-
-                          _json += `,`; 
+                          count ++;
 
                         }
 
-                        count ++;
-
                       }
 
-                    }
+                      document.ref.collection("designs")
+                        .onSnapshot(cardSnapshot => {
 
-                    document.ref.collection("designs")
-                      .onSnapshot(cardSnapshot => {
+                          let cardSize = cardSnapshot.size;            
+                          let cardChanges = cardSnapshot.docChanges(); 
 
-                        let cardSize = cardSnapshot.size;            
-                        let cardChanges = cardSnapshot.docChanges(); 
+                          var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
-                        var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+                          window.newdesign = alphabet[cardSize];                        
+                          
+                          if (cardSize > 0) {
 
-                        window.newdesign = alphabet[cardSize];                        
-                        
-                        if (cardSize > 0) {
+                            var count = 0;                         
 
-                          var count = 0;                         
+                            cardChanges.forEach(cardDoc => {                           
 
-                          cardChanges.forEach(cardDoc => {                           
+                                let doc = cardDoc.doc;
 
-                              let doc = cardDoc.doc;
+                                if (doc.exists) {
 
-                              if (doc.exists) {
+                                  let name = doc.id;
+                                  let piw = doc.data().public_image_web;
+                                  let pip = doc.data().public_image_preview;
+                                  let card = filterCard(name, piw, pip);
 
-                                let name = doc.id;
-                                let piw = doc.data().public_image_web;
-                                let pip = doc.data().public_image_preview;
-                                let card = filterCard(name, piw, pip);
+                                  var card_joined = "<p>hola</p>"; //card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
 
-                                var card_joined = "<p>hola</p>"; //card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                                  _json += `{"name":"${name}","card":"${card_joined}"}`; 
 
-                                _json += `{"name":"${name}","card":"${card_joined}"}`; 
+                                  if (count == (cardSize-1)) {
 
-                                if (count == (cardSize-1)) {
+                                    _json += `]`; 
 
-                                  _json += `]`; 
+                                    if (last) {
+                                      _json += `}]}`;     
+                                      jsonCat = JSON.parse(_json);
+                                      loadCampaignById(active_campaign);
+                                    }
 
-                                  if (last) {
+                                  } else {
 
-                                    _json += `}]}`;                            
-
-                                    jsonCat = JSON.parse(_json);
-
-                                    loadCategoryById(active_category);
+                                    _json += `,`; 
 
                                   }
 
-                                } else {
+                                  count++;
 
-                                  _json += `,`; 
+                                  //$("#cards").append(card);   
+                                  
+                                  $(`#preview-${name}`).on('click', function() {              
+                                    buildLink("preview");
+                                  }); 
+
+                                  $(`#web-${name}`).on('click', function() {       
+                                    buildLink("web"); 
+                                  }); 
+
+                                  function buildLink(type) {
+                                    let web = "http://localhost:5000/composer/web";
+                                    let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
+                                    window.open(url, '_blank');
+                                  }
 
                                 }
 
-                                count++;
+                            });
 
-                                //$("#cards").append(card);   
-                                
-                                $(`#preview-${name}`).on('click', function() {              
-                                  buildLink("preview");
-                                }); 
+                          } else {
 
-                                $(`#web-${name}`).on('click', function() {       
-                                  buildLink("web"); 
-                                }); 
+                            let newCard = getCards("A");                          
+                            $("#cards").append(img);
+                            loadCampaignById(active_campaign);
 
-                                function buildLink(type) {
-                                  let web = "http://localhost:5000/composer/web";
-                                  let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
-                                  window.open(url, '_blank');
-                                }
+                          } 
 
-                              }
+                      });
 
-                          });
+                      /**
+                      * TODO: Cuando se hace un click en la tabla campaign-table
+                      * se debaria seleccionar el row y cargar los diseños que 
+                      * deberian ser creados como un array dentro de 
+                      * estaba tratando de tomar este modelo se select
+                      * https://jsfiddle.net/armaandhir/f04tyoz7/
+                      * */ 
+                      /*if (count===(size-1)){
+                        $('#campaign-table tr').click();
+                      }*/
+                      //count++;
+                    
+                  });
+                }              
+            });
 
-                        } else {
+            $(".clickable-row").click(function() {
+                window.location = $(this).data("href");
+            });
 
-                          let newCard = getCards("A");                          
-                          $("#cards").append(img);
-                          loadCategoryById(active_category);
+          }
 
-                        } 
+          function getNewDesignName(){
 
-                    });
+          }
 
-                    /**
-                     * TODO: Cuando se hace un click en la tabla campaign-table
-                     * se debaria seleccionar el row y cargar los diseños que 
-                     * deberian ser creados como un array dentro de 
-                     * estaba tratando de tomar este modelo se select
-                     * https://jsfiddle.net/armaandhir/f04tyoz7/
-                     * */ 
-                    /*if (count===(size-1)){
-                      $('#campaign-table tr').click();
-                    }*/
-                    //count++;
-                  
-                });
-              }              
+          $("#campaign-table tbody").delegate('tr', 'click', function(e) {       
+            $(this).addClass('selected').siblings().removeClass('selected');    
+            var value = $(this).find('td:first').html();
+            active_campaign = $(this).attr('id');
+            loadCampaignById(id);
+            console.log(id);          
+            console.log(value);          
           });
 
-          $(".clickable-row").click(function() {
-              window.location = $(this).data("href");
-          });
+          function loadCampaignById(campaignId) {
 
-        }
+            $("#campaign-table tbody tr").remove();
+            $("#field-table tbody tr").remove();
+            $("#campaign-name").val('');      
+            $("#campaign-name").focus();
+            $("#cards").empty(); 
 
-        function getNewDesignName(){
+            var campaigns = jsonCat.campaigns;
 
-        }
+            let length = campaigns.length;
 
-        $("#campaign-table tbody").delegate('tr', 'click', function(e) {       
-          $(this).addClass('selected').siblings().removeClass('selected');    
-          var value = $(this).find('td:first').html();
-          var id = $(this).attr('id');
-          loadCategoryById(id);
-          console.log(id);          
-          console.log(value);          
-        });
+            for (var i=0; i<length;i++){
 
-        function loadCategoryById(categoryId) {
+              let campaign = campaigns[i];
 
-          $("#campaign-table tbody tr").remove();
-          $("#field-table tbody tr").remove();
-          $("#campaign-name").val('');      
-          $("#campaign-name").focus();
-          $("#cards").empty(); 
+              campaign_name = campaign.name;
+              $("#campaign-name").val(campaign_name);            
 
-          var categories = jsonCat.categories;
+              let item = campaign.item;
+              $('#campaign-table').append(item);
 
-          let length = categories.length;
+              let fields = campaign.fields;
 
-          for (var i=0; i<length;i++){
+              for (var j=0; j<fields.length; j++) {
+                let field = fields[j];
+                  $('#field-table').append(field); 
+              }
 
-            let category = categories[i];
+              var designs = campaign.designs;
 
-            let name = category.name;
-            $("#campaign-name").val(name);            
+              for (var j=0; j<designs.length; j++) {
+                let design = designs[j];
+                let card = design.card;
+                $("#cards").append(card);                                 
+              }           
 
-            let item = category.item;
-            $('#campaign-table').append(item);
+              //$("#cards").append(card);   
+                                  
+              $(`#preview-${campaign_name}`).on('click', function() {              
+                buildLink("preview");
+              }); 
 
-            let fields = category.fields;
+              $(`#web-${campaign_name}`).on('click', function() {       
+                buildLink("web"); 
+              }); 
 
-            for (var j=0; j<fields.length; j++) {
-               let field = fields[j];
-                $('#field-table').append(field); 
-            }
+              function buildLink(type) {
+                let web = "http://localhost:5000/composer/web";
+                let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
+                window.open(url, '_blank');
+              }
 
-            var designs = category.designs;
-
-            for (var j=0; j<designs.length; j++) {
-               let design = designs[j];
-               let card = design.card;
-               $("#cards").append(card);                                 
-            }           
-
-            //$("#cards").append(card);   
-                                
-            $(`#preview-${name}`).on('click', function() {              
-              buildLink("preview");
-            }); 
-
-            $(`#web-${name}`).on('click', function() {       
-              buildLink("web"); 
-            }); 
-
-            function buildLink(type) {
-              let web = "http://localhost:5000/composer/web";
-              let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaign_name}&designId=${name}`;            
-              window.open(url, '_blank');
             }
 
           }
 
-        }
+          function formatDate(date) {
+              var d = new Date(date),
+                  month = '' + (d.getMonth() + 1),
+                  day = '' + d.getDate(),
+                  year = d.getFullYear();        
+              if (month.length < 2) 
+                  month = '0' + month;
+              if (day.length < 2) 
+                  day = '0' + day;        
+              return [day, month, year].join('-');
+          }
 
-        function formatDate(date) {
-            var d = new Date(date),
-                month = '' + (d.getMonth() + 1),
-                day = '' + d.getDate(),
-                year = d.getFullYear();        
-            if (month.length < 2) 
-                month = '0' + month;
-            if (day.length < 2) 
-                day = '0' + day;        
-            return [day, month, year].join('-');
-        }
+        }); 
 
-      }); 
-      
 
-      $("#add-field").on('click', function() {  
-          let item = `<tr id="field${count_field}">
-            <td>
-              <span class="glyphicon glyphicon-envelope"></span>                                
-            </td>
-            <td>
-              <input id="name_${count_field}" type="text" class="form-control">
-            </td>
-            <td>
-              <input id="value_${count_field}" type="text" class="form-control">
-            </td>                               
-          </tr>`;   
-          $('#field-table').append(item); 
-          count_field++;
-      });   
+        $("#add-field").on('click', function() {  
+            let item = `<tr id="field${count_field}">
+              <td>
+                <span class="glyphicon glyphicon-envelope"></span>                                
+              </td>
+              <td>
+                <input id="name_${count_field}" type="text" class="form-control">
+              </td>
+              <td>
+                <input id="value_${count_field}" type="text" class="form-control">
+              </td>                               
+            </tr>`;   
+            $('#field-table').append(item); 
+            count_field++;
+        });   
 
-      $("#new-campaign").on('click', function() {  
-        //$("#campaign-table tbody tr").remove();
-        $("#field-table tbody tr").remove();
-        $("#msgModalContent").val('');      
-        $("#campaign-name").val('');
-        $("#campaign-name").focus();
-        $("#cards").empty();
-        count_field=0;
-      });
-
-      $('#msgModal').on('hidden.bs.modal', function (e) {
-
-        var type = $('#msgModal').data('type');
-
-        if (type == 1) {
-
+        $("#new-campaign").on('click', function() {  
+          //$("#campaign-table tbody tr").remove();
+          $("#field-table tbody tr").remove();
+          $("#msgModalContent").val('');      
+          $("#campaign-name").val('');
           $("#campaign-name").focus();
+          $("#cards").empty();
+          count_field=0;
+        });
 
-        } else if (type == 2) {
+        $('#msgModal').on('hidden.bs.modal', function (e) {
 
-          $("#add-field").focus();
+          var type = $('#msgModal').data('type');
 
-        }
-        
-      });
+          if (type == 1) {
 
-      $("#save-campaign").on('click', function() {  
+            $("#campaign-name").focus();
 
-        var campaign_name = $("#campaign-name").val();
+          } else if (type == 2) {
 
-        if (campaign_name=="" || campaign_name==undefined) { 
+            $("#add-field").focus();
 
-          $('#msgModalTitle').text("Guardado");
-          $('#msgModalContent').text("Es necesario que ingreses un nombre para la nueva campaña.");                    
-          $('#msgModal').data('type', 1);
-          $('#msgModal').modal('show');
+          }
+          
+        });
 
-        } else {
+        $("#save-campaign").on('click', function() {  
 
-          if (count_field == 0) { 
+          var campaign_name = $("#campaign-name").val();
+
+          if (campaign_name=="" || campaign_name==undefined) { 
 
             $('#msgModalTitle').text("Guardado");
-            $('#msgModalContent').text("Es necesario que ingreses los campos dinámicos. Cliquea en Agregar campo '+' para agregar los campos o bien subi un archivo de excel con la primera columna campo y la segunda valor. ");                    
-            $('#msgModal').data('type', 2);
+            $('#msgModalContent').text("Es necesario que ingreses un nombre para la nueva campaña.");                    
+            $('#msgModal').data('type', 1);
             $('#msgModal').modal('show');
 
           } else {
 
+            if (count_field == 0) { 
 
-            let _table_size = $("#field-table tbody tr").length;
-
-            var count = 0;
-            var fields_array = [];
-            var _break = false;
-            
-            $("#field-table tbody tr").each(function() {
-                
-              if (_break==false) {                  
-
-                let campaign_name = $("#campaign-name").val();
-                let _name = $("#name_" + count ).val();
-                let _value = $("#value_" + count ).val(); 
-                let _field = {
-                  "name":_name,
-                  "value":_value
-                };   
-                fields_array.push(_field);
-                if (count == (_table_size-1)) {
-                  saveCampaig(campaign_name, fields_array);
-                  _break = true;
-                } 
-                count++;
-              }
-
-            });
-
-            let card = getCard();          
-            $("#cards").append(card);
-
-          }     
-
-        }
-      });
-
-      function saveCampaig(campaign_name, fields_array) {
-
-        var cname;
-
-        if (/\s/.test(campaign_name)) {
-            cname = campaign_name.split(' ').join('_');
-        } else {
-          cname = campaign_name;
-        }      
-        
-        var _time =  new Date();
-
-        var uiid;
-
-        var campaign =  db.collection('accounts')
-          .doc(window.account)
-          .collection("campaigns")
-          .doc(cname);
-
-        try {
-
-            $("#field-table tbody tr").remove();
-
-            campaign.set({        
-              name: campaign_name,
-              last_update: _time,      
-              time_created: _time,
-              fields:fields_array            
-            },{ merge:true }).then(docRefSet => {              
-              
-              return campaign.collection("designs")
-                  .doc().set({
-                    name: "A",
-                    created_date: _time                                         
-                  },{ merge:true });    
-      
-            }).then(docRefSet => {
-              
-              uiid = uuidv4();            
-              return db.collection('campaigns')
-                .doc(uiid).set({
-                  campaign_ref: campaign,
-                  created_date: _time                                         
-                });           
-
-            }).then(docRefSet => { 
-
-            return campaign.set({        
-              campaign_id: uiid,
-              last_update: _time                      
-              },{ merge:true });
-
-            }).then(docRefSet => {       
-
-              $('#msgModalTitle').text("Guardado con éxito");
-              $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido creada con exito.');                    
-              $('#msgModal').data('type', 1);
+              $('#msgModalTitle').text("Guardado");
+              $('#msgModalContent').text("Es necesario que ingreses los campos dinámicos. Cliquea en Agregar campo '+' para agregar los campos o bien subi un archivo de excel con la primera columna campo y la segunda valor. ");                    
+              $('#msgModal').data('type', 2);
               $('#msgModal').modal('show');
-                
 
-            });
+            } else {
 
-          } catch (e) {            
-              console.error("Error adding document: ", e);           
-          } 
 
-        };       
+              let _table_size = $("#field-table tbody tr").length;
 
-        $("#excel-file").on('change', function() {
+              var count = 0;
+              var fields_array = [];
+              var _break = false;
+              
+              $("#field-table tbody tr").each(function() {
+                  
+                if (_break==false) {                  
+
+                  let campaign_name = $("#campaign-name").val();
+                  let _name = $("#name_" + count ).val();
+                  let _value = $("#value_" + count ).val(); 
+                  let _field = {
+                    "name":_name,
+                    "value":_value
+                  };   
+                  fields_array.push(_field);
+                  if (count == (_table_size-1)) {
+                    saveCampaig(campaign_name, fields_array);
+                    _break = true;
+                  } 
+                  count++;
+                }
+
+              });
+
+              let card = getCard();          
+              $("#cards").append(card);
+
+            }     
+
+          }
+        });
+
+        function saveCampaig(campaign_name, fields_array) {
+
+          var cname;
+
+          if (/\s/.test(campaign_name)) {
+              cname = campaign_name.split(' ').join('_');
+          } else {
+            cname = campaign_name.toLowerCase();
+          }      
+          
+          var _time =  new Date();
+
+          var uiid;
+
+          var campaign =  db.collection('accounts')
+            .doc(window.account)
+            .collection("campaigns")
+            .doc(cname);
 
           try {
 
-            let _files = document.getElementById("excel-file").files;
+              $("#field-table tbody tr").remove();
 
-            if (_files.length>0) {
-
-              let path = "files/excel/" + window.account;
+              campaign.set({        
+                name: campaign_name,
+                last_update: _time,      
+                time_created: _time,
+                fields:fields_array            
+              },{ merge:true }).then(docRefSet => {              
                 
-                var storageRef = storage.ref(path);       
+                return campaign.collection("designs")
+                    .doc().set({
+                      name: "A",
+                      created_date: _time                                         
+                    },{ merge:true });    
+
+              }).then(docRefSet => {
+                
+                uiid = uuidv4();            
+                return db.collection('campaigns')
+                  .doc(uiid).set({
+                    campaign_ref: campaign,
+                    created_date: _time                                         
+                  });           
+
+              }).then(docRefSet => { 
+
+              return campaign.set({        
+                campaign_id: uiid,
+                last_update: _time                      
+                },{ merge:true });
+
+              }).then(docRefSet => {       
+
+                $('#msgModalTitle').text("Guardado con éxito");
+                $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido creada con exito.');                    
+                $('#msgModal').data('type', 1);
+                $('#msgModal').modal('show');
                   
-                var filePath =  "jose.xls";        
-                var thisRef = storageRef.child(filePath);    
 
-                var file = [0]; 
-                var input = this;
-                var length = input.files.length;
-                var _file = input.files.item(0); 
-                
-                var metadataFiles = {
-                  customMetadata: {                
-                      'type': 'xls',
-                      'documentId' : cname,
-                      "path" : path                        
+              });
+
+            } catch (e) {            
+                console.error("Error adding document: ", e);           
+            } 
+
+          };       
+
+          $("#excel-file").on('change', function() {
+
+            try {
+
+              let _files = document.getElementById("excel-file").files;
+              
+              if (campaign_name=="" || campaign_name==undefined) { 
+
+                campaign_name = document.getElementById("campaign-name").value; 
+
+              }
+              
+              if(campaign_name.length > 0) {               
+
+                  var cname;              
+
+                  if (/\s/.test(campaign_name)) {
+                      cname = campaign_name.replace(/ /g, "_").toLowerCase();
+                  } else {
+                    cname = campaign_name.toLowerCase();
                   }
-                };
 
-                var file = document.getElementById("excel-file").files[0];   
-                var filePathMuseum = "jose.xlsx";        
-                const museumRef = storageRef.child(filePathMuseum);
-                var putRef = museumRef.put(_file, metadataFiles);  
+                  var cclient;
 
-                putRef.on('state_changed', function(snapshot) {
-                    var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload is ' + progress + '% done');
-                    switch (snapshot.state) {
-                      case firebase.storage.TaskState.PAUSED: // or 'paused'
-                        console.log('Upload is paused');
-                        break;
-                      case firebase.storage.TaskState.RUNNING: // or 'running'
-                        console.log('Upload is running');
-                        break;
-                    }
-                  }, function(error) {
-                    // Handle unsuccessful uploads
-                  }, function() { 
+                  if (/\s/.test(client_name)) {
+                      cclient = client_name.replace(/ /g, "_").toLowerCase();
+                  } else {
+                      cclient = client_name.toLowerCase();
+                  }
 
-                    //Crear                       
-                    $('#alertModal').modal('show');                      
-                });
+                  if (_files.length>0) {
 
+                    let path = "files/" + cclient + "/excel/" + cname;
+                      
+                      var storageRef = storage.ref(path);       
+                        
+                      var filePath =  cname + "_" + new Date().valueOf() + ".xls";        
+                      var thisRef = storageRef.child(filePath);    
+
+                      var file = [0]; 
+                      var input = this;
+                      var length = input.files.length;
+                      var _file = input.files.item(0); 
+                      
+                      var metadataFiles = {
+                        customMetadata: {                
+                            'type': 'xls',
+                            'excel': 'true',
+                            'documentId' : window.account,
+                            "path" : path                        
+                        }
+                      };                    
+                  
+                      var putRef = thisRef.put(_file, metadataFiles);  
+                      putRef.on('state_changed', function(snapshot) {
+                          var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                          console.log('Upload is ' + progress + '% done');
+                          switch (snapshot.state) {
+                            case firebase.storage.TaskState.PAUSED: // or 'paused'
+                              console.log('Upload is paused');
+                              break;
+                            case firebase.storage.TaskState.RUNNING: // or 'running'
+                              console.log('Upload is running');
+                              break;
+                          }
+                        }, function(error) {
+                          console.log('Error uploading: ' + error);
+                        }, function() { 
+                          console.log('Upload finished');
+                      });
+
+                  } else {
+                    errorLoadingExcel("No se pudo cargar un archivo válido.");
+                  };
+
+              } else {
+                errorLoadingExcel("Debes ingresar un nombre de campaña para poder subir un archivo.");                            
+              }
+
+            } catch (e) {            
+                console.error("Error adding document: ", e);     
+                errorLoadingExcel("Error al cargar el archivo. " + e);      
+            } 
+
+          });   
+
+          function errorLoadingExcel(message) {
+            $('#msgModalTitle').text("Error al cargar archivo");
+            $('#msgModalContent').text(message);                    
+            $('#msgModal').data('type', 4);
+            $('#msgModal').modal('show');
+          }
+          
+          function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            });
+          }
+
+
+          function filterCard(m, w, p) {        
+            if ( ( w!=undefined ) && ( p!=undefined ) ) {         
+              return getCard(m, p, w, p);         
             } else {
-              errorLoadingExcel();
-            };
-
-          } catch (e) {            
-              console.error("Error adding document: ", e);     
-              errorLoadingExcel();      
-          } 
-
-        });   
-
-        function errorLoadingExcel() {
-          $('#msgModalTitle').text("Error al cargar archivo");
-          $('#msgModalContent').text('No se ha podido cargar el archivo de excel.');                    
-          $('#msgModal').data('type', 3);
-          $('#msgModal').modal('show');
-        }
-        
-        function uuidv4() {
-          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-        }
-
-
-        function filterCard(m, w, p) {        
-          if ( ( w!=undefined ) && ( p!=undefined ) ) {         
-            return getCard(m, p, w, p);         
-          } else {
-            if ( w ) {
-              return getCardCustom(m, w);              
-            }  else if ( p ) {
-              return getCardCustom(m, p);              
+              if ( w ) {
+                return getCardCustom(m, w);              
+              }  else if ( p ) {
+                return getCardCustom(m, p);              
+              }
             }
           }
-        }
 
-        function getCard(name) {
-          return getCard(name, undefined, undefined);
-        }
+          function getCard(name) {
+            return getCard(name, undefined, undefined);
+          }
 
-        function getCardCustom(name, img_preview) {
-          return getCard(name, img_preview, undefined);
-        }
+          function getCardCustom(name, img_preview) {
+            return getCard(name, img_preview, undefined);
+          }
 
-        function getCardCustom(name, img_web) {
-          return getCard(name, undefined, img_web);
-        }
+          function getCardCustom(name, img_web) {
+            return getCard(name, undefined, img_web);
+          }
 
-        function getCard(name, img_preview, img_web) {
-          
-          let card = `<div class=\\"col-md-12\\" style=\\"background-color:#E8F0FE;\\">                              
-                <div class=\\"row col-md-12 mt-3 mb-2\\">                                
-                  <div class=\\"col-md-10\\">
-                    <h3 id=\\"card${name}\\">${name}</h3>                                
+          function getCard(name, img_preview, img_web) {
+            
+            let card = `<div class=\\"col-md-12\\" style=\\"background-color:#E8F0FE;\\">                              
+                  <div class=\\"row col-md-12 mt-3 mb-2\\">                                
+                    <div class=\\"col-md-10\\">
+                      <h3 id=\\"card${name}\\">${name}</h3>                                
+                    </div>
+                    <div class=\\"col-md-2\\">                           
+                      <button type=\\"button\\" class=\\"float-right btn btn-success\\">X</button>
+                    </div>
                   </div>
-                  <div class=\\"col-md-2\\">                           
-                    <button type=\\"button\\" class=\\"float-right btn btn-success\\">X</button>
-                  </div>
-                </div>
-                <button id=\\"preview-${name}\\" class=\\"card border round w-100\\">`;                                        
-                if (img_preview) {
-                  card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;
-                } else {
-                  card += `<div id=\\"preview-image-${name}\\" class=\\"card-body\\">
-                            Preview
-                          </div>`;
-                }
-                card += `</button>                                
-                <br>
-                <button id=\\"web-${name}\\" class=\\"card border rounded h-100\\">`;                        
-                if (img_web) {
-                  card += `<img class=\\"w-100\\" src=\\"${img_web}\\"/>`;                  
-                } else {
-                  card += `<div id=\\"web-image-${name}\\" class=\\"card-body\\">
-                                  Web Page
-                                </div>`;
-                }
-                card += `</button>
-                  <div class=\\"row\\">
-                    <div class=\\"col-md-12\\">
-                  </div>
-                  </div>
-                  <div class=\\"col-md-4\\">
-                  </div>
-                  <div class=\\"col-md-4\\">
-                  </div>
-                </div>`;            
+                  <button id=\\"preview-${name}\\" class=\\"card border round w-100\\">`;                                        
+                  if (img_preview) {
+                    card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;
+                  } else {
+                    card += `<div id=\\"preview-image-${name}\\" class=\\"card-body\\">
+                              Preview
+                            </div>`;
+                  }
+                  card += `</button>                                
+                  <br>
+                  <button id=\\"web-${name}\\" class=\\"card border rounded h-100\\">`;                        
+                  if (img_web) {
+                    card += `<img class=\\"w-100\\" src=\\"${img_web}\\"/>`;                  
+                  } else {
+                    card += `<div id=\\"web-image-${name}\\" class=\\"card-body\\">
+                                    Web Page
+                                  </div>`;
+                  }
+                  card += `</button>
+                    <div class=\\"row\\">
+                      <div class=\\"col-md-12\\">
+                    </div>
+                    </div>
+                    <div class=\\"col-md-4\\">
+                    </div>
+                    <div class=\\"col-md-4\\">
+                    </div>
+                  </div>`;            
 
-            return card;
-        }
+              return card;
+          }
 
-    });      
+        });  
       
     </script>     
 
