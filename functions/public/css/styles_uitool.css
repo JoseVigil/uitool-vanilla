@@ -185,9 +185,9 @@ html{
 .body_campaing .section_title .info_clie{
 	width: 100%;
 	display: flex;
-	justify-content: center;
+	justify-content: flex-end;
 	align-items: center;
-	margin-left: -300px;
+	/* margin-left: -300px; */
 }
 .body_campaing .section_title .info_clie span{
 	font-size: 20px;
@@ -208,6 +208,7 @@ html{
 	flex: 1;
 	max-width: 800px;
 	margin-left: 10px;
+	padding: 10px;
 }
 .body_campaing .new_fields #field-table input{
 	background-color: #e1e1e1;
@@ -223,14 +224,14 @@ html{
 	font-size: 20px;
 	font-weight: bolder;
 }
-.body_campaing .new_campa .camp_field{
+.body_campaing .new_fields .camp_field{
 	margin-top: 10px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	text-align: center;
 }
-.body_campaing .new_campa .camp_field label{
+.body_campaing .new_fields .camp_field label{
 	font-size: 18px;
 	font-weight: bolder;
 }
@@ -280,6 +281,10 @@ html{
 	border-top: 1px solid #fa1500!important;
 	justify-content: center;
 }
+.selected {
+    color: black;
+    background-color: #e1e1e1;
+}
 @media only screen and (max-width: 960px){
 	.body_campaing .cnt_campa{
 		flex-direction: column;
@@ -325,7 +330,7 @@ html{
 	.body_campaing .cnt_previews{
 		padding: 10px;
 	}
-	.body_campaing .new_campa .camp_field label{
+	.body_campaing .new_fields .camp_field label{
 		font-size: 16px;
 	}
 }
