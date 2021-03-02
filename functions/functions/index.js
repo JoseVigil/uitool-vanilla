@@ -117,9 +117,9 @@
             case "web":
               static_url = 'web_composer.html';        
               break;
-            case "preview":
-              static_url = 'preview_composer.html';        
-              break;  
+            //case "preview":
+            //  static_url = 'preview_composer.html';        
+            //  break;  
             case "thumbnail":
               static_url = 'thumbnail.html';
               break;
