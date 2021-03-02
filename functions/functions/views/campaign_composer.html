@@ -124,8 +124,7 @@
         <div class="new_fields bg_uitool_na">
           <table id="field-table" class="table table-bordered table-sm">
           <thead>
-            <tr>
-              <th></th>
+            <tr>              
               <th>Campo</th>
               <th>Valor</th>
             </tr>
@@ -145,16 +144,9 @@
           <h3>Campañas</h3>
           <table id="campaign-table"  class="table table-bordered table-hover table-sm">
             <thead>
-              <tr>
-                <th>
-                  <span class="custom-checkbox">
-                    <input type="checkbox" id="selectAll">
-                    <label for="selectAll"></label>
-                  </span>
-                </th>
+              <tr>                
                 <th>Nombre</th>
-                <th>Actualizada</th>                 
-                <th></th>                        
+                <th>Actualizada</th>                                                       
               </tr>
             </thead>
             <tbody>
@@ -382,24 +374,16 @@
                       
                       var _campaign_name = id;                                      
                       
-                      let item_category = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">
-                      <td>
-                          <span class=\\"custom-checkbox\\" class='clickable-row'>
-                              <input type=\\"checkbox\\" id=\\"check_${document.id}\\" name=\\"options[]\\" value=\\"${document.id}\\">
-                              <label for=\\"${document.id}\\"></label>
-                          </span>
-                      </td>
+                      let item_campaign = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">                      
                       <td>${_campaign_name}</td>
-                      <td>${last_update}</td>               
-                      <td><a href=\\"#\\" id=\\"menu_${document.id}\\"><i class=\\"fal fa-ellipsis-v\\"></i></a></td>        
-                      </tr>`;                    
+                      <td>${last_update}</td>`;                    
 
-                      var item_category_joined = item_category.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                      var item_campaign_joined = item_campaign.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
                           
-                      console.log(item_category_joined);
+                      console.log(item_campaign_joined);
                       console.log("");
 
-                      _json += `{"name":"${_campaign_name}","item":"${item_category_joined}","fields":[`;
+                      _json += `{"name":"${_campaign_name}","item":"${item_campaign_joined}","fields":[`;
 
                       let fields = document.data().fields;
 
@@ -419,10 +403,7 @@
                           let name = field.name;
                           let value = field.value;
 
-                          let field_item = `<tr id=\\"field${i}\\">
-                            <td>
-                              <span class=\\"glyphicon glyphicon-envelope\\"></span>                                
-                            </td>
+                          let field_item = `<tr id=\\"field${i}\\">                            
                             <td>
                               <input id=\\"name_${i}\\" value=\\"${name}\\" type=\\"text\\" class=\\"form-control\\">
                             </td>
