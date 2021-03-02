@@ -128,6 +128,17 @@ html{
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(102, 102, 102, 0.6);
 	outline: 0 none;
 }
+.btn_ui_c_orange{
+	color:  #fff;
+	font-size: 18px;
+	background-color: #fa1500;	
+	border-radius: 50px;
+}
+.btn_ui_c_orange:hover{
+	color: #fa1500;	
+	background-color: #fff;
+	border: 1px solid #fa1500;
+}
 .body_campaing{
 	background-color: #e1e1e1;
 	background-image: url('../images/fondo_login.png');
@@ -222,6 +233,13 @@ html{
 }
 .body_campaing .new_campa .camp_nom label{
 	font-size: 20px;
+	font-weight: bolder;
+}
+.body_campaing .new_campa .camp_descrip{
+	margin-top: 10px;
+}
+.body_campaing .new_campa .camp_descrip label{
+	font-size: 16px;
 	font-weight: bolder;
 }
 .body_campaing .new_fields .camp_field{
