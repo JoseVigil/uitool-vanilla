@@ -146,7 +146,7 @@ html{
 	flex-direction: column;
 	height: 100%;
 }
-.body_campaing header{
+.body_campaing header, .body_web_composer header {
 	min-height: 55px;
 	background-color: #fff;
 	border-bottom: 2px solid #131425;
@@ -156,51 +156,51 @@ html{
 	padding-left: 50px;
 	padding-right: 50px;
 }
-.body_campaing header .logo_ui{
+.body_campaing header .logo_ui,.body_web_composer header .logo_ui{
 	width: 100px;
 }
-.body_campaing header .info_user .btn:focus{
+.body_campaing header .info_user .btn:focus, .body_web_composer header .info_user .btn:focus{
 	border-color: rgba(19, 20, 37, 0.8);
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(19, 20, 37, 0.6);
 	outline: 0 none;
 }
-.body_campaing header .btn_loguot{
+.body_campaing header .btn_loguot,.body_web_composer header .btn_loguot{
 	font-size: 18px;
 	font-weight: bolder;
 	color: #131425;
 }
-.body_campaing header .btn_loguot:hover{
+.body_campaing header .btn_loguot:hover,.body_web_composer header .btn_loguot:hover{
 	color:  #fa1500;
 }
-.body_campaing header .btn_acerca{
+.body_campaing header .btn_acerca,.body_web_composer header .btn_acerca {
 	font-size: 18px;
 	font-weight: bolder;
 	color: #131425;
 }
-.body_campaing header .btn_acerca:hover{
+.body_campaing header .btn_acerca:hover,.body_web_composer header .btn_acerca:hover{
 	color:  #fa1500;
 }
-.body_campaing section{
+.body_campaing section,.body_web_composer section{
 	flex: 1;
 }
-.body_campaing .section_title{
+.body_campaing .section_title, .body_web_composer .section_title{
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px 50px 10px 50px;
 	background-color: rgba(255, 255, 255, 0.7)
 }
-.body_campaing .section_title h3{
-	min-width: 300px; 
+.body_campaing .section_title h3,.body_web_composer .section_title h3{
+	flex: 1;
 }
-.body_campaing .section_title .info_clie{
-	width: 100%;
+.body_campaing .section_title .info_clie,.body_web_composer .section_title .info_clie{
+	flex: 1;
 	display: flex;
 	justify-content: flex-end;
 	align-items: center;
 	/* margin-left: -300px; */
 }
-.body_campaing .section_title .info_clie span{
+.body_campaing .section_title .info_clie span,.body_web_composer .section_title .info_clie span{
 	font-size: 20px;
 	font-weight: bolder;
 }
@@ -274,7 +274,7 @@ html{
 #cards{
 	display: flex;
 }
-.body_campaing footer{
+.body_campaing footer,.body_web_composer footer{
 	min-height: 55px;
 	background-color: #fff;
 	border-top: 2px solid #131425;
@@ -284,7 +284,7 @@ html{
 	padding-left: 50px;
 	padding-right: 50px;
 }
-.body_campaing footer .powered img{
+.body_campaing footer .powered img,.body_web_composer footer .powered img{
 	margin-left: -20px;
 	width: 100%;
 	max-width: 200px;
@@ -303,6 +303,34 @@ html{
     color: black;
     background-color: #e1e1e1;
 }
+/* ****************************************ESTILOS WEB COMPOSER***************************************************** */
+.body_web_composer{
+	background-color: #e1e1e1;
+	background-image: url('../images/fondo_login.png');
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.column-background{
+	background-color: #fff;
+	border: 1px solid #fa1500;
+	-webkit-box-shadow: 1px 1px 5px 0px rgba(250, 21, 0, 0.5);
+	-moz-box-shadow:    1px 1px 5px 0px rgba(250, 21, 0, 0.5);
+	box-shadow:         1px 1px 5px 0px rgba(250, 21, 0, 0.5);
+}
+.body_web_composer .nav-tabs{
+
+}
+.body_web_composer .nav-tabs .nav-item a{
+	border-color: #fa1500!important;
+	font-weight: bolder;
+	color: #121325!important;
+}
+.body_web_composer .nav-tabs .nav-item .active{
+	background-color: #fa1500!important;
+	color: #fff!important;
+}
+
 @media only screen and (max-width: 960px){
 	.body_campaing .cnt_campa{
 		flex-direction: column;
@@ -318,25 +346,25 @@ html{
 	}
 }
 @media only screen and (max-width: 768px){
-	.body_campaing .section_title{
+	.body_campaing .section_title,.body_web_composer .section_title{
 		flex-direction: column;
 		justify-content: center;
 	}
-	.body_campaing .section_title h3{
+	.body_campaing .section_title h3,.body_web_composer .section_title h3{
 		text-align: center;
 	}
-	.body_campaing .section_title .info_clie{
+	.body_campaing .section_title .info_clie,.body_web_composer .section_title .info_clie{
 		margin-left: 0px;
 	}
 }
 @media only screen and (max-width: 576px){
-	.body_campaing header{
+	.body_campaing header,.body_web_composer header{
 		padding: 10px;
 	}
-	.body_campaing footer{
+	.body_campaing footer,.body_web_composer footer{
 		padding: 10px;
 	}
-	.body_campaing .section_title{
+	.body_campaing .section_title,.body_web_composer .section_title{
 		padding: 10px;
 	}
 	.body_campaing .cnt_campa{

@@ -43,10 +43,11 @@
         }        
       
      </style>
+     <link rel="stylesheet" type="text/css" href="/css/styles_uitool.css">
 
   </head>
 
-  <body>       
+  <body class="body_web_composer">       
      
     <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>    
@@ -63,27 +64,41 @@
     <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
 
+    <script src="https://kit.fontawesome.com/f014efefd7.js" crossorigin="anonymous"></script>
     <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
 
-   
-    <div class="row">
-      <div id="login" class="pt-1 pl-4 pr-2">
-        Web Composer - Not Logged 
-      </div>  
-      <div id="save" class="pt-1 pl-2">    
-          Not saved     Es aca 
-      </div> 
-    </div> 
-  
-    
+    <header>
+      <img class="logo_ui" src="/images/uitool_logo.png">
+      <div class="info_user">
+        <button type="button" class="btn btn_acerca" data-toggle="modal" data-target="#acercaModal"><i class="fas fa-info-circle"></i> Acerca</button>
+        <button class="btn btn_loguot"><i class="fas fa-sign-out-alt"></i> Salir</button>
+      </div>            
+    </header>
+    <div class="uilinea"></div> 
+    <section>
+    <div class="section_title">
+      <h3>Diseñador de campañas</h3>
+      <div class="info_clie">
+        <span>Juan Perez</span>
+      </div>        
+    </div>
     <div class="container-fluid">
+
+      <div class="row">
+        <div id="login" class="pt-1 pl-4 pr-2">
+          Web Composer - Not Logged 
+        </div>  
+        <div id="save" class="pt-1 pl-2">    
+            Not saved     Es aca 
+        </div> 
+      </div> 
       
       <div class="row">
         <div class="col-md-3">
 
           <div id="html-preview" class="column-background">
 
-            <ul class="nav nav-tabs" role="tablist">
+            <ul class="nav nav-tabs nav-fill" role="tablist">
               
               <li class="nav-item">
                 <a class="nav-link  active" href="#apreview" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Preview</a>
@@ -311,6 +326,14 @@
       </div>
      
     </div>
+    </section>
+    <div class="uilinea mt-3"></div>
+    <footer>
+      <div class="powered">
+        <span class="badge badge-default">powered by</span>
+        <a href="http://notimation.com.ar/"><img alt="Bootstrap Image Preview"src="/images/logo_noti.png" /></a>
+      </div>
+    </footer>
 
     <script>
     //<![CDATA[
