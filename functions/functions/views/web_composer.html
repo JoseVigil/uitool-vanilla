@@ -72,11 +72,15 @@
       <div class="info_user">
         <button type="button" class="btn btn_acerca" data-toggle="modal" data-target="#acercaModal"><i class="fas fa-info-circle"></i> Acerca</button>
         <button class="btn btn_loguot"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        <div class="powered">
+          <span class="badge badge-default">powered by</span>
+          <a href="http://notimation.com.ar/"><img alt="Bootstrap Image Preview"src="/images/logo_noti.png" /></a>
+        </div>
       </div>            
     </header>
     <div class="uilinea"></div> 
     <section>
-    <div class="section_title">
+    <div class="section_title mb-3">
       <h3>Diseñador de campañas</h3>
       <div class="info_clie">
         <span>Juan Perez</span>
@@ -84,14 +88,14 @@
     </div>
     <div class="container-fluid">
 
-      <div class="row">
+      <!-- <div class="row">
         <div id="login" class="pt-1 pl-4 pr-2">
           Web Composer - Not Logged 
         </div>  
         <div id="save" class="pt-1 pl-2">    
             Not saved     Es aca 
         </div> 
-      </div> 
+      </div> --> 
       
       <div class="row">
         <div class="col-md-3">
@@ -102,6 +106,10 @@
               
               <li class="nav-item">
                 <a class="nav-link  active" href="#apreview" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Preview</a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link" href="#" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Mensaje</a>
               </li>
               
               <li class="nav-item">

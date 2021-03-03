@@ -140,8 +140,8 @@ html{
 	border: 1px solid #fa1500;
 }
 .body_campaing{
-	background-color: #e1e1e1;
-	background-image: url('../images/fondo_login.png');
+	background-color: #000;
+	background-image: url('../images/fondo_campaing.png');
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -158,6 +158,12 @@ html{
 }
 .body_campaing header .logo_ui,.body_web_composer header .logo_ui{
 	width: 100px;
+}
+.body_campaing header .info_user,.body_web_composer header .info_user{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
 }
 .body_campaing header .info_user .btn:focus, .body_web_composer header .info_user .btn:focus{
 	border-color: rgba(19, 20, 37, 0.8);
@@ -239,8 +245,18 @@ html{
 	margin-top: 10px;
 }
 .body_campaing .new_campa .camp_descrip label{
-	font-size: 16px;
+	font-size: 14px;
 	font-weight: bolder;
+}
+.body_campaing .new_campa .camp_subdominio{
+	margin-top: 10px;
+}
+.body_campaing .new_campa .camp_subdominio label{
+	font-size: 14px;
+	font-weight: bolder;
+}
+.body_campaing .new_campa .leyen_campa{
+	font-size: 14px;
 }
 .body_campaing .new_fields .camp_field{
 	margin-top: 10px;
@@ -289,6 +305,11 @@ html{
 	width: 100%;
 	max-width: 200px;
 }
+.body_campaing .info_user .powered img,.body_web_composer .info_user .powered img{
+	margin-left: -15px;
+	width: 100%;
+	max-width: 100px;
+}
 #acercaModal .modal-header{
 	border-bottom: 1px solid #fa1500;
 	background-color: #fa1500;
@@ -305,8 +326,8 @@ html{
 }
 /* ****************************************ESTILOS WEB COMPOSER***************************************************** */
 .body_web_composer{
-	background-color: #e1e1e1;
-	background-image: url('../images/fondo_login.png');
+	background-color: #000;
+	background-image: url('../images/fondo_campaing.png');
 	display: flex;
 	flex-direction: column;
 	height: 100%;

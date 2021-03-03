@@ -84,6 +84,10 @@
       <div class="info_user">
         <button type="button" class="btn btn_acerca" data-toggle="modal" data-target="#acercaModal"><i class="fas fa-info-circle"></i> Acerca</button>
         <button class="btn btn_loguot"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        <div class="powered">
+          <span class="badge badge-default">powered by</span>
+          <a href="http://notimation.com.ar/"><img alt="Bootstrap Image Preview"src="/images/logo_noti.png" /></a>
+        </div>
       </div>            
     </header>
     <div class="uilinea"></div>
@@ -93,6 +97,22 @@
         <div class="info_clie">
           <span>Juan Perez</span>
         </div>        
+      </div>
+      <div class="cnt_categories">
+        <div class="box_categ bg_uitool_na">
+          <h3>Campañas</h3>
+          <table id="campaign-table"  class="table table-bordered table-hover table-sm">
+            <thead>
+              <tr>                
+                <th>Nombre</th>
+                <th>Actualizada</th>                                                       
+              </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>      
       </div>
       <div class="cnt_campa">
         <div class="new_campa bg_uitool_na">
@@ -107,15 +127,21 @@
               <small class="form-text">Defini un nombre para la campaña</small>
             </div>                                   
           </div>
-          <div class="camp_descrip">
+          <div class="camp_subdominio">
             <div class="form-group">
-              <label for="campaign-descrip">Descripción:</label>
-              <textarea id="campaign-descrip" class="form-control" rows="4"></textarea>
-              <small class="form-text">(*)Opcional, descripción de la campaña y diseños.</small>
+              <label for="campaign-subdominio">Subdominio de campaña:</label>
+              <input type="text" id="campaign-subdominio"  class="form-control">
             </div>                                   
           </div>
           <div class="leyen_campa">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
+          </div>
+          <div class="camp_descrip">
+            <div class="form-group">
+              <label for="campaign-descrip">Descripción:</label>
+              <input type="text" id="campaign-descrip"  class="form-control">
+              <small class="form-text">(*)Opcional, descripción de la campaña y diseños.</small>
+            </div>                                   
           </div>
         </div>
         <div class="new_fields bg_uitool_na">
@@ -148,22 +174,6 @@
             </div>            
           </div>
         </div>
-      </div>
-      <div class="cnt_categories">
-        <div class="box_categ bg_uitool_na">
-          <h3>Campañas</h3>
-          <table id="campaign-table"  class="table table-bordered table-hover table-sm">
-            <thead>
-              <tr>                
-                <th>Nombre</th>
-                <th>Actualizada</th>                                                       
-              </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-          </table>
-        </div>      
       </div>
       <div class="cnt_previews">
         <div class="box_prev bg_uitool_na">
