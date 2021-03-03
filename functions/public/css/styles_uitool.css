@@ -250,13 +250,21 @@ html{
 }
 .body_campaing .new_campa .camp_subdominio{
 	margin-top: 10px;
+	max-width: 360px;
 }
 .body_campaing .new_campa .camp_subdominio label{
 	font-size: 14px;
 	font-weight: bolder;
 }
+.body_campaing .new_campa .leyen_url{
+	margin-top: 10px;
+	color: #000080;
+	font-weight: bolder;
+	font-size: 16px;
+}
 .body_campaing .new_campa .leyen_campa{
 	font-size: 14px;
+	color: #919191;
 }
 .body_campaing .new_fields .camp_field{
 	margin-top: 10px;
@@ -277,6 +285,17 @@ html{
 .body_campaing .cnt_categories .box_categ{
 	padding: 10px;
 	width: 100%;
+	display: flex;
+	justify-content: space-between;
+}
+.body_campaing .cnt_categories .box_categ .camp_tabla{
+	flex: 1;
+	max-width: 790px;
+}
+.body_campaing .cnt_categories .box_categ .camp_infor{
+	flex: 1;
+	padding-left: 10px;
+	max-width: 790px;
 }
 .body_campaing .cnt_previews{
 	display: flex;
@@ -364,6 +383,13 @@ html{
 		margin-left: 0px;
 		margin-top: 20px;
 		max-width: initial;
+	}
+	.body_campaing .cnt_categories .box_categ{
+		flex-direction: column;
+	}
+	.body_campaing .cnt_categories .box_categ .camp_infor{
+		margin-top: 10px;
+		padding-left: 0px;
 	}
 }
 @media only screen and (max-width: 768px){

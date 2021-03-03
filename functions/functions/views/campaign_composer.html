@@ -100,18 +100,27 @@
       </div>
       <div class="cnt_categories">
         <div class="box_categ bg_uitool_na">
-          <h3>Campañas</h3>
-          <table id="campaign-table"  class="table table-bordered table-hover table-sm">
-            <thead>
-              <tr>                
-                <th>Nombre</th>
-                <th>Actualizada</th>                                                       
-              </tr>
-            </thead>
-            <tbody>
+          <div class="camp_tabla">
+            <h3>Campañas</h3>
+            <table id="campaign-table"  class="table table-bordered table-hover table-sm">
+              <thead>
+                <tr>                
+                  <th>Nombre</th>
+                  <th>Actualizada</th>                                                     
+                </tr>
+              </thead>
+              <tbody>
 
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="camp_infor">
+            <h3>Información</h3>
+            <!-- Espacio para agregar informacion de la campaña -->
+            
+          </div>
+
         </div>      
       </div>
       <div class="cnt_campa">
@@ -128,10 +137,16 @@
             </div>                                   
           </div>
           <div class="camp_subdominio">
-            <div class="form-group">
-              <label for="campaign-subdominio">Subdominio de campaña:</label>
+            <label for="campaign-subdominio">Subdominio de campaña:</label>
+            <div class="input-group">              
               <input type="text" id="campaign-subdominio"  class="form-control">
+              <div class="input-group-append">
+                <span class="input-group-text" id="basic-addon2">.noti.sm</span>
+              </div>
             </div>                                   
+          </div>
+          <div class="leyen_url">
+            <label>example.noti.sm</label>
           </div>
           <div class="leyen_campa">
             Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
