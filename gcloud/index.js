@@ -59,45 +59,48 @@
 
 		let option = req.url.split('/')[2];	
 
-		var public_url, update, image_width, image_height, image_storage_name,
-			image_storage_path, page_url, documentRef; 
+		var update, image_width, image_height, image_storage_name,
+			image_storage_path, page_url, type; 
+
+		let url_path 			= req.body.data.url_path;
+		var public_url 			= "https://noti.ms/composer/thumbnail?&path=/" + url_path;
+		var documentRef 		= firestore.doc(url_path);
+
+		var paths = url_path.split("/");	
 
 		switch (option) {	
 
-			case BUILD_IMAGE_WEB:
-				
-				let url_path 			= req.body.data.url_path;
-				documentRef 			= firestore.doc(url_path);
-
-				//accounts/kairos/campaigns/DEUDA_345_FDG/designs/sample
-
-				let paths = url_path.split("/");	
-
-				let image_name 			= paths[5];				
-				let _image_ 			= image_name + "_web.png";
-				var image_storage  		= url_path.split(paths[4])[0];							
+			case BUILD_IMAGE_WEB:										
+							
+				let _image_web_			= paths[5] + "_web.png";
+				let image_storage_web   = url_path.split(paths[4])[0];							
 				image_width 			= req.body.data.image_width;	
 				image_height 			= req.body.data.image_height;					
-				image_storage_path		= `${image_storage}${_image_}`;
+				image_storage_path		= `${image_storage_web}${_image_web_}`;
 				image_storage_name		= "web_image_storage";
-				update 					= "web_update";				
- 
-				public_url = "https://noti.ms/composer/thumbnail?&path=/" + url_path;
-
-				console.log('image_storage_path: ' + image_storage_path);				
-				console.log('url_path: ' + url_path);
-				console.log('public_url: ' + public_url);				
-
-				//documentRef = firestore.collection("clients").doc(client)
-		      	//.collection("campaigns").doc(campaign).collection(option).doc(design);
-		      	
+				update 					= "web_update";			
+				type 					= "web";
+				public_url 				+= "&type=web";	 
 				break;
 
 			case BUILD_IMAGE_PREVIEW:
-			
+						
+				let _image_preview_		= paths[5] + "_preview.png";
+				let image_storage_prev	= url_path.split(paths[4])[0];							
+				image_width 			= req.body.data.image_width;	
+				image_height 			= req.body.data.image_height;					
+				image_storage_path		= `${image_storage_prev}${_image_preview_}`;
+				image_storage_name		= "preview_image_storage";
+				update 					= "preview_update";		
+				type 					= "preview";			
+				public_url 				+= "&type=preview";	 
 				break;
 
-		}		
+		}
+
+		console.log('image_storage_path: ' + image_storage_path);				
+		console.log('url_path: ' + url_path);
+		console.log('public_url: ' + public_url);
 		
 		var screenshotBuffer = null;
 		var browser = null;
@@ -112,7 +115,6 @@
 			  ignoreHTTPSErrors: true,
 			});	   
 
-
 			const page = await browser.newPage();      
 			await page.setViewport({
 	          width: image_width, //1200,
@@ -120,18 +122,12 @@
 	          deviceScaleFactor: 1,
 	        });
 
-			switch (option) {				
-				case BUILD_IMAGE_WEB:					
-					await page.goto(public_url, {waitUntil: 'load', timeout: 0});	
-					await timeout(5000);			
-				break;
-				case BUILD_IMAGE_PREVIEW:
-					await page.setContent(html); 
-				break;
-			}
-
+	        await page.goto(public_url, {waitUntil: 'load', timeout: 0});	
+			await timeout(5000);
+		
 			screenshotBuffer = await page.screenshot({encoding: "binary"});
 			//screenshotBuffer = await page.screenshot({encoding: "base64"});
+
 			await browser.close(); 
 
 		} catch (e) {
@@ -165,12 +161,12 @@
 
 		      const imageUrl = await file.getSignedUrl(config); 
 
-		      var image_url = imageUrl[0].toString();   
+		      var image_url = imageUrl[0].toString();   		     
 
 		      let image_field = "preview_image_" + option;
 
 		      var json_update = `{
-				"public_image_web": "${image_url}",
+				"public_image_${type}": "${image_url}",
 				"${image_storage_name}" : "${image_storage_path}",
 				"${update}": false
 			  }`;	
@@ -178,7 +174,8 @@
 			  await documentRef.update(JSON.parse(json_update)).then((document) => {
 
 		      	var dataString = `{
-		          "data" : {		           
+		          "data" : {
+		          "type":"${type}",		           
 		           "image_storage_path":"${image_storage_path}",
 				   "image_url":"${image_url}"			           		           
 		          }

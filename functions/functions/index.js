@@ -104,7 +104,12 @@
         if (url.indexOf('?') !== -1) {
           let params = url.split("?");
           urlParams = getJsonFromUrl(params[1]);        
-        }     
+        }    
+        
+        console.log("pathParams:" + JSON.stringify(pathParams));  
+        console.log("urlParams:" + JSON.stringify(urlParams));  
+        console.log("module:" + module);  
+        console.log();  
 
         var static_url;     
 
@@ -115,6 +120,7 @@
               static_url = 'campaign_composer.html';
               break;
             case "web":
+            case "preview":
               static_url = 'web_composer.html';        
               break;
             //case "preview":
@@ -334,6 +340,10 @@
         urlParams = getJsonFromUrl(params[1]);        
       }     
 
+      console.log();
+      console.log("module: " + module);
+      console.log();
+
       var static_url;     
       
       switch(module) {
@@ -353,6 +363,9 @@
           static_url = 'composer.html';
           break;
       }
+
+      console.log("urlParams: " + JSON.stringify(urlParams));
+      console.log();
 
       return res.render(static_url, urlParams); 
 
@@ -465,7 +478,18 @@
           await rp(_json)
           .then( async (response_image) => {
 
-            console.log("response: " + JSON.stringify(response_image));            
+            console.log("response: " + JSON.stringify(response_image)); 
+
+            if (response_image.status === 200 ) {           
+
+              if (response_image.data.type === "web") {
+                await change.after.ref.set({web_update:false});
+              } else if (response_image.data.type === "preview") {
+                await change.after.ref.set({preview_update:false});
+              }
+
+            }
+            
             return response_image;
 
           }).catch((error) => {
