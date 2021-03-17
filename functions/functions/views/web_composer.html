@@ -83,7 +83,8 @@
     <div class="section_title mb-3">
       <h3>Diseñador de campañas</h3>
       <div class="info_clie">
-        <span>Juan Perez</span>
+        <span class="pr-3">Juan Perez</span>
+        <button id="save-design" type="button" class="btn btn_ui_grey">Guardar Diseño</button>
       </div>        
     </div>
     <div class="container-fluid">
@@ -344,8 +345,6 @@
     </footer>
 
     <script>
-    //<![CDATA[
-
 
     /**
      * JavaScript to modify the URL without reloading the page?
@@ -354,11 +353,7 @@
      * 
      * */
 
-    $(document).ready(function () {            
-
-      //var active.saludo = false;
-      //var active.cuerpo = false;
-      //var active.from_button = false;
+    $(document).ready(function () {              
 
       var timer_save = null;
 
@@ -457,18 +452,22 @@
 
       });        
     
-      firebase.auth().onAuthStateChanged(function (user) {
+      firebase.auth().onAuthStateChanged(async function (user) {
 
         if (user) { 
 
-          $("#login").text("Web Composer - Logged");
+          //$("#login").text("Web Composer - Logged");
 
-          window.type = getUrlParameter('type');
           window.account = getUrlParameter('account');         
           window.campaignId = getUrlParameter('campaignId');  
           window.designId = getUrlParameter('designId');           
 
           window.documentPath = `accounts/${window.account}/campaigns/${window.campaignId}`; ///web/sample`;
+
+          let designPath = window.documentPath + "/designs/" + window.designId;
+
+          let docDesign = await db.doc(designPath).get();
+          window.type   = docDesign.data().load_type;
           
           db.doc(window.documentPath).get()
               .then(function(doc) {   
@@ -478,7 +477,7 @@
                 if (doc.exists) {
 
                   var name =  doc.data().name;                
-                  var fields =  doc.data().fields;                             
+                  var fields =  doc.data().fields;                                     
 
                   let json = `{`;
 
@@ -636,10 +635,14 @@
 
                   if (docWeb.exists) { 
 
+                    window.type =  docWeb.data().load_type; 
+
                     if (window.type=="preview") {                      
                    
                         let modules_preview = docWeb.data().inputs_preview;
                         if (modules_preview != undefined) { 
+
+                            let background_color_preview = docWeb.data().background_color_preview;
 
                             var plength = Object.keys(modules_preview).length;
                             
@@ -730,7 +733,7 @@
                                           $ele.find("#inimagen-preview").attr("src",value);
                                           break;                                      
                                       case 7:
-                                        //$ele.find("#incolor-preview").val(value);
+                                        $ele.find("#incolor-preview").val(value);
                                         $ele.find(".card").val(value);
                                         break;
                                   }
@@ -751,6 +754,8 @@
                             let html = docWeb.data().html_preview;
                             let public_image_web = docWeb.data().public_image_web;
                             let img = `<img src="${public_image_web}"/>`;
+
+                            let background_color_web = docWeb.data().background_color_web;
                             
                             $("#web-image").remove();
                             $("#web").append(img);
@@ -867,7 +872,9 @@
           
           //$("#save-web").on('click', async function() {                                  
           
-          SaveComposed = async function() {
+          //SaveComposed = async function() {
+
+          $("#save-design").on('click', async function() { 
 
               console.log("**************");
               console.log("*** SAVING ***");
@@ -899,7 +906,7 @@
                   }
                 }     
 
-                var image_width         = 600; //$("#preview-preview").width();
+                var image_width         = 300; //$("#preview-preview").width();
                 var image_height        = $("#preview-preview").height() + 60;          
 
                 payload = {        
@@ -980,7 +987,7 @@
                 return [day, month, year].join('-');
             }
 
-          };
+          });
        
           $( ".draggable" ).draggable({
             appendTo: "body",
@@ -1443,8 +1450,11 @@
                             break;
                           case "color-web":
                             count++;  
-                            let color = value = $(this).find("#incolor-web").val();     
-                            $('#preview-web').css('background-color', color);                   
+                            let color = value = $(this).find("#incolor-web").val();                                 
+                            if (color!=undefined) {
+                                let style = `style="background-color:${color}"`;                              
+                                _html_web = _html_web.replaceAll("style", style);             
+                              } 
                             break;
                         }        
 
@@ -1490,7 +1500,7 @@
                             case "llamada":
                               count++;
                               let inllamada  = value = $(this).find("#inllamada").val();
-                              let llamada   =  `<div class="card"><div class="card-block">
+                              let llamada   =  `<div class="card" style><div class="card-block">
                                                 <h4 class="card-title">${inllamada}</h4>`;
                               _html_preview += llamada;                                                                
                               break;
@@ -1532,8 +1542,11 @@
                               break;
                             case "color-preview":
                               count++;  
-                              let color = value = $(this).find("#incolor-preview").val();     
-                              $('#preview-preview').css('background-color', color);                   
+                              let color = value = $(this).find("#incolor-preview").val();                                   
+                              if (color!=undefined) {
+                                let style = `style="background-color:${color}"`;                              
+                                _html_preview = _html_preview.replaceAll("style", style);             
+                              }    
                               break;
                           }        
 
@@ -1566,7 +1579,7 @@
 
             });
 
-            if (timer_save==null) {
+            /*if (timer_save==null) {
 
               new Promise(function(resolve, reject) {
 
@@ -1575,12 +1588,13 @@
                     SaveComposed();
                     clearTimeout(timer_save);
                     timer_save=null;
+                    resolve();
 
-                }, 7000);
+                }, 2000);
 
               });
 
-            }
+            }*/
 
             return htmlPromise;
 

@@ -452,9 +452,72 @@
 
                         }                
 
-                      }   
+                      }  
                       
-                      db.collection('accounts')
+                      const designs = db.collection('accounts')
+                      .doc(window.account)
+                      .collection("campaigns")
+                      .doc(id)
+                      .collection("designs");
+                      designs.get().then((querySnapshot) => {
+
+                          jsonCat.campaigns[active_campaign]["designs"] = [];
+                          
+                          var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+                          let cardSize = querySnapshot.docs.length;        
+                          window.newdesign = alphabet[cardSize];  
+                          
+                          var countDesigns = 0;
+
+                          if (cardSize > 0) {
+
+                            querySnapshot.docs.map((doc) => {                             
+
+                                if (doc.exists) {
+
+                                  var id_card = doc.id;
+
+                                  db.collection('accounts')
+                                  .doc(window.account)
+                                  .collection("campaigns")
+                                  .doc(id)
+                                  .collection("designs")
+                                  .doc(id_card)
+                                  .onSnapshot((cardSnapshot) => {
+                                  
+                                      let name = cardSnapshot.data().name;
+                                      let piw = cardSnapshot.data().public_image_web;
+                                      let pip = cardSnapshot.data().public_image_preview;
+                                      let card = filterCard(id, id_card, name, piw, pip);     
+                                      
+                                      if (card != undefined) {
+
+                                        let card_joined = card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                                        let json_card = `{"id":"${id_card}", "name":"${name}","card":"${card_joined}"}`;                            
+                                        jsonCat.campaigns[active_campaign]["designs"].push(JSON.parse(json_card));
+
+                                        //if (countDesigns == (cardSize-1)) {
+                                          loadCampaignById(active_campaign);
+                                        //}
+
+                                        $(`#preview-${id}-${id_card}`).click({param: id_card}, preview_click);                                    
+                                        $(`#web-${id}-${id_card}`).click({param: id_card}, web_click);                                                                      
+
+                                        countDesigns++;
+
+                                      }  
+                                  });                             
+
+                                }
+                            });
+
+                          }
+                            
+                      });
+
+
+                      
+                      /*db.collection('accounts')
                       .doc(window.account)
                       .collection("campaigns")
                       .doc(id)
@@ -509,7 +572,7 @@
 
                           }
 
-                      });
+                      });*/
 
                   //end foreach
                   });                             
@@ -554,9 +617,15 @@
             buildLink("web", event.data.param);                     
           }
 
-          function buildLink(type, id) {
-            let web = "http://localhost:5000/composer/"+type;
-            let url = `${web}?&account=${window.account}&type=${type}&campaignId=${campaignId}&designId=${id}`;            
+          async function buildLink(type, id) {           
+            await db.collection('accounts')
+            .doc(window.account)
+            .collection("campaigns")
+            .doc(campaignId)
+            .collection("designs")
+            .doc(id).set({load_type:type},{ merge:true });
+            let web = window.location.origin + "/composer";
+            let url = `${web}/designer?&account=${window.account}&campaignId=${campaignId}&designId=${id}`;            
             window.open(url, '_blank');
           }
 
@@ -564,9 +633,9 @@
 
             $("#campaign-table tbody tr").remove();
             $("#field-table tbody tr").remove();
-            $("#campaign-name").val('');      
-            $("#campaign-name").focus();
-            $("#cards").empty(); 
+            $("#campaign-name").val('');                  
+
+            $('.modal-login').find(".alert").remove();
 
             var campaigns = jsonCat.campaigns;
 
@@ -600,6 +669,7 @@
                   let card = design.card;                                    
                   $(`#preview-${campaign_id}-${id}`).click({param: id}, preview_click);                                    
                   $(`#web-${campaign_id}-${id}`).click({param: id}, web_click);                                    
+                  $("#card-" + id).remove();
                   $("#cards").append(card);                                 
                 } 
               } 
@@ -973,6 +1043,8 @@
           }
 
           function getCard(campaign_id, card_id, campaign_name, img_preview, img_web) {
+
+            var timestamp = new Date().getTime();     
             
             let card = `<div id=\\"card-${card_id}\\" id=\\"card-\\" class=\\"col-md-3\\" style=\\"background-color:#E8F0FE;\\">                              
                   <div class=\\"row col-md-12 mt-3 mb-2\\">                                
@@ -985,6 +1057,7 @@
                   </div>
                   <button id=\\"preview-${campaign_id}-${card_id}\\" class=\\"card border round w-100\\">`;                                        
                   if (img_preview) {
+                    img_preview += "&t=" + timestamp;
                     card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;
                   } else {
                     card += `<div id=\\"preview-image-${campaign_id}-${card_id}\\" class=\\"card-body\\">
@@ -993,8 +1066,9 @@
                   }
                   card += `</button>                                
                   <br>
-                  <button id=\\"web-${campaign_id}-${card_id}\\" class=\\"card border rounded h-100\\">`;                        
+                  <button id=\\"web-${campaign_id}-${card_id}\\" class=\\"card border rounded\\">`;                        
                   if (img_web) {
+                    img_web += "&t=" + timestamp;
                     card += `<img class=\\"w-100\\" src=\\"${img_web}\\"/>`;                  
                   } else {
                     card += `<div id=\\"web-image-${campaign_id}-${card_id}\\" class=\\"card-body\\">

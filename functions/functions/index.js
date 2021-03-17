@@ -118,9 +118,8 @@
           switch (module) {
             case "campaign":
               static_url = 'campaign_composer.html';
-              break;
-            case "web":
-            case "preview":
+              break;            
+            case "designer":
               static_url = 'web_composer.html';        
               break;
             //case "preview":
