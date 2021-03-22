@@ -5,6 +5,7 @@
             "send_data": false,
             "read_data": false,
             "gateway" :11,
+            "count_read": 0,
             "subCollection": {}
         }
     }

@@ -982,47 +982,57 @@
 										console.log("title length: " + title.length);	
 										console.log("title: " + title);
 
-										var _includes = false;	
+										//var _includes = false;	
+
+										let j = i+1;
 										  
 						                if ( title.includes("Claro") ) {					                
 
-						                	var _includes = true;
+						                	//var _includes = true;
 
 						                	var tempUssd = title.substring(title.indexOf("Claro") + 6);
 											var _number = tempUssd.substring(0, tempUssd.indexOf(" con Plan Control"));
 						                
 						                	console.log("_number: " + _number);
-
-						                	let j = i+1;											
+						                												
 						                	let _json = `{"channel":${j},"phone":"${_number}"}`;
+											tempJson +=  _json;                					                    
 
-											tempJson +=  _json;                 					                    
+						                } else {
 
+											let _jsonc = `{"channel":${j}}`;
+											tempJson +=  _jsonc;
 						                }
 
 						                console.log("count: " + count);
 						                console.log("ulength: " + ulength);
 
-						                if (count == (ulength-1)) {						                	
+						                if (count == (ulength-1)) {	
+						                	var lastChar = tempJson.substr(tempJson.length - 1); 
+						                	console.log("lastChar: " + lastChar);
+						                	if (lastChar==","){
+						                		tempJson = tempJson.slice(0, -1); 
+						                		console.log("tempJsonWithout,: " + tempJson);
+						                	}
 						                	tempJson += "]";
 						                  	resolve(tempJson);
 						                } else {
-						                	if (_includes) {
+						                	//if (_includes) {
 												tempJson += ",";
-											}
+											//}
 						                }
-
+										console.log("tempJson: " + tempJson);
 						                count++;
 						            }
 
 								});
-							});		
-
-							console.log("jsonUssdArray: " + JSON.stringify(jsonUssdArray));											
+							});								
 
 							var responseArray = JSON.parse(jsonUssdArray);
 
-							console.log("responseArray: " + responseArray);
+							console.log("responseArray: " + JSON.stringify(responseArray));											
+
+							//console.log("responseArray: " + responseArray);
 
 							return res.status(200).send(responseArray);
 

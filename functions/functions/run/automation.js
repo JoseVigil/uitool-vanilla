@@ -1,6 +1,6 @@
     //var functions = require('firebase-functions');
     //var firebase = require('firebase');
-    //var admin = require('firebase-admin');
+    var admin = require('firebase-admin');
     var rp = require('request-promise'); 
     var request = require('request');
 
@@ -361,8 +361,8 @@
             var status = card + ".status";
             var stage = card + ".stage";
 
-            //console.log("status: " + status);
-            //console.log("stage: " + stage);
+            console.log("status: " + status);
+            console.log("stage: " + stage);
 
             //let stage_idle      = `"${STAGE_SENT_IDLE}"`;
             //let stage_failed    = `"${STAGE_SENT_FAILED}"`;
@@ -926,9 +926,14 @@
     }
     
 
-    var GW_ReceiveSMS = async function(i, gateway, urls, date_ports) {              
+    var GW_ReceiveSMS = async function(i, gateway, urls, date_ports) {             
         
         let stageArray = await FB_StageProcessReceive(gateway, urls, date_ports);             
+
+        console.log("-----------------------");
+        console.log("stageArray: " + JSON.stringify(stageArray));
+        console.log("-----------------------");
+        console.log("");
         
         var claro_data_receive = [];
         var movistar_data_receive = [];
@@ -937,38 +942,45 @@
         var movistar_phones = [];
         var personal_phones = [];
 
-        for (var s in stageArray) {
-            
-            let stage = stageArray[s];             
+        if (stageArray.length>0) {            
 
-            var operator = stage.operator;
-            var card = stage.card;
-            var port = parseInt(stage.port);              
-            
-            //console.log("operator: " + operator);
-            
-            if (operator === "Claro AR") {
-                claro_phones.push(port-1);                
-                claro_data_receive.push({ id:port, operator:operator, card:card, port:port });                
-                claro_phones = claro_phones.slice(i,i+4);
-                claro_data_receive.slice(i,i+4);
-            }
+            for (var s in stageArray) {
+                
+                let stage = stageArray[s];             
 
-            if (operator === "Movistar") {
-                movistar_phones.push(port-1);                
-                movistar_data_receive.push({ operator:operator, card:card, port:port });
-            }
+                var operator = stage.operator;
+                var card = stage.card;
+                var port = parseInt(stage.port);              
+                
+                //console.log("operator: " + operator);
+                //console.log("i: " + i);
+                
+                if (operator === "Claro AR") {
+                    claro_phones.push(port-1);                
+                    claro_data_receive.push({ id:port, operator:operator, card:card, port:port });                
+                    //claro_phones = claro_phones.slice(i, i+4);
+                    claro_data_receive.slice(i, i+4);
+                }
 
-            if (operator === "Personal") {
-            personal_phones.push(port);                
-            }              
+                if (operator === "Movistar") {
+                    movistar_phones.push(port-1);                
+                    movistar_data_receive.push({ operator:operator, card:card, port:port });
+                }
 
-        }            
+                if (operator === "Personal") {
+                    personal_phones.push(port);                
+                }              
 
-        console.log();
-        console.log("claro_data_receive: " + JSON.stringify(claro_data_receive));
+            }            
 
-        if ( claro_phones.length > 0 ) {
+            //console.log();
+            //console.log("claro_data_receive: " + JSON.stringify(claro_data_receive));
+            //console.log();
+            console.log("claro_phones: " + JSON.stringify(claro_phones));
+
+            if ( claro_phones.length > 0 ) {
+
+                claro_phones = claro_phones.slice(i, i+4);
 
                 var _url = urls.url_base_remote + urls.params_ussdread;
 
@@ -988,126 +1000,90 @@
                     json: true,
                 };
 
-                console.log();
-                console.log("option_ussdread: " + JSON.stringify(option_ussdread));
+                //console.log();
+                //console.log("option_ussdread: " + JSON.stringify(option_ussdread));
 
-                await rp(option_ussdread)
-                    .then(async function (results_ussdread) {
+                var promises_state_receive = [];
 
-                        console.log("RESULT::: " + results_ussdread.length);
-
-                        if (results_ussdread.length>0) { 
-                            
-                            console.log("results_ussdread: " + JSON.stringify(results_ussdread));
-
-                            var promises_state_receive = [];
-                            var _gateway = "S" + gateway;
-                            let _length = results_ussdread.length;                               
-
-                            for (var i=0; i<_length; i++) {   
-
-                                let data = results_ussdread[i];
-                                let port = data.channel;
-                                let phone = data.phone;
-
-                                //console.log("data:" + JSON.stringify(data));
-
-                                let card = searchByPort(port, claro_data_receive);     
+                var results_ussdread =  await rp(option_ussdread);                   
                                 
-                                //console.log("data:" + JSON.stringify(data));                                    
-                                
-                                let _json = `{"${card.card}":{"stage":${STAGE_RECEIVE},"phone":"${phone}"}}`;
+                var _gateway = "S" + gateway;
+                let _length = results_ussdread.length;    
+                
+                //console.log("_length:" + _length);
 
-                                //console.log("*********************");                                    
-                                //console.log("_json: " + _json);                                    
-                                //console.log("*********************");
+                for (var i=0; i<_length; i++) {   
 
-                                var jsonCards = JSON.parse(_json);                                    
-                                let portname = "port" + port;                           
+                    let data = results_ussdread[i];
+                    let port = data.channel;
+                    let phone = data.phone;
 
-                                promises_state_receive.push(
-                                    firestore
-                                        .collection("gateways")
-                                        .doc(_gateway)
-                                        .collection(date_ports)
-                                        .doc(portname)
-                                        .set(jsonCards, { merge: true })
-                                );
-                            }
+                    //console.log("data:" + JSON.stringify(data));
 
-                            return Promise.all(promises_state_receive).then((results) => {
+                    let card = searchByPort(port, claro_data_receive);                         
 
-                                i++;
-                                GW_ReceiveSMS(i, gateway, urls, date_ports);
+                    let _json;
+                    
+                    if (phone) {
 
-                                console.log(" finished");
+                        _json = `{"${card.card}":{"stage":${STAGE_RECEIVE},"phone":"${phone}"}}`;
 
-                                return {};
+                    } else  {
 
-                            }).catch((error) => {
-                                console.log("error carajo: " + error);
-                                return error;
-                            });
-                            
+                        _json = `{"${card.card}":{"stage":${STAGE_NOT_SENT}}}`;
 
-                        } else {
+                    }                
 
-                            console.log(" 0  found");
+                    //console.log("*********************");                                    
+                    //console.log("_json: " + _json);                                    
+                    //console.log("*********************");
 
+                    var jsonCards = JSON.parse(_json);                                    
+                    let portname = "port" + port;                           
 
-                            i++;
+                    promises_state_receive.push(
+                        firestore
+                            .collection("gateways")
+                            .doc(_gateway)
+                            .collection(date_ports)
+                            .doc(portname)
+                            .set(jsonCards, { merge: true })
+                    );
+                }               
 
-                            GW_ReceiveSMS(i, gateway, urls, date_ports); 
+                //console.log("promises_state_receive: " + JSON.stringify(promises_state_receive));
+                
+                if (promises_state_receive.lenght > 0) {
 
-                        }
+                    Promise.all(promises_state_receive);
+                } 
+                
+                return true;               
 
-                        return {};
-                                                    
+            }       
+        
 
-                }).catch((error) => {
-                    console.log("error post: " + error);
-                    return error;
-                });    
+            if ( movistar_phones.length > 0 ) {
 
-        }
-
-        if ( movistar_phones.length > 0 ) {
-
-            console.log("movistar_phones: " + JSON.stringify(movistar_phones));                                 
+                console.log("movistar_phones: " + JSON.stringify(movistar_phones));                                 
+                
+                callNextMovistarReceive(0, gateway, movistar_phones, movistar_data_receive, urls, date_ports);
+            }
             
-            callNextMovistarReceive(0, gateway, movistar_phones, movistar_data_receive, urls, date_ports);
-        }            
-
+        //No more available cards
+        } else {
+            return false;
+        }
+        
     }
-
-    //console.log("gateway_number: " + gateway_number);
-    
-    //var _urls, _cards;
-
-    //var Start = async function(callback) {                                        
-    //    callback(await FB_GetUrlsAndCards());
-    //}        
-
-    /*var Collect = async function(gateway_number, urls, date) {
-        
-        await GW_CollectData(gateway_number, urls, date);
-        
-        console.log();
-        console.log("GW_SendPhones");           
-        await GW_SendPhones(gateway_number, urls, date);
-        
-        console.log();
-        console.log("GW_ReceiveSMS");           
-        await GW_ReceiveSMS(gateway_number, urls, date);
-        
-    }*/
 
     var STAGE_SENT_IDLE         = 1000;
     var STAGE_SENT              = 1001;
-    var STAGE_SENT_FAILED       = 1002;
-    var STAGE_SENT_TIMEOUT      = 1003;
-    var STAGE_SENT_SENDING      = 1004;
-    var STAGE_RECEIVE           = 1005;
+    var STAGE_NOT_SENT          = 1002;
+    var STAGE_SENT_FAILED       = 1003;
+    var STAGE_SENT_TIMEOUT      = 1004;
+    var STAGE_SENT_SENDING      = 1005;
+    var STAGE_RECEIVE           = 1006;
 
     var GW_CollectData = async function(gateway, date_ports) {                                              
         
@@ -1157,7 +1133,7 @@
 
         var _id_ = snap.after.id;
 
-        console.log("_id_: " +_id_);
+        //console.log("_id_: " +_id_);
 
         var resultsArrays = await FB_GetUrlsAndCards(); //async function(resultsArrays) {
                                 
@@ -1171,7 +1147,7 @@
         var collect_data = documentData.collect_data;
         var send_data = documentData.send_data;  
         var read_data = documentData.read_data; 
-        var _gateway_ = documentData.gateway;  
+        var _gateway_ = documentData.gateway;
 
         if (collect_data || send_data || read_data) {
         
@@ -1180,35 +1156,35 @@
             const gatewaysRef = firestore.collection('gateways');  
             gatewaysRef.get().then( async snapshot => {
                 
-                console.log("size: " + snapshot.size);
+                //console.log("size: " + snapshot.size);
 
                 snapshot.docs.forEach( async doc => {
 
                     var docData = doc.data();
                     var id = doc.id;
-                    console.log("id: " + id);
+                    var channels = docData.channels;                    
+                    var iterations = channels/4;                   
 
                     if ( id === "urls" ) {
 
-                        console.log("urls do nothing");
+                        console.log("urls continue ...");
                     
-                    } else {    
+                    } else {  
                     
-                        var gateway_number = parseInt(id.split("S")[1]);  
-
-                        console.log("_gateway_: " + _gateway_);
-                        console.log("gateway_number: " + gateway_number);
-                        console.log("----------------------");
+                        var gateway_number = parseInt(id.split("S")[1]);                        
                         
-                        if (_gateway_ === gateway_number) {
-
-                            console.log("gateway_number: " + gateway_number);                       
-
+                        if (_gateway_ === gateway_number) {   
+                            
                             console.log();
-                            console.log("////////////////////////");
+                            console.log("/////////////////");
                             console.log("///     " + id + "      ///");
-                            console.log("////////////////////////");
-                            console.log();                                          
+                            console.log("////////////////");
+                            console.log();
+                            console.log("id: " + id);
+                            console.log("channels: " + channels);
+                            console.log("iterations: " + iterations);
+                            console.log("gateway_number: " + gateway_number);                              
+                            console.log("----------------------");                                                                      
 
                             if (collect_data) {
                                 
@@ -1233,18 +1209,63 @@
                                 .doc(_id_)
                                 .set({send_data: false}, { merge: true });
                             
-                            } else if (read_data) {                               
+                            } else if (read_data) {    
+                                
+                                var count_read = parseInt(documentData.count_read);
+
+                                console.log("count_read: " + count_read);                                 
 
                                 console.log();
                                 console.log("GW_ReceiveSMS");           
-                                await GW_ReceiveSMS(0, gateway_number, _urls, _date_ports);
+                                let result_receive = await GW_ReceiveSMS(count_read, gateway_number, _urls, _date_ports);
 
-                                console.log();
+                                console.log("result_receive: " + result_receive);
+                                console.log();                                                               
+
+                                let json = {};
+
+                                let _time = admin.firestore.FieldValue.serverTimestamp();   
+
+                                count_read++;
+
+                                if (result_receive == false) {                                     
+                                    
+                                    json.count_read = count_read;   
+                                    
+                                    console.log("count_read: " + count_read);  
+
+                                    if ( count_read == (iterations-1) ) {
+                                        console.log("");
+                                        console.log("FINISH");
+                                        console.log("******");
+                                        json.read_data  = false;
+                                        json.count_read = 0;
+                                    }                                    
+
+                                } else {
+
+                                    json = {            
+                                        count_read:count_read                             
+                                        //last_update: _time 
+                                    };
+
+                                }
 
                                 firestore
                                 .collection("automation")
                                 .doc(_id_)
-                                .set({read_data: false}, { merge: true });
+                                .set(json, { merge: true });
+                                
+                                /*else (result_receive == -1) {   
+
+                                    json = {
+                                        count_read: 0,
+                                        send_data: false
+                                    };
+
+                                }*/
+
+                                
 
                             }
                                 
