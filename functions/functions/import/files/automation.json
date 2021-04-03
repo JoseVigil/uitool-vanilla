@@ -4,8 +4,11 @@
             "collect_data": false,
             "send_data": false,
             "read_data": false,
-            "gateway" :11,
+            "read_quenue": false,
+            "send_data_again": false,
+            "gateway" :2,
             "count_read": 0,
+            "count_send_again": 0,
             "subCollection": {}
         }
     }

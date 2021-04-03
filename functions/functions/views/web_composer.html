@@ -11,7 +11,8 @@
      <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
      <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
-     
+     <link rel="stylesheet" href="/vendor/grapick/grapick.min.css">
+
      <title>Noti.ms</title>
   
       <style>  
@@ -64,6 +65,9 @@
     <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
 
+    
+    <script src="/vendor/grapick/grapick.min.js"></script>
+
     <script src="https://kit.fontawesome.com/f014efefd7.js" crossorigin="anonymous"></script>
     <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
 
@@ -85,6 +89,9 @@
       <div class="info_clie">
         <span class="pr-3">Juan Perez</span>
         <button id="save-design" type="button" class="btn btn_ui_grey">Guardar Diseño</button>
+        <div id="spinner-save" class="spinner-border d-none" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
       </div>        
     </div>
     <div class="container-fluid">
@@ -106,15 +113,15 @@
             <ul class="nav nav-tabs nav-fill" role="tablist">
               
               <li class="nav-item">
-                <a class="nav-link  active" href="#apreview" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Preview</a>
+                <a class="nav-link  active" href="#apreview" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Imagen</a>
               </li>
 
-              <!--<li class="nav-item">
-                <a class="nav-link" href="#" role="tab" onclick="window.LoadPreview()" data-toggle="tab" aria-selected="true">Mensaje</a>
-              </li>-->
+              <li class="nav-item">
+                <a class="nav-link" href="#amessage" role="tab" onclick="window.LoadMessage()" data-toggle="tab" aria-selected="true">Texto</a>
+              </li>
               
               <li class="nav-item">
-                <a class="nav-link" href="#aweb" role="tab" onclick="window.LoadWeb()" data-toggle="tab">Web Page</a>
+                <a class="nav-link" href="#aweb" role="tab" onclick="window.LoadWeb()" data-toggle="tab">Web</a>
               </li>              
 
             </ul>            
@@ -182,6 +189,49 @@
                     <input type="text" value="rgb(0, 0, 0)" />
                     <p class="help-block">Cambiar color de fondo</p>                    
                   </div>
+
+                  <div id="ori-color-gradient" class="form-group draggable">
+                    <label for="ori-for-color-gradient" ><b>Color de fondo</b></label>                   
+                    <div class="grapick-cont">
+                      <div id="grapick"></div>
+                      <div class="inputs">
+                        <select class="form-control" id="switch-type">
+                          <option value="">- Select Type -</option>
+                          <option value="radial">Radial</option>
+                          <option value="linear">Linear</option>
+                          <option value="repeating-radial">Repeating Radial</option>
+                          <option value="repeating-linear">Repeating Linear</option>
+                        </select>
+            
+                        <select class="form-control" id="switch-angle">
+                          <option value="">- Select Direction -</option>
+                          <option value="top">Top</option>
+                          <option value="right">Right</option>
+                          <option value="center">Center</option>
+                          <option value="bottom">Bottom</option>
+                          <option value="left">Left</option>
+                        </select>
+                        
+                      </div>                      
+                  </div>
+                  <p class="help-block">Cambiar color de fondo</p>                    
+                  </div>
+
+                </form>
+
+              </div>
+
+              <div role="tabpanel" class="tab-pane fade" id="amessage">
+
+                <form id="form-composer-message" role="form">
+                    
+                  <br>                                
+
+                  <div id="ori-text" class="form-group draggable">
+                    <label for="ori-for-text" ><b>Testo del Mensaje</b></label>  
+                    <input id="ori-intexto" type="text" class="form-control">
+                    <p>Crea el texto del mensaje</p>                        
+                  </div>                 
 
                 </form>
 
@@ -314,6 +364,8 @@
             <div class="form-group draggable">
               <div class="pb-2" id="preview-preview">             
               </div>
+              <div class="pb-2" id="preview-message">             
+              </div>
               <div class="pt-2" id="preview-web">             
               </div>
             </div>
@@ -344,16 +396,115 @@
       </div>
     </footer>
 
+    <style>
+
+.grapick-cont {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+      margin: -15px;
+      padding: 25px 15px;
+      width: 100%;
+      min-height: 100px;
+      background: white;
+    }
+
+    .grp-preview {
+      border-radius: 3px;
+    }
+
+    .grp-wrapper {
+      height: 40px !important;
+    }
+
+    .inputs {
+      margin: 25px 0px 15px;
+    }
+
+    .form-control {
+      background-color: transparent;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      height: 30px;
+      width: 49%;
+    }
+    </style>
+
     <script>
+   
 
     /**
-     * JavaScript to modify the URL without reloading the page?
+     * Gradient Picker
      * 
-     * https://www.30secondsofcode.org/blog/s/javascript-modify-url-without-reload
+     * https://tutsville.com/docs/coloringpick-jquery-gradient-color-picker/
      * 
      * */
 
-    $(document).ready(function () {              
+    $(document).ready(function () {    
+      
+      ////////////////////////////
+
+      var upType, unAngle, gp;
+      var copyTxt = document.querySelector('.txt-value');
+      var swType = document.getElementById('switch-type');
+      var swAngle = document.getElementById('switch-angle');
+      var copyToClipboard = function(str) {
+        var el = document.createElement('textarea');
+        el.value = str;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      };
+      swType.addEventListener('change', function(e) {
+        gp && gp.setType(this.value || 'linear');
+      });
+
+      swAngle.addEventListener('change', function(e) {
+        gp && gp.setDirection(this.value || 'right');
+      });
+
+      /*var copyBtn = document.querySelector('.copy-btn');
+      copyBtn.addEventListener('click', function(e) {
+        var iconOrig = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 21H8V7h11m0-2H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m-3-4H4c-1.1 0-2 .9-2 2v14h2V3h12V1z"></path></svg>';
+        var iconDone = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 7L9 19l-5.5-5.5 1.41-1.41L9 16.17 19.59 5.59 21 7z"></path></svg>';
+        copyToClipboard(copyTxt.value);
+        copyBtn.innerHTML = iconDone;
+        setTimeout(() => copyBtn.innerHTML = iconOrig, 2000)
+      });*/
+
+      var createGrapick = function() {
+        gp = new Grapick({
+          el: '#grapick',
+          direction: 'right',
+          min: 1,
+          max: 99,
+        });
+        gp.addHandler(1, '#085078', 1);
+        gp.addHandler(99, '#85D8CE', 1, { keepSelect: 1 });
+        gp.on('change', function(complete) {
+          const value = gp.getValue();
+          //document.body.style.backgroundImage = value;
+          $(".grp-wrapper").css("backgroundImage", value);
+          //copyTxt.value = value;
+        })
+        gp.emit('change');
+      };
+
+      var destroyGrapick = function() {
+        gp.destroy();
+        gp = 0;
+      }
+
+      createGrapick();
+
+
+
+
+
+      ///////////////////////////////
 
       var timer_save = null;
 
@@ -412,27 +563,47 @@
       };        
       
       window.LoadPreview = function() {  
+        window.type = "preview";
+        updateType();
         if (tinymce.activeEditor) {                  
           tinymce.activeEditor.destroy();
         }
-        $("#preview-preview").empty();        
+        $("#preview-preview").empty();               
         $("#drop-area").empty();               
+        count_drop=0;        
+        InitActive();        
+        LoadTypes(window.docDesign);
+      }
+
+      window.LoadMessage = function() {     
+        window.type = "message";
+        updateType();
+        if (tinymce.activeEditor) {                  
+          tinymce.activeEditor.destroy();
+        }            
+        $("#preview-message").empty();
+        $("#drop-area").empty();   
         count_drop=0;
-        window.type = "preview";
         InitActive();
         LoadTypes(window.docDesign);
       }
 
-      window.LoadWeb = function() {     
+      window.LoadWeb = function() {             
+        window.type = "web";
+        updateType();
         if (tinymce.activeEditor) {                  
           tinymce.activeEditor.destroy();
         }            
-        $("#preview-web").empty();
+        $("#preview-web").empty();        
         $("#drop-area").empty();   
-        count_drop=0;
-        window.type = "web";
+        count_drop=0;        
         InitActive();
         LoadTypes(window.docDesign);
+      }
+
+      function updateType(){
+        window.docDesign.ref.collection("designs") 
+                .doc(window.designId).set({load_type:window.type},{merge:true});
       }
       
     
@@ -574,6 +745,10 @@
 
                             }
 
+                        } else if ( type === "message" ) {
+
+                            tinymce.activeEditor.execCommand('mceInsertContent', false, variable);
+
                         } else if ( type === "preview" ) {
 
                           if (active.llamada) {
@@ -615,6 +790,9 @@
                     if (window.type=="web") {                       
                       $('a[href="#aweb"]').tab('show');
                       window.LoadWeb();
+                    } else if (window.type=="message") {            
+                      $('a[href="#amessage"]').tab('show');
+                      window.LoadMessage();                   
                     } else if (window.type=="preview") {            
                       $('a[href="#apreview"]').tab('show');
                       window.LoadPreview();
@@ -744,7 +922,62 @@
                             }
                         } 
 
-                      // LOAD PREVIEW
+                      } else if (window.type=="message") { 
+
+                        let modules_message = docWeb.data().inputs_message;
+                        if (modules_message != undefined) {                            
+
+                            var mlength = Object.keys(modules_message).length;
+                            
+                            if (mlength > 0 ) {
+
+                              var flags_message = [];                                     
+
+                              for ($m in modules_message) {
+
+                                let module_message = modules_message[$m];
+
+                                var $orig, name, flag;
+
+                                switch (module_message.key) {
+                                  case "texto":
+                                    $orig = $("#ori-txto");                                                                
+                                    flag = 1;
+                                    break;                                  
+                                }
+
+                                name = module_message.key;
+
+                                var $ele = $orig.clone()
+                                  .addClass("dropped")
+                                  .css({"position": "static", "left": null, "right": null})                            
+                                  .appendTo( "#drop-area" );
+
+                                await drop_element($ele, name, $orig);                        
+                                
+                                flags_message[flag] = [module_message.value, $ele]; 
+
+                              } 
+                          
+                              for (flag in flags_message) { 
+                                
+                                  let value = flags_message[flag][0];
+                                  let $ele  = flags_message[flag][1];
+
+                                  let f = parseInt(flag);
+
+                                  switch (f) {
+                                      case 1:                                        
+                                        tinymce.activeEditor.setContent(value);
+                                      break;                                      
+                                  }
+                              }
+
+                              GetHTML();
+
+                            }
+                        }
+                      
 
                       } else if (window.type=="web") { 
                       
@@ -880,6 +1113,8 @@
               console.log("*** SAVING ***");
               console.log("**************");
 
+              $("#spinner-save").removeClass("d-none");    
+
               let inputsHtml = await GetHTML();  
 
               let _html_ = inputsHtml[0];
@@ -893,7 +1128,7 @@
               var background_color; 
               var payload;
 
-              let docPath = window.documentPath + "/designs/" + window.designId;              
+              var docPath = window.documentPath + "/designs/" + window.designId;              
               const encodedPath = window.btoa(docPath);
               var htmlRef = db.doc(docPath); 
 
@@ -923,6 +1158,19 @@
                   payload.background_color_preview = background_color;
                 } 
 
+              } else if (window.type=="message") {
+
+                payload = {        
+                  html_web: _html,
+                  inputs_web: modules,                
+                  encoded_path: encodedPath,
+                  image_width_web: parseInt(image_width),
+                  image_height_web: parseInt(image_height),
+                  last_update: _time,                
+                  web_update: true                
+                };
+
+
               } else if (window.type=="web") {
                 
                 for ($m in modules) {
@@ -951,15 +1199,19 @@
 
               }       
 
-              htmlRef.set(payload,{ merge: true }).then(docRefSet => {
+              db.doc(docPath).set(payload,{ merge: true }).then(docRefSet => {
 
-                  htmlRef.get()
+                 //let path = docRefSet.path;
+
+                 $("#spinner-save").hide();    
+
+                  /*htmlRef.get()
                       .then(function(doc) {
 
                         let last = formatDate(doc.data().last_update);
                         $("#save").text("Saved: " + last);
 
-                  }); 
+                  });*/ 
                 
               }).catch((error) => {     
                 console.error("Error adding document: ", error);           
@@ -1176,6 +1428,24 @@
 
                     }, 500);
 
+
+                } else if (window.type=="message") {
+                 
+                    switch (name) {
+
+                      case "text":                      
+                        $ele.filter("#ori-texto").attr("id","texto");
+                        $('label[for|="ori-for-texto"]').attr('for', "for-texto");
+                        let intexto = "intexto";
+                        $("#texto").find("#ori-intexto").attr("id",intexto); 
+                        $ele.filter("p").remove();                   
+                        $("#texto").find("input").replaceWith(`<textarea id="${intexto}"></textarea>`);                              
+                        $("#texto").find("textarea").removeAttr('placeholder');         
+                        await InitTinyEMC(intexto);
+                        break;
+
+                    }
+
                 } else if (window.type=="web") {
                  
                   switch (name) {
@@ -1370,6 +1640,7 @@
 
               var count = 0;
               var _html_preview = "";
+              var _html_message = "";
               var _html_web = "";
               var modules = {};
 
@@ -1382,7 +1653,95 @@
                     var value;                                                          
                     var json = {};
 
-                    if (window.type=="web") {
+                  if (window.type=="preview") {
+
+                      switch (this.id) {
+                        case "llamada":
+                          count++;
+                          let inllamada  = value = $(this).find("#inllamada").val();
+                          let llamada   =  `<div class="card" style><div class="card-block">
+                                            <h4 class="card-title">${inllamada}</h4>`;
+                          _html_preview += llamada;                                                                
+                          break;
+                        case "subtitulo":
+                          count++;
+                          let insubtitulo  = value = $(this).find("#insubtitulo").val();
+                          let subtitulo   =  `<h6 class="card-subtitle text-muted">${insubtitulo}</h6>`;                                                
+                          _html_preview += subtitulo;                                                                
+                          break;
+                        case "mensaje":
+                          count++;
+                          let inmensaje = value = tinymce.activeEditor.getContent();
+                          let mensaje   =  `<p class="card-text p-y-1">${inmensaje}</p>`;                                          
+                          _html_preview += mensaje;
+                          break;                            
+                        case "pie":
+                          count++;   
+                          let inInfo        = $('#inInfo').prop('checked');             
+                          let inDescuento     = $('#inDescuento').prop('checked');
+                          let inReclamar   = $('#inReclamar').prop('checked');
+                          let inContactar = $('#inContactar').prop('checked');                                
+                          value = JSON.parse(`{"inf":${inInfo}, "con":${inDescuento}, "fin":${inReclamar}, "des":${inContactar}}`);                                                       
+                          let pie = getPie(value);
+                          if (pie!=undefined) {
+                            _html_preview += pie;
+                          }
+                          break;
+                        case "fondo":
+                          count++;                
+                          let inMercado   = $('#inMercado').prop('checked');
+                          let inRapi      = $('#inRapi').prop('checked');
+                          let inFacil     = $('#inFacil').prop('checked');
+                          let inOtros     = $('#inOtros').prop('checked');                           
+                          value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
+                          let pagos = getPagos();
+                          if (pagos!=undefined) {
+                            _html_preview += pagos;
+                          }                         
+                          break;
+                        case "color-preview":
+                          count++;  
+                          let color = value = $(this).find("#incolor-preview").val();                                   
+                          if (color!=undefined) {
+                            let style = `style="background-color:${color}"`;                              
+                            _html_preview = _html_preview.replaceAll("style", style);             
+                          }    
+                          break;
+                      }        
+
+                      json["value"] = value;                                          
+                      json["key"] = this.id;                                          
+                      modules[count] = json;                     
+
+                      if (count_drop == count) {                                     
+
+                        _html_preview += `<a href="#" class="card-link">Desuscribir -></a>`;
+                        _html_preview += `</div></div>`;                            
+                        _html_preview = replaceVariables(_html_preview);
+
+                        $("#preview-preview").html(_html_preview);                                                               
+
+                        resolve([_html_preview, modules]);
+
+                      }  
+
+                    } else if (window.type=="message") {
+
+                      switch (this.id) {
+
+                        case "texto":
+                          count++;
+                          let intexto = value = tinymce.activeEditor.getContent();
+                          let text  =  `<p class="card-text p-y-1">${intexto}</p>`;                                          
+                          _html_message += text;
+                          break; 
+                      }
+
+                      $("#preview-message").html(_html_message);                                                               
+
+                      resolve([_html_message, modules]);                   
+
+                    } else if (window.type=="web") {
                     
                         switch (this.id) {
                           case "saludo":
@@ -1493,82 +1852,10 @@
                           resolve([_html_web, modules]);
 
                         }  
+                      
+                  }
+                  ///https://codepen.io/modelsofidentity/pen/gRaXPg/
 
-                      } else if (window.type=="preview") {
-
-                          switch (this.id) {
-                            case "llamada":
-                              count++;
-                              let inllamada  = value = $(this).find("#inllamada").val();
-                              let llamada   =  `<div class="card" style><div class="card-block">
-                                                <h4 class="card-title">${inllamada}</h4>`;
-                              _html_preview += llamada;                                                                
-                              break;
-                            case "subtitulo":
-                              count++;
-                              let insubtitulo  = value = $(this).find("#insubtitulo").val();
-                              let subtitulo   =  `<h6 class="card-subtitle text-muted">${insubtitulo}</h6>`;                                                
-                              _html_preview += subtitulo;                                                                
-                              break;
-                            case "mensaje":
-                              count++;
-                              let inmensaje = value = tinymce.activeEditor.getContent();
-                              let mensaje   =  `<p class="card-text p-y-1">${inmensaje}</p>`;                                          
-                              _html_preview += mensaje;
-                              break;                            
-                            case "pie":
-                              count++;   
-                              let inInfo        = $('#inInfo').prop('checked');             
-                              let inDescuento     = $('#inDescuento').prop('checked');
-                              let inReclamar   = $('#inReclamar').prop('checked');
-                              let inContactar = $('#inContactar').prop('checked');                                
-                              value = JSON.parse(`{"inf":${inInfo}, "con":${inDescuento}, "fin":${inReclamar}, "des":${inContactar}}`);                                                       
-                              let pie = getPie(value);
-                              if (pie!=undefined) {
-                                _html_preview += pie;
-                              }
-                              break;
-                            case "fondo":
-                              count++;                
-                              let inMercado   = $('#inMercado').prop('checked');
-                              let inRapi      = $('#inRapi').prop('checked');
-                              let inFacil     = $('#inFacil').prop('checked');
-                              let inOtros     = $('#inOtros').prop('checked');                           
-                              value = JSON.parse(`{"mercado":${inMercado}, "rapi":${inRapi}, "facil":${inFacil}, "otros":${inOtros}}`);
-                              let pagos = getPagos();
-                              if (pagos!=undefined) {
-                                _html_preview += pagos;
-                              }                         
-                              break;
-                            case "color-preview":
-                              count++;  
-                              let color = value = $(this).find("#incolor-preview").val();                                   
-                              if (color!=undefined) {
-                                let style = `style="background-color:${color}"`;                              
-                                _html_preview = _html_preview.replaceAll("style", style);             
-                              }    
-                              break;
-                          }        
-
-                          json["value"] = value;                                          
-                          json["key"] = this.id;                                          
-                          modules[count] = json;                     
-
-                          if (count_drop == count) {                                     
-
-                            _html_preview += `<a href="#" class="card-link">Desuscribir -></a>`;
-                            _html_preview += `</div></div>`;                            
-                            _html_preview = replaceVariables(_html_preview);
-
-                            $("#preview-preview").html(_html_preview);                                                               
-
-                            resolve([_html_preview, modules]);
-
-                          }  
-
-                      }
-
-                      ///https://codepen.io/modelsofidentity/pen/gRaXPg/
              
                 } catch (e) {
                     console.error(e);

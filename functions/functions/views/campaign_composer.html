@@ -83,7 +83,7 @@
       <img class="logo_ui" src="/images/uitool_logo.png">
       <div class="info_user">
         <button type="button" class="btn btn_acerca" data-toggle="modal" data-target="#acercaModal"><i class="fas fa-info-circle"></i> Acerca</button>
-        <button class="btn btn_loguot"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        <button id="btn_loguot" class="btn btn_loguot"><i class="fas fa-sign-out-alt"></i> Salir</button>
         <div class="powered">
           <span class="badge badge-default">powered by</span>
           <a href="http://notimation.com.ar/"><img alt="Bootstrap Image Preview"src="/images/logo_noti.png" /></a>
@@ -94,7 +94,7 @@
     <section>
       <div class="section_title">
         <h3>Creador de campañas</h3>
-        <div class="info_clie">
+        <div id="info_client" class="info_clie">
           <span>Juan Perez</span>
         </div>        
       </div>
@@ -313,7 +313,7 @@
             }
         };           
 
-        $( "#login" ).click(function() {       
+        /*$( "#login" ).click(function() {       
 
           firebase.auth()
           .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
@@ -327,9 +327,9 @@
               console.log(errorMessage);
           });
 
-        });
+        });*/
 
-        $( "#logout" ).click(function() {       
+        $( "#btn_loguot" ).click(function() {       
 
           firebase
             .auth()
@@ -343,7 +343,7 @@
               console.log(errorMessage);
             });
 
-        });     
+        });          
 
         firebase.auth().onAuthStateChanged(function (user) {
 
@@ -597,7 +597,7 @@
             $("#campaign-name").val(campaign_name);              
             
             campaign_domain = campaign.subdomain;    
-            $("#campaign_domain").val(campaign_domain);              
+            $("#campaign-domain").val(campaign_domain);              
 
             let item = campaign.item;
             $('#campaign-table').append(item);
@@ -751,10 +751,15 @@
 
         var designRef;
 
-        var campaign;        
+        var campaign;       
+        var existing_name, existing_id;
+        
+        if (jsonCat.campaigns!=null) {
 
-        let existing_name = jsonCat.campaigns[active_campaign].name;
-        let existing_id   = jsonCat.campaigns[active_campaign].id;       
+          existing_name = jsonCat.campaigns[active_campaign].name;
+          existing_id   = jsonCat.campaigns[active_campaign].id;  
+
+        }             
 
         var json = {        
               name: campaign_name,
@@ -1010,7 +1015,7 @@
         }
 
         function getCardCustom(campaign_id, card_id, campaign_name, img_web) {
-          return getCard(campaign_idcard_id, campaign_name, undefined, img_web);
+          return getCard(campaign_id, campaign_name, undefined, img_web);
         }
 
         function getCard(campaign_id, card_id, campaign_name, img_preview, img_web) {

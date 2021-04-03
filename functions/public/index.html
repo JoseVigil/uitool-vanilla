@@ -138,7 +138,55 @@
               } else {
 
 
-                  firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword).then(function(user) {
+
+                  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+                  .then(() => {
+                    // Existing and future Auth states are now persisted in the current
+                    // session only. Closing the window would clear any existing state even
+                    // if a user forgets to sign out.
+                    // ...
+                    // New sign-in will be persisted with session persistence.
+                    return firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword);
+                  })
+                  .catch((error) => {
+                    
+                    // Handle Errors here.
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+
+                  }).then((user) => {
+
+                    var email = user.user.email;
+                  
+                    // user signed in
+                    db.collection("accounts").where("email", "==", email).get()
+                    .then(function(account) {
+
+                      var name =  account.docs[0].data().name;                
+                      var name_label =  account.docs[0].data().name_label;    
+                      var uid =  account.docs[0].data().uid;                                      
+
+                      let local = window.location.href;
+
+                      let urlcampaign = local+ "composer/campaign?&account=" + uid;
+
+                      window.location.href = urlcampaign;
+
+                    });
+
+                  }).catch( function(error) {  
+                      
+                      //var errorCode = error.code;
+                      var errorMessage = error.message;  
+
+                      $("#passwordHelp").html(errorMessage);           
+
+                      form.addClass('was-validated');
+
+                  });
+
+
+                  /*firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword).then(function(user) {
 
                       var email = user.user.email;
                   
@@ -168,7 +216,7 @@
 
                       form.addClass('was-validated');
 
-                  });
+                  });*/
               } 
           });         
       });
