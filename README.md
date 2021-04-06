@@ -161,11 +161,7 @@ Emulators should be downloaded
 ```sh
 sudo firebase emulators:start
 
-```
-
-<p align="center">
-  <img width="500" height="284" src="images/emulators.png" alt="Escudo image"/>
-</p>  
+``` 
 
 If the port is busy, start with this command or change the port number above
 
@@ -198,12 +194,35 @@ Inside functions -> import folder there is an import.js file. place the download
 ```sh
 node import.js emulate contents.json
 ```
-<p align="center">
-  <img src="images/emulator.png" alt="Data imported"/>
-</p>  
 
 TODO: Fix formats
 
+Steps Gateways API
+==================
 
+To execute the automation trigger these fields on automation class. Notice the gateway field should countain the desired gateway number. 
 
+1. collect_data
+2. send_data
+3. read_data
+4. read_quenue
+5. send_data_again
+
+```
+{
+    "automation": {
+        "I4g5vWpYChvVv9SIj9Qw": {
+            "collect_data": false,
+            "send_data": false,
+            "read_data": false,
+            "read_quenue": false,
+            "send_data_again": false,
+            "gateway" :2,
+            "count_read": 0,
+            "count_send_again": 0,
+            "subCollection": {}
+        }
+    }
+}
+```
 
