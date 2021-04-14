@@ -181,6 +181,16 @@ Deploy (only Jose)
 sudo firebase deploy
 ```
 
+Debug Emulators
+---------------
+
+```sh
+firebase emulators:start --inspect-functions
+```
+
+
+
+
 Export firestore
 ----------------
 
