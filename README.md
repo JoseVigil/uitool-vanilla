@@ -184,12 +184,29 @@ sudo firebase deploy
 Debug Emulators
 ---------------
 
+In order to debug locally you have to start emulators with the inspect parameter
+
 ```sh
 firebase emulators:start --inspect-functions
 ```
 
+On Vistual Studio Code create a launch configurations on port 9229
 
-
+```json
+{      
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach",
+      "port": 9229,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
+```
 
 Export firestore
 ----------------
