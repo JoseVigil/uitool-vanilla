@@ -60,14 +60,17 @@
         measurementId: "G-8T5N81L78J"
     };
     firebase.initializeApp(firebaseConfig);
-    firebase.functions().useFunctionsEmulator('http://localhost:5000');    
+    firebase.functions().useFunctionsEmulator('http://localhost:5001');    
 
     const settings = {timestampsInSnapshots: true};          
     firestore.settings(settings);
+    
+    //automation
+    exports.automation = require("./run/automation");    
 
     //gateway
-    exports.gateway = require("./gateway");
-
+    exports.gateway = require("./run/gateway");
+    
     /**
      * SERVER ALL INCOMING
      */
