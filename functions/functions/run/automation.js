@@ -1363,92 +1363,109 @@
 
         return queueArray;
 
-    }
+    }   
+    
+    var FB_ResetStatus = async function (_gateway, _card, _port_date) {
 
-    var SavePhoneToGateway =  async function(i, gateway, movistar_phones, movistar_data_receive, urls, date_ports) { 
+        var usingArray = await new Promise( async (resolve, reject) => {            
+
+            var promises_reset_state = [];
+
+            var size = 0;
+            var count = 0;
+            
+            var stage = _card + ".stage";     
+            
+            console.log();
+            console.log("stage       : "+ stage);
+            console.log("_port_date  : "+ _port_date);            
+            console.log();
+
+            await firestore
+                .collectionGroup(_port_date)                                      
+                .where(stage, "in", [STAGE_SENT, STAGE_NOT_RECEIVED, STAGE_SENT_FAILED])                
+                .get().then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;
+                console.log("size: "+ size);
+
+                if (size>0) {                   
                 
-        var _url = urls.url_base_remote + urls.params_received;
+                    await querySnapshot.forEach( async (doc) => {
 
-        console.log("_url: " + _url);  
+                        let card = doc.data()[_card];   
+                        
+                        console.log("__card__: " + JSON.stringify(card));
 
-        var moviLength = movistar_phones.length;        
+                        var port_number = doc.id.replace(/^\D+/g, "");                                                                              
+                        let _json = `{"${_card}":{"stage":${STAGE_SENT_IDLE}}}`;                                                                                                                                          
+                        var jsonCards = JSON.parse(_json);                                    
+                        let portname = "port" + port_number;   
 
-        var _id = movistar_phones[i];
+                        console.log("");
+                        console.log("*********************");                                    
+                        console.log("json       : " + _json);                                    
+                        console.log("port       : " + port_number);                                                            
+                        console.log("portname   : " + portname);   
+                        console.log("_port_date : " + _port_date);                                                            
+                        console.log("*********************");
+                        console.log("");                                                 
 
-        let _data = movistar_data_receive[i];
-        var _card = _data.card;
+                        promises_reset_state.push(
+                            firestore
+                                .collection("gateways")
+                                .doc(_gateway)
+                                .collection(_port_date)
+                                .doc(portname)
+                                .set(jsonCards, { merge: true })
+                        ); 
 
-        console.log("_id: " + _id);                  
-        console.log("_card: " + _card);                  
+                        if (count == (size-1)) {
 
-        var option_movistar_receive = {
-            method: "POST",
-            uri: _url,
-            body: {
-                data: {
-                    "gateway": gateway,
-                    "pagenumber" : "1",
-                    "channel": _id, 
-                    "card" : _card,
-                    "url": urls.url_received,                                                                                           
-                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                },
-            },
-            json: true,
-        };
+                            console.log("");
+                            console.log("Termina carga reset");                                                                
+                            console.log("");
 
-        await rp(option_movistar_receive)
-            .then(async function (results_receive) {
+                            var res =  true; /*Promise.all(promises_reset_state).catch((error) => {                                            
+                                console.log("error post: " + error);                                          
+                                return error;
+                            });*/
 
-            var _result = results_receive.result;
-
-            console.log("results_receive: " + JSON.stringify(results_receive));
-
-            let portname = "port" + _result.port;
-            let card = _result.card;
-            let phone = _result.sim_number;                      
-
-            let _json = `{"${card}":{"stage":${STAGE_RECEIVED},"phone":"${phone}"}}`;
-            var jsonCards = JSON.parse(_json); 
-
-            firestore
-                .collection("gateways")
-                .doc("S" + gateway)
-                .collection(date_ports)
-                .doc(portname)
-                .set(jsonCards, { merge: true });
-
-            i++;
-
-            if (i<=(moviLength-1)) {
-                //if (i<=3) {                       
-                console.log("--------------");
-                await timer(1000);
-                console.log("::: SENT :::  "+i);
-                callNextMovistarReceive(i, gateway, movistar_phones, movistar_data_receive, urls, date_ports);                            
-            }
+                            console.log("");                                                                
+                            console.log("res  : " + res);                                                                
+                            console.log("");
 
 
-            return {};
-        
-        }).catch((error) => {
-            console.log("error post: " + error);
-            return error;
-        });        
-        
-    }
+                            if (res) {
+                                resolve(true);
+                            } else {
+                                resolve(false);
+                            }
+                            
+                        }
+
+                        count++;
+
+                    });
+
+                } else {
+                    resolve(false);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return usingArray;
+
+    } 
 
     var STAGE_SENT_IDLE         = 1000;
     var STAGE_SENT              = 1001;
     var STAGE_NOT_RECEIVED      = 1002;
     var STAGE_SENT_FAILED       = 1003;    
-    var STAGE_RECEIVED          = 1004;
-
-    var STAGE_SAVE_QUENUE       = 1005;
-    var STAGE_READ_QUENUE       = 1006;
-    var STAGE_READ_DATA         = 1007;
-    var STAGE_SAVE_NUMBER_QUEUE = 1008;
-    var STAGE_SAVE_NUMBER       = 1009;
+    var STAGE_RECEIVED          = 1004;   
     var STAGE_SAVED_NUMBER      = 1010;
 
     var GW_CollectData = async function(gateway, date_ports) {                                                              
@@ -1478,9 +1495,6 @@
             return false;        
         }
     }     
-
-    
-
     var _urls;
     var _cards;
 
@@ -1513,6 +1527,7 @@
         var save_number         = documentData.save_number;
         var save_number_queue   = documentData.save_number_queue;                
         var count_save_number   = documentData.count_save_number;
+        var reset_state         = documentData.reset_state;
 
         var _gateway_ = documentData.gateway;
 
@@ -1523,7 +1538,8 @@
             read_quenue         || 
             read_data           || 
             save_number         ||
-            save_number_queue)   {
+            save_number_queue   ||            
+            reset_state)   {
         
             var _date_ports = "ports_" + _gateway_ + "_" + getDateLabel();             
             
@@ -1563,6 +1579,7 @@
                             console.log("read_quenue      : " + read_quenue);
                             console.log("read_data        : " + read_data);
                             console.log("save_number      : " + save_number);                                                                         
+                            console.log("reset_state      : " + reset_state);                   
                             console.log("---------------");                                                   
                             console.log();
 
@@ -1975,9 +1992,9 @@
                                         .doc(automation_id)
                                         .set({
                                             count_save_number: 0,
-                                            save_number: false
+                                            save_number: false,
+                                            reset_state : true
                                         }, { merge: true });
-
 
                                     }  
 
@@ -1986,7 +2003,42 @@
                                     return false;        
                                 }
 
-                            }                         
+                            } else if (reset_state) {
+
+                                console.log();
+                                console.log("FB_ResetStatus");
+                                console.log();
+
+                                try 
+                                {
+                                                                
+                                    var _reset_state = await FB_ResetStatus(_gateway, "A", _date_ports);
+
+                                    if (_reset_state) {
+
+
+                                    
+                                        //collect_data_once:false
+                                        //reset_state:false
+
+                                    } else {
+
+                                    }
+
+                                    await firestore
+                                            .collection("automation")
+                                            .doc(automation_id)
+                                            .set({
+                                                reset_state: false                                                
+                                            }, { merge: true });
+                                    
+
+                                } catch (error) {
+                                    console.error("Error:: " + error);
+                                    return false;        
+                                }   
+
+                            }                        
                         }           
                     }
 

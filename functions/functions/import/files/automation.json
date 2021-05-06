@@ -10,7 +10,8 @@
             "read_data": false,                        
             "count_read": 0,            
             "save_number_queue":false,            
-            "save_number" : false,           
+            "save_number" : false,
+            "reset_state" : false,           
             "count_save_number":0,
             "subCollection": {}
         }
