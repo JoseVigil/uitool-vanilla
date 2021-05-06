@@ -32,6 +32,9 @@
             "url_status": "/en/1-2chstatus.php",
             "params_received": "/backend/gateway/smsreceived",
             "url_received": "/en/5-3-1SMSinfo.php?ch=",
+            "url_sendweb": "/backend/gateway/sendweb",
+            "url_save_phone": "/en/5-2-1mobilemodify.php?id=",
+            "params_save_phone": "/backend/gateway/savephone",
             "subCollection": {}
         }
     }

@@ -3,6 +3,7 @@
     var admin = require('firebase-admin');
     var rp = require('request-promise'); 
     var request = require('request');
+    //const { firestore } = require('firebase-admin');
 
     /*exports.chron = functions.pubsub.schedule('every 2 minutes').onRun((context) => {
         console.log('This will be run every 2 minutes!');
@@ -10,6 +11,9 @@
     });*/
 
     function sleep(milliseconds) {
+        console.log();        
+        console.log("SLEEP: " + milliseconds);                                                                      
+        console.log();
         var start = new Date().getTime();
         for (var i = 0; i < 1e30; i++) {
             if ((new Date().getTime() - start) > milliseconds){
@@ -38,7 +42,95 @@
         return _date;
     }   
    
-    var db_url = "https://notims.firebaseio.com";    
+    var db_url = "https://notims.firebaseio.com"; 
+    
+    var SwitchCard = async function (gateway_number, date_ports, card) {
+        
+        var channelstatus = card + ".status";              
+        var gateway = "S" + gateway_number;
+        var size = 0;
+        var count = 0;
+
+        var promises_switch = await new Promise( async (resolve, reject) => {            
+            
+            var promises = [];
+
+            await firestore
+                .collectionGroup(date_ports)
+                .where(channelstatus, "in", ["Exist", "Using"])
+                .get().then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;
+
+                querySnapshot.forEach(async (doc) => {
+                    
+                    let parent = doc.ref.parent.parent;
+        
+                    if (parent.id === gateway) {
+                        //var gateway_number = parent.id.replace( /^\D+/g, '');
+                        var port_number = doc.id.replace(/^\D+/g, "");
+            
+                        var num;
+                        switch (card) {
+                            case "A":
+                            position = num = 0;
+                            break;
+                            case "B":
+                            position = num = 1;
+                            break;
+                            case "C":
+                            position = num = 2;
+                            break;
+                            case "D":
+                            position = num = 3;
+                            break;
+                        }
+            
+                        //cambiar esta posicion
+                        var info = parseInt(port_number) - 1 + ":" + position;
+                        var port = 8000 + parseInt(gateway_number);
+            
+                        var options = {
+                            method: "POST",
+                            uri: "http://synway.notimation.com:" + port + "/5-9-2SIMSwitch.php",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
+                            },
+                            form: {
+                                action: "SIMSwitch",
+                                info: info,
+                            },
+                        };
+            
+                        //console.log("options: " + JSON.stringify(options));
+                        //console.log("-------");
+            
+                        promises.push(rp(options));
+
+                        if (count == (size-1)) {
+                            resolve(promises);
+                        }
+
+                        count++;
+
+                    }
+                });
+                
+            });
+            
+        });
+    
+        //return promise_switch;
+
+        return Promise.all(promises_switch).catch((error) => {                                            
+            console.log("error post: " + error);                                          
+            return error;
+        });
+
+    };
+     
     var FB_GetUrlsAndCards = async function () {
 
         var gatewaysRef = firestore.collection("gateways");
@@ -73,6 +165,9 @@
                     urlObj.params_send_only = doc.data().params_send_only;
                     urlObj.url_received = doc.data().url_received; 
                     urlObj.params_received = doc.data().params_received;                                            
+                    urlObj.params_sendweb = doc.data().params_sendweb;  
+                    urlObj.url_save_phone = doc.data().url_save_phone;  
+                    urlObj.params_save_phone = doc.data().params_save_phone;                      
                     
                 } else {
 
@@ -367,47 +462,26 @@
             var count = 0;
 
             var status = card + ".status";
-            var stage = card + ".stage";
+            var stage = card + ".stage";         
 
-            //console.log("status: " + status);
-            //console.log("stage: " + stage);
+            await firestore
+            .collectionGroup(date_ports)    
+            //.where(status, "in", ["Using"])
+            .where(stage, "in", [STAGE_SENT_IDLE])                  
+            .get().then(async (querySnapshot) => {
 
-            //let stage_idle      = `"${STAGE_SENT_IDLE}"`;
-            //let stage_failed    = `"${STAGE_SENT_FAILED}"`;
-
-            const statusQuery = firestore.collectionGroup(date_ports)
-            .where(status, "in", ["Using"]).get();
-
-            const stageQuery = firestore.collectionGroup(date_ports)
-            .where(stage, "in", [STAGE_SENT_IDLE]).get();
-
-            const [statusQuerySnapshot, stageQuerySnapshot] = await Promise.all([
-                statusQuery,
-                stageQuery
-            ]);
-
-            const statusArray = statusQuerySnapshot.docs;
-            const stageArray  = stageQuerySnapshot.docs; 
-
-            const allArrays = statusArray.concat(stageArray);
-
-
-            /*await firestore
-                .collectionGroup(date_ports)    
-                .where(status, "in", ["Using"])
-                .where(stage, "in", [STAGE_SENT_IDLE])  
-                .get()
-                .then(async (querySnapshot) => {*/
-
-                size = allArrays.length;
-                //console.log("size: "+ size);
+                size = querySnapshot.docs.length;
+                console.log("size: "+ size);
 
                 if (size>0) {                   
                 
-                    await allArrays.forEach(async (doc) => {
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let stage = parseInt(doc.data()[_card].stage); 
+
+                        //if (stage==STAGE_SENT_IDLE) {
 
                         let status = doc.data()[_card].status; 
-
                         //console.log("status: " + status);
 
                         let operator = doc.data()[_card].operator;                   
@@ -415,11 +489,13 @@
                         let using = `{"card":"${_card}","operator":"${operator}", "port":${port}}`;
                         usings.push(JSON.parse(using));
 
-                    if (count === (size-1)) {
-                        resolve(usings);
-                    }
+                        //}
 
-                    count++;
+                        if (count === (size-1)) {
+                            resolve(usings);
+                        }
+
+                        count++;
                     
                     });
 
@@ -429,10 +505,10 @@
 
                 return {};
                 
-            /*}).catch((error) => {
+            }).catch((error) => {
                 console.log("error carajo: " + error);
                 return error;
-            });*/                
+            });
             
         });  
 
@@ -713,7 +789,9 @@
                 json: true,
             };
 
-            //console.log("option_ussdsend: " + JSON.stringify(option_ussdsend));
+            console.log();
+            console.log("option_ussdsend: " + JSON.stringify(option_ussdsend));
+            console.log();
 
             await rp(option_ussdsend)
                 .then(async function (results_ussdsend) {
@@ -757,6 +835,8 @@
                 return error;
             });    
 
+            console.log("");
+
         }
 
         if ( movistar_phones.length > 0 ) {
@@ -769,35 +849,57 @@
         }
     }    
 
-    var FB_StageProcessReceive = async function (gateway_number, urls, date_ports, stage) {
+    var FB_StageProcessReceive = async function (cards, date_ports, stage) {
 
-        var stageAll = [];        
+        var stageAll = [];    
 
-        var stageA  = await FB_StageReceive("A", date_ports, stage);
-        if (stageA.length > 0) {
-            //console.log("stageA: " + JSON.stringify(stageA));            
-        }            
+        var stageA = []; 
+        var stageB = []; 
+        var stageC = []; 
+        var stageD = []; 
+        
+        for (var i=0; i<cards.length; i++) {
 
-        var stageB  = await FB_StageReceive("B", date_ports, stage);
-        if (stageB.length > 0) {
-            //console.log("stageB: " + JSON.stringify(stageB));                
+            let card = cards[i];
+
+            switch (card) {
+                
+                case "A":    
+                    stageA  = await FB_StageReceive("A", date_ports, stage);
+                    if (stageA.length > 0) {
+                        //console.log("stageA: " + JSON.stringify(stageA));            
+                    }        
+                break;    
+
+                case "B": 
+                    stageB  = await FB_StageReceive("B", date_ports, stage);
+                    if (stageB.length > 0) {
+                        //console.log("stageB: " + JSON.stringify(stageB));                
+                    }
+                break; 
+
+                case "C":    
+                    stageC  = await FB_StageReceive("C", date_ports, stage);
+                    if (stageC.length > 0) {
+                        //console.log("stageC: " + JSON.stringify(stageC));                
+                    }
+                break;
+
+                case "C":    
+                    stageD  = await FB_StageReceive("D", date_ports, stage);
+                    if (stageD.length > 0) {
+                        //console.log("stageD: " + JSON.stringify(stageD));                
+                    }            
+                break;
+            
+            }
+
+            stageAll.push(...stageA, ...stageB, ...stageC, ...stageD);
+
+            stageAll.sort(GetSortOrder("gateway"));
+
+            //console.log("stageAll: " + JSON.stringify(stageAll));
         }
-
-        var stageC  = await FB_StageReceive("C", date_ports, stage);
-        if (stageC.length > 0) {
-            //console.log("stageC: " + JSON.stringify(stageC));                
-        }
-
-        var stageD  = await FB_StageReceive("D", date_ports, stage);
-        if (stageD.length > 0) {
-            //console.log("stageD: " + JSON.stringify(stageD));                
-        }            
-
-        stageAll.push(...stageA, ...stageB, ...stageC, ...stageD);
-
-        stageAll.sort(GetSortOrder("gateway"));
-
-        //console.log("stageAll: " + JSON.stringify(stageAll));
 
         return stageAll;
         
@@ -826,53 +928,41 @@
             var count = 0;
 
             var stage = card + ".stage";
-            var status = card + ".status";
+            var status = card + ".status";           
 
-            const statusQuery = firestore.collectionGroup(port_date)
-            .where(status, "in", ["Using"]).get();
-
-            const stageQuery = firestore.collectionGroup(port_date)
-            .where(stage, "in", [stage_process]).get();
-
-            const [statusQuerySnapshot, stageQuerySnapshot] = await Promise.all([
-                statusQuery,
-                stageQuery
-            ]);
-
-            const statusArray = statusQuerySnapshot.docs;
-            const stageArray  = stageQuerySnapshot.docs; 
-
-            const allArrays = statusArray.concat(stageArray);
-
-            /*await firestore
+            await firestore
                 .collectionGroup(port_date)                                      
-                .where(status, "in", ["Using"])
-                .where(stage, "in", [stage_process]) //[STAGE_SENT])                     
-                .get()
-                .then(async (querySnapshot) => {*/
+                //.where(status, "in", ["Using"])
+                .where(stage, "in", [stage_process]) 
+                .get().then(async (querySnapshot) => {
 
-                size = allArrays.length;
+                size = querySnapshot.docs.length;
                 //console.log("size: "+ size);
 
                 if (size>0) {                   
                 
-                    await allArrays.forEach(async (doc) => {
+                    await querySnapshot.forEach(async (doc) => {
+
+                        //let stage = doc.data()[_card].stage; 
+
+                        //if (stage == stage_process) {
 
                         let status = doc.data()[_card].status; 
-
                         //console.log("status: " + status);
 
                         let operator = doc.data()[_card].operator;                   
                         let port = doc.id.match(/[0-9]+/g);                          
                         let using = `{"card":"${_card}","operator":"${operator}", "port":${port}}`;
                         stages.push(JSON.parse(using));
+                        
+                        //}
 
-                    if (count === (size-1)) {
-                        resolve(stages);
-                    }
+                        if (count === (size-1)) {
+                            resolve(stages);
+                        }
 
-                    count++;
-                    
+                        count++;
+                        
                     });
 
                 } else {
@@ -881,10 +971,10 @@
 
                 return {};
 
-            /*}).catch((error) => {
+            }).catch((error) => {
                 console.log("error carajo: " + error);
                 return error;
-            });*/                 
+            });
             
         });  
 
@@ -966,11 +1056,11 @@
     }
     
 
-    var GW_QueueSims = async function(automationId, gateway, urls, date_ports, stage) {             
+    var GW_QueueSims = async function(cards, automationId, date_ports, stage) {             
         
         try  {
         
-            let stageArray = await FB_StageProcessReceive(gateway, urls, date_ports, stage);             
+            let stageArray = await FB_StageProcessReceive(cards, date_ports, stage);             
 
             console.log("-----------------------");
             console.log("stageArray: " + JSON.stringify(stageArray));
@@ -1031,149 +1121,41 @@
 
                 } 
                 
-                if (promises_queue.lenght > 0) {
-                    Promise.all(promises_queue).catch((error) => {
+                if (promises_queue.length > 0) {                    
+                    await Promise.all(promises_queue).catch((error) => {
                         console.log("error post: " + error);
                         return error;
-                    });
-                }     
-               
-            
+                    });                    
+                    return true;
+                }  else  {
+                    return false;
+                }
+
+            } else {
+                return false;
             }
 
         } catch (error) {
-
             console.error(error);
             return false;        
         }
 
         
-    }  
-        
-    var GW_ReceiveQueuedSims = async function(automationId, urls, gateway, date_ports, quene_collection) {             
-
-        var queue_limit = await FB_SentQueuedLimit(automationId, quene_collection);
-
-        var phones = [];     
-
-        if ( queue_limit.length > 0 ) {        
-            
-            for(var i=0; i<queue_limit.length; i++) {
-                let port = queue_limit[i].port;
-                phones.push(port);
-            }
-
-            var _url = urls.url_base_remote + urls.params_ussdread;
-
-            var option_ussdread = {
-                method: "POST",
-                uri: _url,
-                body: {
-                    data: {
-                        "gateway": gateway,
-                        "url": urls.url_ussd,
-                        "channels": phones,
-                        "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                    },
-                },
-                json: true,
-            };
-
-            var promises_state_receive = [];
-
-            var results_ussdread =  await rp(option_ussdread);                   
-                            
-            var _gateway = "S" + gateway;
-            let _length = results_ussdread.length;    
-            
-            //console.log("_length:" + _length);
-
-            for (var j=0; j<_length; j++) {   
-
-                let data = results_ussdread[j];
-                let port = data.channel;
-                let phone = data.phone;
-
-                //console.log("data:" + JSON.stringify(data));
-
-                let card = searchByPort(port-1, queue_limit);                         
-
-                let _json;
-                
-                if (phone) {
-
-                    _json = `{"${card}":{"stage":${STAGE_RECEIVED},"phone":"${phone}"}}`;
-
-                } else  {
-
-                    _json = `{"${card}":{"stage":${STAGE_NOT_SENT}}}`;
-
-                    let json = { card:card, port:port };
-                    let realPort = port+1;
-                    var portName = "port" + realPort;
-
-                    promises_state_receive.push(
-                        firestore
-                            .collection("automation")
-                            .doc(automationId)
-                            .collection("queue_not_sent")
-                            .doc(portName)
-                            .set(json, { merge: true })
-                    );
-
-                }                
-
-                //console.log("*********************");                                    
-                //console.log("_json: " + _json);                                    
-                //console.log("*********************");
-
-                var jsonCards = JSON.parse(_json);                                    
-                let portname = "port" + port;                           
-
-                promises_state_receive.push(
-                    firestore
-                        .collection("gateways")
-                        .doc(_gateway)
-                        .collection(date_ports)
-                        .doc(portname)
-                        .set(jsonCards, { merge: true })
-                );
-            }               
-
-            //console.log("promises_state_receive: " + JSON.stringify(promises_state_receive));
-            
-            if (promises_state_receive.lenght > 0) {
-
-                Promise.all(promises_state_receive).catch((error) => {
-                    console.log("error post: " + error);
-                    return error;
-                });
-            } 
-            
-            return queue_limit;               
-
-        }       
+    }         
     
-
-        /*if ( movistar_phones.length > 0 ) {
-
-            console.log("movistar_phones: " + JSON.stringify(movistar_phones));                                 
-            
-            callNextMovistarReceive(0, gateway, movistar_phones, movistar_data_receive, urls, date_ports);
-        }*/           
-    
-        
-    }
 
     var searchByPort = function (nameKey, myArray){
         for (var i=0; i < myArray.length; i++) {
             if (myArray[i].port === nameKey) {
-                return myArray[i].card;
+                return {
+                    card:myArray[i].card,
+                    path:myArray[i].path,
+                };
             }
         }
     }
 
-    var FB_SentQueuedLimit = async function (automationId, quene_collection) {        
+    var FB_SentQueuedLimit = async function (automationId) {        
 
         var queueArray = await new Promise( async (resolve, reject) => {
 
@@ -1183,12 +1165,12 @@
             await firestore
                 .collection("automation")
                 .doc(automationId)
-                .collection(quene_collection)
+                .collection("queue_sent")
                 .limit(3)                             
                 .get()
                 .then(async (querySnapshot) => {
 
-                size = querySnapshot.size;                
+                size = querySnapshot.docs.length;                
 
                 if (size>0) {                   
                 
@@ -1220,15 +1202,256 @@
 
     }
 
+    var FB_PhoneNumbers = async function (cards, date_ports) {
+
+        var usingAll = [];   
+        
+        var usingA = [];  
+        var usingB = [];  
+        var usingC = [];  
+        var usingD = [];  
+
+        for (var i=0; i<cards.length; i++) {
+
+            let card = cards[i];
+
+            switch (card) {
+                
+                case "A":    
+                    usingA  = await FB_PhoneNumbersFromCard("A", date_ports);
+                    if (usingA.length > 0) {
+                        console.log("usingA: " + JSON.stringify(usingA));            
+                    }            
+                break;
+
+                case "B":
+                    usingB = await FB_PhoneNumbersFromCard("B", date_ports);
+                    if (usingB.length > 0) {
+                        console.log("usingB: " + JSON.stringify(usingB));                
+                    }
+                break;
+
+                case "C":
+                    usingC = await FB_PhoneNumbersFromCard("C", date_ports);
+                    if (usingC.length > 0) {
+                        console.log("usingC: " + JSON.stringify(usingC));                
+                    }
+                break;
+
+                case "D":
+                    usingD = await FB_PhoneNumbersFromCard("D", date_ports);
+                    if (usingD.length > 0) {
+                        console.log("usingD: " + JSON.stringify(usingD));                
+                    }    
+                break;   
+                
+            }   
+            
+        }
+
+        usingAll.push(...usingA, ...usingB, ...usingC, ...usingD);
+
+        //usingAll.sort(GetSortOrder("gateway"));
+
+        //console.log("usingAll: " + JSON.stringify(usingAll));
+
+        return usingAll;
+        
+    }
+
+    var FB_PhoneNumbersFromCard = async function (card, port_date) {
+
+        var usingArray = await new Promise( async (resolve, reject) => {
+
+            var stages = [];
+
+            var size = 0;
+            var count = 0;
+
+            var stage = card + ".stage";
+            var status = card + ".status";
+            var phone = card + '.phone';
+
+            await firestore
+                .collectionGroup(port_date)                                      
+                //.where(status, "in", ["phone"])
+                .where(phone, '>', 0)
+                .get().then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;
+                console.log("size: "+ size);
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let status = doc.data()[card].status; 
+
+                        //console.log("status: " + status);                       
+
+                        let operator = doc.data()[card].operator;                   
+                        let port = doc.id.match(/[0-9]+/g);                          
+                        let phone = doc.data()[card].phone; 
+                        let using = `{"card":"${card}","operator":"${operator}", "port":${port}, "phone":${phone}}`;
+                        stages.push(JSON.parse(using));
+
+                    if (count === (size-1)) {
+                        resolve(stages);
+                    }
+
+                    count++;
+                    
+                    });
+
+                } else {
+                    resolve(stages);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return usingArray;
+
+
+    }   
+
+    var FB_SaveQueuedLimit = async function (automationId) {        
+
+        var queueArray = await new Promise( async (resolve, reject) => {
+
+            var queued = [];
+            var count  = 0;
+           
+            await firestore
+                .collection("automation")
+                .doc(automationId)
+                .collection("queue_save_number")
+                .limit(3)                             
+                .get()
+                .then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;                
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let port = doc.data().port; 
+                        let card = doc.data().card; 
+                        let phone = doc.data().phone; 
+                        let path = doc.ref.path;                                                 
+                        queued.push({port:port, card:card, phone:phone, path:path});
+
+                    if (count === (size-1)) {
+                        resolve(queued);
+                    }
+
+                    count++;
+                    
+                    });
+
+                } else {
+                    resolve(queued);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return queueArray;
+
+    }
+
+    var SavePhoneToGateway =  async function(i, gateway, movistar_phones, movistar_data_receive, urls, date_ports) { 
+                
+        var _url = urls.url_base_remote + urls.params_received;
+
+        console.log("_url: " + _url);  
+
+        var moviLength = movistar_phones.length;        
+
+        var _id = movistar_phones[i];
+
+        let _data = movistar_data_receive[i];
+        var _card = _data.card;
+
+        console.log("_id: " + _id);                  
+        console.log("_card: " + _card);                  
+
+        var option_movistar_receive = {
+            method: "POST",
+            uri: _url,
+            body: {
+                data: {
+                    "gateway": gateway,
+                    "pagenumber" : "1",
+                    "channel": _id, 
+                    "card" : _card,
+                    "url": urls.url_received,                                                                                           
+                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                },
+            },
+            json: true,
+        };
+
+        await rp(option_movistar_receive)
+            .then(async function (results_receive) {
+
+            var _result = results_receive.result;
+
+            console.log("results_receive: " + JSON.stringify(results_receive));
+
+            let portname = "port" + _result.port;
+            let card = _result.card;
+            let phone = _result.sim_number;                      
+
+            let _json = `{"${card}":{"stage":${STAGE_RECEIVED},"phone":"${phone}"}}`;
+            var jsonCards = JSON.parse(_json); 
+
+            firestore
+                .collection("gateways")
+                .doc("S" + gateway)
+                .collection(date_ports)
+                .doc(portname)
+                .set(jsonCards, { merge: true });
+
+            i++;
+
+            if (i<=(moviLength-1)) {
+                //if (i<=3) {                       
+                console.log("--------------");
+                await timer(1000);
+                console.log("::: SENT :::  "+i);
+                callNextMovistarReceive(i, gateway, movistar_phones, movistar_data_receive, urls, date_ports);                            
+            }
+
+
+            return {};
+        
+        }).catch((error) => {
+            console.log("error post: " + error);
+            return error;
+        });        
+        
+    }
+
     var STAGE_SENT_IDLE         = 1000;
     var STAGE_SENT              = 1001;
-    var STAGE_NOT_SENT          = 1002;
+    var STAGE_NOT_RECEIVED      = 1002;
     var STAGE_SENT_FAILED       = 1003;    
     var STAGE_RECEIVED          = 1004;
 
-    var GW_CollectData = async function(gateway, date_ports) {                                              
-        
-        //let switch_promise = await SwitchCard(gateway_number, card, _date);        
+    var STAGE_SAVE_QUENUE       = 1005;
+    var STAGE_READ_QUENUE       = 1006;
+    var STAGE_READ_DATA         = 1007;
+    var STAGE_SAVE_NUMBER_QUEUE = 1008;
+    var STAGE_SAVE_NUMBER       = 1009;
+    var STAGE_SAVED_NUMBER      = 1010;
+
+    var GW_CollectData = async function(gateway, date_ports) {                                                              
 
         try {     
 
@@ -1254,14 +1477,10 @@
             console.error(error);
             return false;        
         }
-    } 
+    }     
 
     
-    exports.automate = functions.https.onRequest( async (req, res) => {             
-       
-    
-    });
-    
+
     var _urls;
     var _cards;
 
@@ -1284,19 +1503,30 @@
         //console.log("_urls: " + JSON.stringify(_urls));
         //console.log();
 
-        var collect_data = documentData.collect_data;
-        var send_data = documentData.send_data; 
-        var read_quenue = documentData.read_quenue;         
-        var read_data = documentData.read_data;
-
-        var send_data_again = documentData.send_data_again;
+        var switch_cards        = documentData.switch_cards;    
+        var collect_data        = documentData.collect_data;
+        var collect_data_once   = documentData.collect_data_once;
+        var send_data           = documentData.send_data; 
+        var read_quenue         = documentData.read_quenue;                                 
+        var read_data           = documentData.read_data;
+        var count_read          = documentData.count_read;
+        var save_number         = documentData.save_number;
+        var save_number_queue   = documentData.save_number_queue;                
+        var count_save_number   = documentData.count_save_number;
 
         var _gateway_ = documentData.gateway;
 
-        if (collect_data || send_data || read_quenue || read_data) {
+        if (switch_cards        || 
+            collect_data        || 
+            collect_data_once   || 
+            send_data           || 
+            read_quenue         || 
+            read_data           || 
+            save_number         ||
+            save_number_queue)   {
         
-            var _date_ports = "ports_" + _gateway_ + "_" + getDateLabel();            
-
+            var _date_ports = "ports_" + _gateway_ + "_" + getDateLabel();             
+            
             const gatewaysRef = firestore.collection('gateways');  
             gatewaysRef.get().then( async snapshot => {
                 
@@ -1320,15 +1550,21 @@
                         if (_gateway_ === gateway_number) {   
                             
                             console.log();
-                            console.log("/////////////////");
-                            console.log("///     " + id + "      ///");
-                            console.log("////////////////");
+                            console.log("---------------");
+                            console.log("--- " + id + " ---");                                                   
+                            console.log("---------------");
+                            console.log("channels           : " + channels);
+                            console.log("iterations         : " + iterations);                                                      
+                            console.log("---------------");
+                            console.log("switch_cards     : " + switch_cards);
+                            console.log("collect_data     : " + collect_data);
+                            console.log("collect_data_once: " + collect_data_once);
+                            console.log("send_data        : " + send_data);
+                            console.log("read_quenue      : " + read_quenue);
+                            console.log("read_data        : " + read_data);
+                            console.log("save_number      : " + save_number);                                                                         
+                            console.log("---------------");                                                   
                             console.log();
-                            console.log("id: " + id);
-                            console.log("channels: " + channels);
-                            console.log("iterations: " + iterations);
-                            console.log("gateway_number: " + gateway_number);                              
-                            console.log("----------------------");                                                                      
 
                             if (collect_data) {
                                 
@@ -1336,11 +1572,44 @@
                                 console.log("GW_CollectData");           
                                 await GW_CollectData(gateway_number, _date_ports);                                
                                 
+                                sleep(5000);
+
+                                let _json = {};                                    
+
+                                if (collect_data_once) {
+                                    _json.send_data = true;                                    
+                                } else {
+                                    _json.switch_cards = true;                                                                                                                                                                                             
+                                }
+
+                                _json.collect_data = false; 
+
                                 firestore
                                 .collection("automation")
                                 .doc(automation_id)
-                                .set({collect_data: false}, { merge: true });
-                            
+                                .set(_json, { merge: true });
+
+                            } else  if (switch_cards) {
+
+                                let result = await SwitchCard(_gateway_, _date_ports, "A");
+
+                                let _json = {};                                    
+
+                                if (result.length>0) {
+                                    _json.switch_cards = false;
+                                    _json.collect_data = true;  
+                                    _json.collect_data_once = true;                                                                      
+                                } else {
+                                    _json.last_update = new Date();
+                                }
+
+                                sleep(5000);
+                                
+                                await firestore
+                                .collection("automation")
+                                .doc(automation_id)
+                                .set(_json, { merge: true });                            
+
                             } else if (send_data) {
             
                                 console.log();
@@ -1348,95 +1617,376 @@
                                 await GW_SendPhones(gateway_number, _date_ports);
                                 console.log();
 
-                                firestore
+                                sleep(10000);
+
+                                await firestore
                                 .collection("automation")
                                 .doc(automation_id)
-                                .set({send_data: false}, { merge: true });
+                                .set({
+                                    send_data: false,
+                                    read_quenue: true
+                                }, { merge: true });                                
                             
                             } else if (read_quenue) {                                   
                                 
-                                console.log("GW_QueueSims");  
-                                
-                                await GW_QueueSims(automation_id, gateway_number, _urls, _date_ports, STAGE_SENT);                                                               
+                                console.log();
+                                console.log("GW_QueueSims");                                  
+                                console.log();
 
-                                firestore
-                                .collection("automation")
-                                .doc(automation_id)
-                                .set({read_quenue: false}, { merge: true });
-
-                            } else if (read_data) {  
-
-                                let count_read = documentData.count_read;
-
-                                var limit_array_read = SendQueued(automation_id, _urls, gateway_number, _date_ports, count_read, "queue_sent");              
-
-                                _json_read_ = {};
-
-                                let length = limit_array_read.length;
-
-                                if (length>0) {
-
-                                    for(var i=0; i<length; i++) {
-                                        let path = limit_array_read[i].path;
-                                        firestore.doc(path).delete();                                   
-                                    }
-
-                                    count_read++;
-                                    _json_read_.count_read = count_read;                                   
-
-                                } else {
-
-                                    _json_read_.count_read = 0;                                   
-                                    _json_read_.read_quenue = false; 
-                                    _json_read_.send_data_again = true;                                  
-
-                                }    
-
-                                firestore
-                                .collection("automation")
-                                .doc(automation_id)
-                                .set(_json_read_, { merge: true }); 
-
-                            } else if (send_data_again) {                             
-                               
-                                let count_send_again = documentData.count_send_again;
-
-                                var limit_array_sent_again = SendQueued(automation_id, _urls, gateway_number, _date_ports, count_send_again, "queue_sent");              
-
-                                var _json_read_ = {};
-
-                                let length = limit_array_sent_again.length;
-
-                                if (length>0) {
-
-                                    for(var k=0; k<length; k++) {
-                                        let path = limit_array_sent_again[k].path;
-                                        firestore.doc(path).delete();                                   
-                                    }
-
-                                    count_send_again++;
-                                    _json_read_.count_send_again = count_send_again;                                   
-
-                                } else {
-
-                                    _json_read_.count_send_again = 0;                                   
-                                    _json_read_.send_data_again = false; 
-                                    
-                                    //FINISH
-
-                                }    
+                                let result = await GW_QueueSims(["A"], automation_id, _date_ports, STAGE_SENT);                                                               
 
                                 sleep(5000);
 
-                                firestore
+                                let _json = {};                                    
+
+                                if (result) {                                    
+                                    _json.read_data = true;                    
+                                } else {                                    
+                                    //_json.last_update = new Date();                                                                        
+                                    console.log();
+                                    console.log("FINISH");
+                                    console.log();
+                                }
+
+                                _json.read_quenue = false;
+
+                                await firestore
+                                    .collection("automation")
+                                    .doc(automation_id)
+                                    .set(_json, { merge: true });
+
+                            } else if (read_data) {
+
+                                console.log();
+                                console.log("FB_SentQueuedLimit");
+                                console.log();
+
+                                try 
+                                {
+                                                                
+                                    var queue_limit = await FB_SentQueuedLimit(automation_id);
+
+                                    var phones = [];     
+
+                                    if ( queue_limit.length > 0 ) {        
+                                        
+                                        for(var i=0; i<queue_limit.length; i++) {
+                                            let port = queue_limit[i].port;
+                                            phones.push(port);
+                                        }
+
+                                        var _url = _urls.url_base_remote + _urls.params_ussdread;
+
+                                        var option_ussdread = {
+                                            method: "POST",
+                                            uri: _url,
+                                            body: {
+                                                data: {
+                                                    "gateway": gateway_number,
+                                                    "url": _urls.url_ussd,
+                                                    "channels": phones,
+                                                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                                },
+                                            },
+                                            json: true,
+                                        };
+
+                                        var promises_state_receive = [];
+
+                                        var results_ussdread =  await rp(option_ussdread);                   
+                                                        
+                                        var _gateway = "S" + gateway_number;
+                                        let _length = results_ussdread.length;                                  
+
+                                        for (var j=0; j<_length; j++) {   
+
+                                            let data  = results_ussdread[j];
+                                            let port  = data.channel;
+                                            let phone = data.phone;   
+                                            let path  = data.path;                                    
+
+                                            let cardpath = searchByPort(port-1, queue_limit);                         
+
+                                            let _json;
+                                            
+                                            if (phone) {
+
+                                                _json = `{"${cardpath.card}":{"stage":${STAGE_RECEIVED},"phone":${parseInt(phone)}}}`;                                                                   
+
+                                            } else  {
+
+                                                _json = `{"${cardpath.card}":{"stage":${STAGE_NOT_RECEIVED}}}`;                                            
+
+                                            }
+
+                                            promises_state_receive.push(
+                                                firestore.doc(cardpath.path).delete()
+                                            );
+
+                                            console.log("");
+                                            console.log("*********************");                                    
+                                            console.log("_json: " + _json);                                    
+                                            console.log("*********************");
+                                            console.log("");
+
+                                            var jsonCards = JSON.parse(_json);                                    
+                                            let portname = "port" + port;                           
+
+                                            promises_state_receive.push(
+                                                firestore
+                                                    .collection("gateways")
+                                                    .doc(_gateway)
+                                                    .collection(_date_ports)
+                                                    .doc(portname)
+                                                    .set(jsonCards, { merge: true })
+                                            );                                        
+
+                                        }                                                   
+                                        
+                                        if (promises_state_receive.length > 0) {
+
+                                            await Promise.all(promises_state_receive).catch((error) => {                                            
+                                                console.log("error post: " + error);                                          
+                                                return error;
+                                            });
+
+                                            var countread = parseInt(count_read);
+                                            countread++;
+
+                                            await firestore
+                                            .collection("automation")
+                                            .doc(automation_id)
+                                            .set({
+                                                read_quenue: false,
+                                                count_read: countread,
+                                            }, { merge: true });
+
+                                        }   
+                                        
+                                        sleep(5000);
+
+                                    } else {
+
+                                        //FINISHED
+
+                                        // If there are pendings queue again else send phone.
+                                        //if ()
+
+                                        await firestore
+                                        .collection("automation")
+                                        .doc(automation_id)
+                                        .set({
+                                            read_quenue: false,
+                                            read_data: false,
+                                            count_read: 0,
+                                            save_number_queue: true
+                                        }, { merge: true });
+
+                                    }  
+                                
+                                } catch (error) {
+
+                                    console.error(error);
+
+                                    await firestore
+                                    .collection("automation")
+                                    .doc(automation_id)
+                                    .set({
+                                        last_update: new Date()                                        
+                                    }, { merge: true });
+                                    
+                                }
+
+                            } else if (save_number_queue) {     
+
+                                var promises_save_number_queue = [];
+
+                                var numbers_array = await FB_PhoneNumbers(["A"], _date_ports);              
+                                //console.log("numbers_array: " + JSON.stringify(numbers_array));                               
+
+                                var _json = {};
+
+                                if (numbers_array.length>0) {
+
+                                    for (var i=0; i<numbers_array.length; i++) {
+
+                                        //let using = `{"card":"${card}","operator":"${operator}", "port":${port}, "phone":${phone}}`;
+                                        let card = numbers_array[i].card;
+                                        let port = numbers_array[i].port;
+                                        let phone = numbers_array[i].phone;
+                                        
+                                        let json = { card:card, port:port, phone:phone };
+                                        let realPort = port+1;
+                                        var portName = "port" + realPort;
+
+                                        promises_save_number_queue.push(
+                                            firestore
+                                                .collection("automation")
+                                                .doc(automation_id)
+                                                .collection("queue_save_number")
+                                                .doc(portName)
+                                                .set(json, { merge: true })
+                                        );
+                                        
+                                    }
+
+                                    await Promise.all(promises_save_number_queue);
+                                    
+                                    _json.save_number_queue = false; 
+                                    _json.save_number = true;                                        
+                                    
+                                
+                                } else {
+
+                                    _json.last_update =  new Date();                                                                            
+
+                                }                                
+
+                                await firestore
                                 .collection("automation")
                                 .doc(automation_id)
-                                .set(_json_read_, { merge: true });
+                                .set(_json, { merge: true });
 
                                 
-
-                            }
+                            } else if (save_number) {     
                                 
+                                //DO THE POST                      
+
+                                console.log();
+                                console.log("FB_SaveQueuedLimit");
+                                console.log();
+
+                                try 
+                                {
+                                                                
+                                    var send_queue_limit = await FB_SaveQueuedLimit(automation_id);
+                                    
+                                    var promises_save = [];  
+
+                                    var count = 0;
+
+                                    var length_limit = send_queue_limit.length;
+
+                                    if ( length_limit > 0 ) {        
+                                        
+                                        for(var i=0; i<length_limit; i++) {
+                                        
+                                            let card = send_queue_limit[i].card;
+                                            let port = send_queue_limit[i].port;
+                                            let path = send_queue_limit[i].path;
+                                            let phone = send_queue_limit[i].phone;
+                                            var jsonCard = {card:card ,port:port, phone:phone, path:path};                                        
+
+                                            let page = parseInt(port)-1;
+
+                                            var _url = _urls.url_base_remote + _urls.params_save_phone;
+
+                                            var option_sendphone = {
+                                                method: "POST",
+                                                uri: _url,
+                                                body: {
+                                                    data: {
+                                                        "gateway": gateway_number,
+                                                        "url": _urls.url_save_phone + page,
+                                                        "card": jsonCard,
+                                                        "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                                    },
+                                                },
+                                                json: true,
+                                            };                                         
+
+                                            console.log();
+                                            console.log("option_sendphone: " + JSON.stringify(option_sendphone));
+                                            console.log();
+
+                                            var results_sendphone =  await rp(option_sendphone);                                                                                                                                                                     
+
+                                            let data            = results_sendphone;                                            
+                                            let path_delete     = data.path;    
+                                            let port_delete     = data.channel;  
+                                            let phone_delete    = data.phone;  
+                                            var port_name       = "port" + port_delete;                                            
+                                            
+                                            var _json = `{"${data.card}":{"stage":${STAGE_SAVED_NUMBER}}}`;
+                                            var jsonCard = JSON.parse(_json);
+                                            
+                                            console.log("");
+                                            console.log("*********************");                                    
+                                            console.log("delete     : " + path_delete);                                    
+                                            console.log("_gateway   : " + gateway_number);
+                                            console.log("_date_ports: " + _date_ports);
+                                            console.log("port_name  : " + port_name);
+                                            console.log("jsonCard   : " + JSON.stringify(jsonCard)); 
+                                            console.log("phone      : " + phone_delete);                                    
+                                            console.log("*********************");
+                                            console.log("");                        
+
+                                            promises_save.push(
+                                                firestore.doc(path_delete).delete()
+                                            );  
+                                            
+                                            promises_save.push(
+                                                firestore
+                                                    .collection("gateways")
+                                                    .doc("S" + gateway_number)
+                                                    .collection(_date_ports)
+                                                    .doc(port_name)
+                                                    .set(jsonCard, { merge: true })
+                                            ); 
+
+                                            await Promise.all(promises_save).catch((error) => {                                            
+                                                console.log("error post: " + error);                                          
+                                                return error;
+                                            });
+
+                                            if (count == (length_limit-1)) {
+
+                                                var countsave = parseInt(count_save_number);
+                                                countsave++;
+
+                                                await firestore
+                                                .collection("automation")
+                                                .doc(automation_id)
+                                                .set({
+                                                    read_quenue: false,
+                                                    count_save_number: countsave,
+                                                }, { merge: true });                                        
+
+                                            }
+
+                                            count++;
+                                            
+                                            sleep(2000);
+
+                                        }
+
+                                    } else {
+
+                                        //FINISHED
+                                        console.log();
+                                        console.log("FINISHED");
+                                        console.log();
+
+                                        // If there are pendings queue again else send phone.
+                                        //if ()
+
+                                        await firestore
+                                        .collection("automation")
+                                        .doc(automation_id)
+                                        .set({
+                                            count_save_number: 0,
+                                            save_number: false
+                                        }, { merge: true });
+
+
+                                    }  
+
+                                } catch (error) {
+                                    console.error("Error:: " + error);
+                                    return false;        
+                                }
+
+                            }                         
                         }           
                     }
 
@@ -1454,16 +2004,4 @@
 
         }             
 
-    });
-
-    var SendQueued = async function (automation_id, _urls, gateway_number, _date_ports, count, queue_sent) {
-
-        var count_read = parseInt(count);
-        console.log("count_read " + queue_sent + " :" + count_read);  
-
-        console.log("GW_ReceiveQueuedSims");           
-        let limit_array = await GW_ReceiveQueuedSims(automation_id, _urls, gateway_number, _date_ports, queue_sent);                               
-
-        return limit_array;       
-
-    }
+    });    
