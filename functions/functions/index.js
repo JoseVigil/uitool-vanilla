@@ -106,9 +106,12 @@
           urlParams = getJsonFromUrl(params[1]);        
         }    
         
-        console.log("pathParams:" + JSON.stringify(pathParams));  
-        console.log("urlParams:" + JSON.stringify(urlParams));  
-        console.log("module:" + module);  
+        console.log();
+        console.log("///////////////");  
+        console.log("pathParams :" + JSON.stringify(pathParams));  
+        console.log("urlParams  :" + JSON.stringify(urlParams));  
+        console.log("module     :" + module); 
+        console.log("///////////////");   
         console.log();  
 
         var static_url;     

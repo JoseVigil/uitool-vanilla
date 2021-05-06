@@ -12,6 +12,7 @@
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
      <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
      <link rel="stylesheet" href="/vendor/grapick/grapick.min.css">
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">
 
      <title>Noti.ms</title>
   
@@ -152,10 +153,43 @@
                     <p>Crea el mensaje</p>                        
                   </div>
 
+                  <div id="ori-color-preview" class="form-group draggable">
+                    <label for="ori-for-color-preview" ><b>Color de fondo</b></label>                   
+                    <div class="grapick-cont">
+                      <div id="ori-grapick"></div>                      
+                      <div id="ori-grapick-inputs" class="row grapick-inputs d-none">
+
+                        <select class="form-control" id="ori-switch-type">
+                          <option value="">- Select Type -</option>
+                          <option value="radial">Radial</option>
+                          <option value="linear">Linear</option>
+                          <option value="repeating-radial">Repeating Radial</option>
+                          <option value="repeating-linear">Repeating Linear</option>
+                        </select>
+            
+                        <select class="form-control" id="ori-switch-angle">
+                          <option value="">- Select Direction -</option>
+                          <option value="top">Top</option>
+                          <option value="right">Right</option>
+                          <option value="center">Center</option>
+                          <option value="bottom">Bottom</option>
+                          <option value="left">Left</option>
+                        </select>
+                        
+                      </div>                      
+                  </div>
+                  <p class="help-block">Cambiar color de fondo</p>                    
+                  </div>
+
                   <div id="ori-imagen-preview" class="form-group draggable">
                     <label for="ori-for-imagen-preview" ><b>Imagen</b></label>
                     <input id="ori-inimagen-preview" type="file" name="files[]">
                     <p class="help-block">Agregar imagen</p>
+                  </div>
+
+                  <div id="ori-fondo" class="form-group draggable">
+                    <label for="ori-for-fondo" ><b>Imagen de fondo</b></label>                                            
+                    <input id="ori-infondo" type="file" accept=".jpg, .jpeg, .png">
                   </div>
 
                   <div id="ori-pie" class="form-group draggable">
@@ -177,45 +211,13 @@
                       </div>                        
                     </div>
                     <p class="help-block">Pie de preview</p>
-                  </div>                 
-
-                  <div id="ori-fondo" class="form-group draggable">
-                    <label for="ori-for-fondo" ><b>Imagen de fondo</b></label>                                            
-                    <input id="ori-infondo" type="file" accept=".jpg, .jpeg, .png">
-                  </div>
+                  </div>                
                   
-                  <div id="ori-color-preview" class="form-group draggable">
+                  <!--<div id="ori-color-preview" class="form-group draggable">
                     <label for="ori-for-color-preview" ><b>Color de fondo</b></label>                   
                     <input type="text" value="rgb(0, 0, 0)" />
                     <p class="help-block">Cambiar color de fondo</p>                    
-                  </div>
-
-                  <div id="ori-color-gradient" class="form-group draggable">
-                    <label for="ori-for-color-gradient" ><b>Color de fondo</b></label>                   
-                    <div class="grapick-cont">
-                      <div id="grapick"></div>
-                      <div  class="inputs">
-                        <select class="form-control" id="switch-type">
-                          <option value="">- Select Type -</option>
-                          <option value="radial">Radial</option>
-                          <option value="linear">Linear</option>
-                          <option value="repeating-radial">Repeating Radial</option>
-                          <option value="repeating-linear">Repeating Linear</option>
-                        </select>
-            
-                        <select class="form-control" id="switch-angle">
-                          <option value="">- Select Direction -</option>
-                          <option value="top">Top</option>
-                          <option value="right">Right</option>
-                          <option value="center">Center</option>
-                          <option value="bottom">Bottom</option>
-                          <option value="left">Left</option>
-                        </select>
-                        
-                      </div>                      
-                  </div>
-                  <p class="help-block">Cambiar color de fondo</p>                    
-                  </div>
+                  </div>-->                 
 
                 </form>
 
@@ -398,14 +400,23 @@
 
     <style>
 
-.grapick-cont {
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    .grapick-cont {
+      /*box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);*/
       border-radius: 3px;
       margin: -15px;
-      padding: 25px 15px;
+      padding: 15px 15px;
       width: 100%;
-      min-height: 100px;
-      background: white;
+      min-height: 80px;
+      background: rgb(255, 255, 255);
+    }
+
+    #ori-grapick {      
+      border-radius: 3px;
+      margin: -5px;
+      padding: 5px 5px;
+      width: 100%;
+      min-height: 50px;
+      background: rgb(255, 0, 0);
     }
 
     .grp-preview {
@@ -416,7 +427,7 @@
       height: 40px !important;
     }
 
-    .inputs {
+    .grapick-inputs {
       margin: 25px 0px 15px;
     }
 
@@ -429,85 +440,10 @@
     }
     </style>
 
-    <script>
-   
-
-    /**
-     * Gradient Picker
-     * 
-     * https://tutsville.com/docs/coloringpick-jquery-gradient-color-picker/
-     * 
-     * */
-
-    $(document).ready(function () {    
-      
-      ////////////////////////////
-      // Drafient picker
-      // https://artf.github.io/grapick/
-      ////////////////////////////
-
-      var upType, unAngle, gp;
-      var copyTxt = document.querySelector('.txt-value');
-      var swType = document.getElementById('switch-type');
-      var swAngle = document.getElementById('switch-angle');
-      var copyToClipboard = function(str) {
-        var el = document.createElement('textarea');
-        el.value = str;
-        el.setAttribute('readonly', '');
-        el.style.position = 'absolute';
-        el.style.left = '-9999px';
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      };
-      swType.addEventListener('change', function(e) {
-        gp && gp.setType(this.value || 'linear');
-      });
-
-      swAngle.addEventListener('change', function(e) {
-        gp && gp.setDirection(this.value || 'right');
-      });
-
-      /*var copyBtn = document.querySelector('.copy-btn');
-      copyBtn.addEventListener('click', function(e) {
-        var iconOrig = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 21H8V7h11m0-2H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m-3-4H4c-1.1 0-2 .9-2 2v14h2V3h12V1z"></path></svg>';
-        var iconDone = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 7L9 19l-5.5-5.5 1.41-1.41L9 16.17 19.59 5.59 21 7z"></path></svg>';
-        copyToClipboard(copyTxt.value);
-        copyBtn.innerHTML = iconDone;
-        setTimeout(() => copyBtn.innerHTML = iconOrig, 2000)
-      });*/
-
-      var createGrapick = function() {
-        gp = new Grapick({
-          el: '#grapick',
-          direction: 'right',
-          min: 1,
-          max: 99,
-        });
-        gp.addHandler(1, '#085078', 1);
-        gp.addHandler(99, '#85D8CE', 1, { keepSelect: 1 });
-        gp.on('change', function(complete) {
-          const value = gp.getValue();
-          //document.body.style.backgroundImage = value;
-          $(".grp-wrapper").css("backgroundImage", value);
-          //copyTxt.value = value;
-        })
-        gp.emit('change');
-      };
-
-      var destroyGrapick = function() {
-        gp.destroy();
-        gp = 0;
-      }
-
-      createGrapick();
+    <script>  
 
 
-
-
-
-      ///////////////////////////////
+    $(document).ready(function () {          
 
       var timer_save = null;
 
@@ -604,11 +540,15 @@
         LoadTypes(window.docDesign);
       }
 
+      window.RemoveElement = function(removeId) {
+        let id = "#" + removeId;
+        $(id).remove();        
+      }
+
       function updateType(){
         window.docDesign.ref.collection("designs") 
                 .doc(window.designId).set({load_type:window.type},{merge:true});
-      }
-      
+      }      
     
       $( "#login" ).click(function() {    
 
@@ -806,8 +746,98 @@
                   }, 500);
                                   
               }
-          });       
+          });  
+
+          /////////////////////////////////
+          ////////// grapick /////////////
+          // https://artf.github.io/grapick/
+          // https://github.com/artf/grapick/blob/master/index.html
+          /////////////////////////////////
+
+          var upType, unAngle, gp;
+          var gradient_color;        
           
+          var createGrapick = function() {
+            gp = new Grapick({
+              el: '#grapick',
+              direction: 'right',
+              min: 1,
+              max: 99,
+            });
+            gp.addHandler(1, '#085078', 1);
+            gp.addHandler(99, '#85D8CE', 1, { keepSelect: 1 });
+            gp.on('change', function(complete) {
+              const value = gp.getValue();
+              gradient_color = value;
+              //document.body.style.backgroundImage = value;
+              //$(".grp-wrapper").css("backgroundImage", value);              
+              GetHTML();
+              //copyTxt.value = value;
+            });
+            gp.on('handler:drag:start', function(drag) {
+              const value = gp.getValue();      
+              
+            });
+            gp.on('handler:drag:end', function(drag) {
+              const value = gp.getValue();     
+              
+            });
+            gp.emit('change');
+
+            var swType = $('#switch-type');
+            var swAngle = $('#switch-angle');
+
+            swType.change(function() {
+              gp && gp.setType(this.value || 'linear');
+              GetHTML();
+            });
+
+            swAngle.change(function() {
+              gp && gp.setDirection(this.value || 'right');
+              GetHTML();
+            });
+
+            /*swType.addEventListener('change', function(e) {
+              gp && gp.setType(this.value || 'linear');
+            });
+
+            swAngle.addEventListener('change', function(e) {
+              gp && gp.setDirection(this.value || 'right');
+            });*/             
+
+
+            /*var swType = document.getElementById('switch-type');
+            var swAngle = document.getElementById('switch-angle');
+
+            swType.addEventListener('change', function(e) {
+              gp && gp.setType(this.value || 'linear');
+            });
+
+            swAngle.addEventListener('change', function(e) {
+              gp && gp.setDirection(this.value || 'right');
+            });*/
+
+          };
+
+          var destroyGrapick = function() {
+            gp.destroy();
+            gp = 0;
+          }
+
+          var copyToClipboard = function(str) {
+            var el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+          };                  
+          
+
+
           LoadTypes = function(doc) {
 
             doc.ref.collection("designs") 
@@ -1247,8 +1277,9 @@
           $( ".draggable" ).draggable({
             appendTo: "body",
             helper: "clone"
-          });
-          
+          });       
+         
+
           $( ".droppable" ).droppable({
             accept: ".draggable",
             helper: "clone",
@@ -1260,11 +1291,19 @@
               
               if(!$(ui.draggable).hasClass("dropped")) {               
 
-                var name = $orig.find("label").attr("for");                      
+                var name = $orig.find("label").attr("for");         
+                var $el = $orig.clone();                
                 
-                var $el = $orig
-                  .clone()
-                  .addClass("dropped")
+                //Remove drag options when element is color
+                if (name=="ori-for-color-preview") {
+                  $el.draggable({                    
+                    start: function( event, ui ) {                  
+                      $(ui.draggable).remove();                      
+                    }
+                  });
+                }
+                
+                $el.addClass("dropped")
                   .css({"position": "static", "left": null, "right": null})
                   .appendTo(this);
 
@@ -1363,27 +1402,42 @@
                         });
                         break;
 
-                    case "color-preview":
+                    case "color-preview":            
 
-                      $ele.filter("#ori-color-preview").attr("id","color-preview");
-                      $('label[for|="ori-for-color-preview"]').attr('for', "for-color-preview");   
+                      $ele.find("#color-preview").removeClass("draggable");
+                      $ele.filter("#ori-color-preview").attr("id","incolor-preview");
+                      $('label[for|="ori-for-color-preview"]').attr('for', "for-colr-preview");   
+                      $ele.find("#ori-grapick").attr('id', 'grapick'); 
+                     
+                      $ele.find("#ori-grapick-inputs").attr('id', 'grapick-inputs');
+                      $ele.find("#grapick-inputs").removeClass("d-none");      
 
-                      $ele.filter("p").remove();
-                      $("#color-preview").find("input").attr('id', 'incolor-preview');                 
-                      $('#incolor-preview').colorpicker();                        
-                      $('#incolor-preview').on('colorpickerChange', function(event) {
-                        let c = event.color.toString();
-                        $( "#color-preview" ).data( "data-color", c );
-                        $('.card').css('background-color', c);
-                        //https://stackoverflow.com/questions/60960096/can-bootstrap-4-cards-have-tiled-background-images
-                      });
+                      $ele.find("#ori-switch-type").attr('id', 'switch-type');
+                      $ele.find("#ori-switch-angle").attr('id', 'switch-angle');                    
+
+                      createGrapick();
+                     
                       break;
 
-                    }                    
+                    }     
                     
-                    $('<p class="tools">\
-                    <a class="text-primary edit-link">Visualizar<a> | \
-                    <a class="text-primary remove-link">Remover</a></p>').appendTo($ele);                             
+                    let removeLinkId = 'remove-link-' + $ele.attr('id');
+                    let removeId = name;                     
+
+                    //<i class="fa icon-move icon-2"></i>
+                    
+                    $(`
+                      <p class="tools">
+                        <div class="row">
+                          <div id="move-color-preview" class="draggable">
+                            <a id="${removeLinkId}" onclick="window.RemoveElement('${removeId}');" class="text-primary remove-link">
+                              <i class="pl-3 fa fa-trash fa-2x" aria-hidden="true"></i>
+                            </a>
+                            <i class="pl-3 fa fa-arrows-v fa-2x" aria-hidden="true"></i>                                                         
+                          </div>
+                        </div>
+                      </p>
+                    `).appendTo($ele);                             
 
                     var timer = setTimeout(function() {                                        
 
@@ -1601,10 +1655,10 @@
                 } 
 
               });
-
+              
               return dropPromise;
 
-          }
+          }          
 
           function saveImage(files) {
             var reader = new FileReader();            
@@ -1642,8 +1696,9 @@
             const htmlPromise = new Promise(async (resolve, reject) => {  
 
               var count = 0;
-              var _html_preview = "";
+              var _html_preview = "";              
               var _html_message = "";
+              var imageHeight = "";
               var _html_web = "";
               var modules = {};
 
@@ -1656,14 +1711,18 @@
                     var value;                                                          
                     var json = {};
 
-                  if (window.type=="preview") {
+                    if (_html_preview == "") {                                
+                        imageHeight = " height:400px;"
+                        _html_preview = `<div class="card" style><div class="card-block">`;
+                    } 
+
+                    if (window.type=="preview") {
 
                       switch (this.id) {
                         case "llamada":
                           count++;
                           let inllamada  = value = $(this).find("#inllamada").val();
-                          let llamada   =  `<div class="card" style><div class="card-block">
-                                            <h4 class="card-title">${inllamada}</h4>`;
+                          let llamada   =  `<h4 class="card-title">${inllamada}</h4>`;
                           _html_preview += llamada;                                                                
                           break;
                         case "subtitulo":
@@ -1702,11 +1761,10 @@
                             _html_preview += pagos;
                           }                         
                           break;
-                        case "color-preview":
-                          count++;  
-                          let color = value = $(this).find("#incolor-preview").val();                                   
-                          if (color!=undefined) {
-                            let style = `style="background-color:${color}"`;                              
+                        case "incolor-preview":
+                          count++;                            
+                          if (gradient_color!=undefined) {                                                      
+                            let style = `style="background-image:${gradient_color};${imageHeight}"`;                              
                             _html_preview = _html_preview.replaceAll("style", style);             
                           }    
                           break;
@@ -1718,7 +1776,7 @@
 
                       if (count_drop == count) {                                     
 
-                        _html_preview += `<a href="#" class="card-link">Desuscribir -></a>`;
+                        //_html_preview += `<a href="#" class="card-link">Desuscribir -></a>`;
                         _html_preview += `</div></div>`;                            
                         _html_preview = replaceVariables(_html_preview);
 
