@@ -775,12 +775,11 @@
               //copyTxt.value = value;
             });
             gp.on('handler:drag:start', function(drag) {
-              const value = gp.getValue();      
-              
+              const value = gp.getValue();               
             });
             gp.on('handler:drag:end', function(drag) {
               const value = gp.getValue();     
-              
+              gradient_color = value;
             });
             gp.emit('change');
 
@@ -789,11 +788,15 @@
 
             swType.change(function() {
               gp && gp.setType(this.value || 'linear');
+              const value = gp.getValue();
+              gradient_color = value;
               GetHTML();
             });
 
             swAngle.change(function() {
               gp && gp.setDirection(this.value || 'right');
+              const value = gp.getValue();
+              gradient_color = value;
               GetHTML();
             });
 
@@ -1188,7 +1191,8 @@
                 };
 
                 if (background_color) {
-                  payload.background_color_preview = background_color;
+                  let _color = background_color.gradient_color;
+                  payload.background_color_preview = _color;
                 } 
 
               } else if (window.type=="message") {
@@ -1227,7 +1231,8 @@
                 };
 
                 if (background_color) {
-                  payload.background_color_web = background_color;
+                  let _color = background_color.gradient_color;
+                  payload.background_color_web = _color;
                 }  
 
               }       
@@ -1405,7 +1410,7 @@
                     case "color-preview":            
 
                       $ele.find("#color-preview").removeClass("draggable");
-                      $ele.filter("#ori-color-preview").attr("id","incolor-preview");
+                      $ele.filter("#ori-color-preview").attr("id","color-preview");
                       $('label[for|="ori-for-color-preview"]').attr('for', "for-colr-preview");   
                       $ele.find("#ori-grapick").attr('id', 'grapick'); 
                      
@@ -1761,12 +1766,14 @@
                             _html_preview += pagos;
                           }                         
                           break;
-                        case "incolor-preview":
+                        case "color-preview":
                           count++;                            
                           if (gradient_color!=undefined) {                                                      
                             let style = `style="background-image:${gradient_color};${imageHeight}"`;                              
                             _html_preview = _html_preview.replaceAll("style", style);             
                           }    
+                          let _json_color = `{"gradient_color":"${gradient_color}"}`;
+                          value = JSON.parse(_json_color);
                           break;
                       }        
 
