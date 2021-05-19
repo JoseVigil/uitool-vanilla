@@ -62,4 +62,19 @@
           createBucket().catch(console.error);
     });
 
+
+    /**
+      
+
+    **/
+    exports.send = functions.https.onRequest( async (req, res) => {
+
+        const tokenId = req.get('Authorization').split('Bearer ')[1]; 
+        
+        const client_id = req.body.data.client_id;
+        const campaign_name = req.body.data.campaign_name;
+        
+
+    });
+
     

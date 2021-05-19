@@ -66,13 +66,13 @@
     firestore.settings(settings);     
     
     //automation
-    exports.automation = require("./run/automation");    
-
-    //gateway
-    exports.gateway = require("./run/gateway");
+    exports.automation = require("./run/automation");        
 
     //api
     exports.api = require("./api");
+
+    //gateway
+    //exports.gateway = require("./run/gateway");
 
     /**
      * SERVER ALL INCOMING
