@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <script> 
+    
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = window.location.search.substring(1),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('='); 
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        }; 
+
+        //let path = getUrlParameter('path');
+        //var buff = Buffer.from(path, 'base64'); 
+        //let path = buff.toString('ascii');    
+
+        window.path = getUrlParameter('path');
+        window.type = getUrlParameter('type');
+        
+        /*var link = document.createElement('meta');
+        link.setAttribute('property', 'og:url');
+        link.content = document.location;
+        document.getElementsByTagName("head");
+        [0].appendChild(link);*/
+
+        //https://support.shareaholic.com/hc/en-us/articles/115005177166-Adding-Meta-Tags-using-JavaScript?mobile_site=true
+
+    </script>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+     
+     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">     
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+     <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
+     <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
+     
+     <title>Noti.ms</title>
+  
+      <style>  
+    
+        body {
+            padding-top: 60px;
+        }
+      
+     </style>
+
+  </head>
+
+  <body>       
+     
+        <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>    
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>        
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" defer></script>
+        <script src="https://cdn.tiny.cloud/1/lr9wasio09vwo6la4k91gs8hybva1vp7oxw5k9cfpm2g5pm6/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>
+
+        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
+        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
+        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
+
+        <div class="container-fluid">
+            <main id="main"></main>
+        </div>
+
+        <script>          
+
+            $(document).ready(function () {
+
+                var active_saludo = false;
+                var active_cuerpo = false;
+                var active_from_button = false;
+
+                var target_result;
+
+                var data;
+                var count_drop = 0;
+
+                var noti_html;
+
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
+                    authDomain: "notims.firebaseapp.com",
+                    databaseURL: "https://notims.firebaseio.com",
+                    projectId: "notims",
+                    storageBucket: "notims.appspot.com",
+                    messagingSenderId: "79471870593",
+                    appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
+                    measurementId: "G-8T5N81L78J"
+                };
+                firebase.initializeApp(firebaseConfig);
+
+                const db = firebase.firestore();
+                const storage = firebase.storage();
+                const database = firebase.database();
+                const functions = firebase.functions();              
+                
+                firebase.auth().signInAnonymously()
+                    .then(function() {  
+                    
+                    //let rocRef = db.doc("/clients/kairos/campaigns/DEUDA_345_ASF/web/default");
+
+                    let rocRef = db.doc(window.path);
+                    rocRef.get()
+                    .then(function(doc) { 
+                        
+                        var _html, html, background_color;
+
+                        if (window.type=="preview") {                            
+                            html = doc.data().html_preview;                                              
+                            background_color = doc.data().background_color_preview;               
+                        } else if (window.type=="web") {                            
+                            html = doc.data().html_web;                                              
+                            background_color = doc.data().background_color_web;               
+                        } 
+                        
+                        _html = `<div class="row">
+                                <div class="col-xs-12 custom-background">
+                                ${html}
+                                </div></div>`; 
+                        $("#main").append(_html);
+
+                        $(".custom-background").css("background-color", background_color);                                  
+
+                    });                                         
+                
+                }).catch(function(error) {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    console.log(errorCode);
+                    console.log(errorMessage);
+                });                               
+
+            });
+
+        </script>
+
+    </body>
+
+</html>
+    
+    

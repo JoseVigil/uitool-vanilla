@@ -1,0 +1,228 @@
+<!doctype html>
+
+<html lang="en">
+  
+  <head>    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>uiTool</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">    
+    <!-- <link rel="stylesheet" href="vendor\bootstrap\css\bootstrap.min.css"> -->       
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="icon" type="image/x-icon" href="https://vigil.com.ar/favicons/uitool.ico"/>                    
+    <link type="text/css" rel="stylesheet" href="vendor/loading_indicator/jquery.loading-indicator.css" />
+    <link rel="stylesheet" type="text/css" href="css/styles_uitool.css">
+  </head>
+
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="vendor/loading_indicator/jquery.loading-indicator.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
+  <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
+  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>
+
+  <body class="login_body">
+
+    <div class="container-fluid">
+      <div class="cnt_login">
+        <div class="box_login">
+          <img class="logo_login" alt="Bootstrap Image Preview" src="images\uitool_logo.png" />
+          <p class="login_text">Ingresa tu usuario y contraseña</p>
+          <form role="form">
+            <div class="form-group">                       
+              <label for="inputEmail">Email address</label>
+              <input type="email" class="form-control inp_text" id="inputEmail" placeholder="example@mail.com" />
+            </div>
+            <div class="form-group">                       
+              <label for="inputPassword">Password</label>
+              <input type="password" class="form-control inp_text" id="inputPassword" placeholder="********" />                                                                  
+            </div>  
+            <div class="row">
+              <small id="passwordHelp" class="text-danger"></small>      
+            </div>                                    
+            <div class="checkbox">                       
+              <label>
+                <input type="checkbox" /> Recordar contraseña
+              </label>
+            </div>                     
+            <button id="btn-login" type="submit" class="btn btn-primary">Ingresar</button>
+          </form>
+        </div>      
+      </div>
+    </div>
+
+    <script>    
+        
+      var _user = {};
+
+      var _dropDownMenuObj = {};    
+
+      var editObjects = new Object();
+      
+      var homeLoader = $('body').loadingIndicator({ useImage: false,}).data("loadingIndicator");
+
+      var firebaseConfig = {
+        apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
+        authDomain: "notims.firebaseapp.com",
+        databaseURL: "https://notims.firebaseio.com",
+        projectId: "notims",
+        storageBucket: "notims.appspot.com",
+        messagingSenderId: "79471870593",
+        appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
+        measurementId: "G-8T5N81L78J"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      //firebase.functions().useFunctionsEmulator('http://localhost:5001');
+      //firebase.functions().useFunctionsEmulator('http://localhost:5000') 
+
+      const db = firebase.firestore();
+      /*const storage = firebase.storage();
+      const database = firebase.database();
+      const functions = firebase.functions();*/
+
+      $(document).ready(function () {
+
+          homeLoader.hide();
+
+          $('#btn-login').click(function(e) {                            
+              e.preventDefault(); 
+              
+              var form = $("#loginForm")
+
+              /*if (form[0].checkValidity() === false) {
+                  event.preventDefault()
+                  event.stopPropagation()
+              }*/           
+
+              var empty = false;        
+              var errorMessage; 
+
+              var inputEmail = $("#inputEmail").val();
+              var inputPassword = $("#inputPassword").val();          
+              
+
+              if (inputEmail=="" || inputPassword=="") {                                           
+
+                  empty = true;             
+                  let prob = 0;
+
+                  if (inputEmail=="" && inputPassword=="") {
+                      errorMessage = "Los campor email y password están vacios";    
+                  } else if (inputEmail=="") {
+                      errorMessage = "El campor email está vacío";    
+                  } else if (inputPassword=="") {
+                      errorMessage = "El campor password está vacío";    
+                  }
+                  
+              }  
+
+              if (empty) {       
+                  
+                  $("#passwordHelp").html(errorMessage);           
+
+                  form.addClass('was-validated');
+                  
+
+              } else {
+
+
+                  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+                  .then(() => {
+                    // Existing and future Auth states are now persisted in the current
+                    // session only. Closing the window would clear any existing state even
+                    // if a user forgets to sign out.
+                    // ...
+                    // New sign-in will be persisted with session persistence.
+                    return firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword);
+                  })
+                  .catch((error) => {
+                    
+                    // Handle Errors here.
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+
+                  }).then((user) => {
+
+                    var email = user.user.email;
+                  
+                    // user signed in
+                    db.collection("accounts").where("email", "==", email).get()
+                    .then(function(account) {
+
+                      var name =  account.docs[0].data().name;                
+                      var name_label =  account.docs[0].data().name_label;    
+                      var uid =  account.docs[0].data().uid;                                      
+
+                      let local = window.location.href;
+
+                      let urlcampaign = local+ "composer/campaign?&account=" + uid;
+
+                      window.location.href = urlcampaign;
+
+                    });
+
+                  }).catch( function(error) {  
+                      
+                      //var errorCode = error.code;
+                      var errorMessage = error.message;  
+
+                      $("#passwordHelp").html(errorMessage);           
+
+                      form.addClass('was-validated');
+
+                  });
+
+
+                  /*firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword).then(function(user) {
+
+                      var email = user.user.email;
+                  
+                      // user signed in
+                      db.collection("accounts").where("email", "==", email).get()
+                      .then(function(account) {
+
+                        var name =  account.docs[0].data().name;                
+                        var name_label =  account.docs[0].data().name_label;    
+                        var uid =  account.docs[0].data().uid;                                      
+
+                        let local = window.location.href;
+
+                        let urlcampaign = local+ "composer/campaign?&account=" + uid;
+
+                        window.location.href = urlcampaign;
+
+                      });
+                  
+                  
+                  }).catch( function(error) {  
+                      
+                      //var errorCode = error.code;
+                      var errorMessage = error.message;  
+
+                      $("#passwordHelp").html(errorMessage);           
+
+                      form.addClass('was-validated');
+
+                  });*/
+              } 
+          });         
+      });
+
+      
+  </script>
+
+  </body>
+
+</html>

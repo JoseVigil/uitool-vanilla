@@ -1,0 +1,51 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "build:watch": "tsc -w"    
+  },
+  "engines": {
+    "node": "10"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^5.3.0",
+    "blob-util": "^2.0.2",
+    "consolidate": "^0.15.1",
+    "create-object-url": "^1.0.2",
+    "express": "^4.17.1",
+    "filereader": "^0.10.3",
+    "firebase": "^8.2.1",
+    "firebase-admin": "^9.4.2",
+    "firebase-functions": "^3.13.0ss",
+    "firebase-tools": "^9.5.0",
+    "firestore-export-import": "^0.6.1",
+    "fs": "0.0.1-security",
+    "hogan": "^1.0.2",
+    "html-minifier": "^4.0.0",
+    "html-to-pdfmake": "^2.0.10",
+    "mustache": "^4.0.1",
+    "node-blob": "0.0.2",
+    "node-firestore-import-export": "^1.1.0",
+    "path": "^0.12.7",
+    "pdfmake": "^0.1.68",
+    "puppeteer": "^5.2.1",
+    "read-excel-file": "^5.0.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "sleep": "^6.3.0",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.12.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "firebase-functions-test": "^0.2.0",
+    "tsc": "^1.20150623.0"
+  },
+  "private": true
+}
