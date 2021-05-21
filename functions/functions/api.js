@@ -64,16 +64,16 @@
 
 
     /**
-      
+        Envio de mensaje largo por gateway
 
     **/
     exports.send = functions.https.onRequest( async (req, res) => {
 
         const tokenId = req.get('Authorization').split('Bearer ')[1]; 
         
-        const client_id = req.body.data.client_id;
+        const gateway = req.body.data.gateway;
         const campaign_name = req.body.data.campaign_name;
-        
+
 
     });
 

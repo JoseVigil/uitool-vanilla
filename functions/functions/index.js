@@ -59,21 +59,22 @@
         appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
         measurementId: "G-8T5N81L78J"
     };
+    
     firebase.initializeApp(firebaseConfig);    
     firebase.functions().useFunctionsEmulator('http://localhost:5001');    
 
     const settings = {timestampsInSnapshots: true};          
-    firestore.settings(settings);     
-    
-    //automation
-    exports.automation = require("./run/automation");        
+    firestore.settings(settings);             
 
     //api
     exports.api = require("./api");
 
     //gateway
-    //exports.gateway = require("./run/gateway");
-
+    //exports.gateway = require("./run/gateway");    
+    
+    //automation
+    exports.automation = require("./run/automation");    
+    
     /**
      * SERVER ALL INCOMING
      */

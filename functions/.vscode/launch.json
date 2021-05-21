@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "version": "0.2.0",
   "configurations": [
@@ -7,5 +8,17 @@
           "name": "Attach to Functions",
           "port": 9229
       }
+=======
+{      
+  "version": "0.2.0",
+  "configurations": [
+    {      
+      "request": "attach",
+      "name": "Attach",
+      "port": 9229,      
+      "skipFiles": ["<node_internals>/**"],
+      "type":"node"
+    }
+>>>>>>> gateway
   ]
 }

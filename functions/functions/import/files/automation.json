@@ -1,14 +1,21 @@
 {
     "automation": {
         "I4g5vWpYChvVv9SIj9Qw": {
-            "collect_data": false,
-            "send_data": false,
-            "read_data": false,
-            "read_quenue": false,
-            "send_data_again": false,
             "gateway" :2,
-            "count_read": 0,
-            "count_send_again": 0,
+            "cards":["A","B","C","D"],
+            "current_card":"A",
+            "switch_cards": false,
+            "collect_data": false,
+            "collect_data_once": false,
+            "send_data": false,
+            "read_quenue": false,            
+            "read_data": false,
+            "count_read": 0,   
+            "save_number_queue":false,            
+            "save_number" : false,
+            "count_save_number":0,
+            "reset_state" : false,
+            "reset_state_count":0,
             "subCollection": {}
         }
     }
