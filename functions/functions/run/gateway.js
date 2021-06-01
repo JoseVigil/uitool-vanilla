@@ -237,13 +237,17 @@
             const urls = await new Promise(async (resolve, reject) => {
                await parent.get()
                     .then((snapshot) => {
-                    snapshot.forEach((doc) => {                    
-                        if (doc.id === "urls") {                        
-                            let urls = URLS(doc);
-                            console.log("doc: " + doc.id);
-                            resolve(urls);
-                        }
-                    });
+                        snapshot.forEach((doc) => {                    
+                            if (doc.id === "urls") {                        
+                                let urls = URLS(doc);
+                                console.log("doc: " + doc.id);
+                                resolve(urls);
+                            }
+                        });
+                        return {};
+                }).catch((error) => {
+                    console.log("error post: " + error);
+                    return error;
                 }); 
             });
 

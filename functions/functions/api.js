@@ -2,10 +2,56 @@
 
     const storage = new Storage();
 
+
+     /**
+        Envio de mensaje largo por gateway
+    **/
+
+    exports.send = functions.https.onRequest( async (req, res) => {
+
+        const tokenId = req.get('Authorization').split('Bearer ')[1]; 
+
+        if (tokenId === "WPEO622JDWHVIP80ZSHISB3GV84FE4") {
+
+            const gateway = req.body.gateway;
+            const port = req.body.port;
+            const phone = req.body.phone;
+
+            let response = `{   
+            "status": "success",
+                "data": {
+                    "gateway": ${gateway},
+                    "port": ${port},
+                    "phone": "${phone}"
+                }
+            }`;
+
+            let respJson = JSON.parse(response);
+
+            console.log("respJson: " + JSON.stringify(respJson));
+
+            return res.status(200).send(respJson);
+
+
+        } else {
+
+            res.status(401).send("Invalid authorization"); 
+
+        }
+
+    });
+
+
+
+
+
+
+
+
     //Authorizaation
     //https://github.com/firebase/functions-samples/tree/master/authorized-https-endpoint
 
-    exports.message = functions.https.onRequest( async (req, res) => {
+    /*exports.message = functions.https.onRequest( async (req, res) => {
 
         const tokenId = req.get('Authorization').split('Bearer ')[1];       
 
@@ -35,9 +81,9 @@
 
         uploadFile().catch(console.error);
 
-    });
+    });*/
 
-    exports.campaign = functions.https.onRequest( async (req, res) => {
+    /*exports.campaign = functions.https.onRequest( async (req, res) => {
 
         const tokenId = req.get('Authorization').split('Bearer ')[1]; 
         
@@ -60,21 +106,9 @@
           }
 
           createBucket().catch(console.error);
-    });
+    });*/
 
 
-    /**
-        Envio de mensaje largo por gateway
-
-    **/
-    exports.send = functions.https.onRequest( async (req, res) => {
-
-        const tokenId = req.get('Authorization').split('Bearer ')[1]; 
-        
-        const gateway = req.body.data.gateway;
-        const campaign_name = req.body.data.campaign_name;
-
-
-    });
+   
 
     
