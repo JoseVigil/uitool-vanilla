@@ -30,6 +30,82 @@
 
             console.log("respJson: " + JSON.stringify(respJson));
 
+            var promises_switch = await new Promise( async (resolve, reject) => {            
+            
+                var promises = [];
+    
+                await firestore
+                    .collectionGroup(date_ports)
+                    .where(channelstatus, "in", ["Exist", "Using"])
+                    .get().then(async (querySnapshot) => {
+    
+                    size = querySnapshot.docs.length;
+    
+                    querySnapshot.forEach(async (doc) => {
+                        
+                        let parent = doc.ref.parent.parent;
+            
+                        if (parent.id === gateway) {
+                            //var gateway_number = parent.id.replace( /^\D+/g, '');
+                            var port_number = doc.id.replace(/^\D+/g, "");
+                
+                            var num;
+                            switch (card) {
+                                case "A":
+                                position = num = 0;
+                                break;
+                                case "B":
+                                position = num = 1;
+                                break;
+                                case "C":
+                                position = num = 2;
+                                break;
+                                case "D":
+                                position = num = 3;
+                                break;
+                            }
+                
+                            //cambiar esta posicion
+                            var info = parseInt(port_number) - 1 + ":" + position;
+                            var port = 8000 + parseInt(gateway_number);
+                
+                            var options = {
+                                method: "POST",
+                                uri: "http://synway.notimation.com:" + port + "/5-9-2SIMSwitch.php",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded",
+                                    Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                    Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
+                                },
+                                form: {
+                                    action: "SIMSwitch",
+                                    info: info,
+                                },
+                            };
+                
+                            //console.log("options: " + JSON.stringify(options));
+                            //console.log("-------");
+                
+                            promises.push(rp(options));
+    
+                            if (count === (size-1)) {
+                                resolve(promises);
+                            }
+    
+                            count++;
+    
+                        }
+                    }); 
+    
+                    return {};
+                    
+                }).catch((error) => {
+                    console.log("error: " + error);
+                    return error;
+                });
+                
+            });
+
             return res.status(200).send(respJson);
 
 
@@ -40,12 +116,6 @@
         }
 
     });
-
-
-
-
-
-
 
 
     //Authorizaation
