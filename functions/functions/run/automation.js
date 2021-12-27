@@ -283,6 +283,17 @@
                             jsonCards += `}`;
                             let jsonPorts = JSON.parse(jsonCards);
                             countAdded = 0;
+
+                            //Store date_ports into automation
+                            promises_sims.push(
+                            firestore
+                                .collection("automation")
+                                .doc("presets")
+                                //.collection("active_date_port")
+                                //.doc(date_ports)
+                                .set({"active_date_port":date_ports}, { merge: true })
+                            );
+
                             promises_sims.push(
                                 firestore
                                 .collection("gateways")
@@ -291,6 +302,7 @@
                                 .doc(portName)
                                 .set(jsonPorts, { merge: true })
                             );
+
                         } else {
                             jsonCards += `,`;
                             countAdded++;
@@ -1412,6 +1424,7 @@
 
                         console.log("");
                         console.log("*********************");                                    
+                        console.log("_gateway   : " + _gateway);   
                         console.log("json       : " + _json);                                    
                         console.log("port       : " + port_number);                                                            
                         console.log("portname   : " + portname);   
@@ -2023,7 +2036,7 @@
                                 try 
                                 {
                                                                 
-                                    var _reset_state = await FB_ResetStatus(_gateway, "A", _date_ports);
+                                    var _reset_state = await FB_ResetStatus("S" + gateway_number, "A", _date_ports);
 
                                     /*if (_reset_state) {
 

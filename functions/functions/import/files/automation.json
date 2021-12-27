@@ -1,6 +1,6 @@
 {
     "automation": {
-        "I4g5vWpYChvVv9SIj9Qw": {
+        "presets": {
             "gateway" :2,
             "cards":["A","B","C","D"],
             "current_card":"A",

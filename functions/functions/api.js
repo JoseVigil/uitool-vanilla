@@ -3,6 +3,30 @@
     const storage = new Storage();
 
 
+    var GetActiveDatePort = async function (automationId) {        
+
+        var queueArray = await new Promise( async (resolve, reject) => {      
+                       
+            await firestore
+                .doc("automation/presets")                                              
+                .get()
+                .then(document => {                
+
+                let active_date_port = document.data().active_date_port;
+
+                console.log("active_date_port: " + active_date_port);
+
+                resolve(active_date_port);               
+               
+            });                
+            
+        });  
+
+        return queueArray;
+
+    }
+
+
      /**
         Envio de mensaje largo por gateway
     **/
@@ -14,95 +38,110 @@
         if (tokenId === "WPEO622JDWHVIP80ZSHISB3GV84FE4") {
 
             const gateway = req.body.gateway;
-            const port = req.body.port;
+            //const port = req.body.port;
             const phone = req.body.phone;
+
+            console.log("gateway: "  + gateway);
+            console.log("phone  :"  + phone);
 
             let response = `{   
             "status": "success",
                 "data": {
-                    "gateway": ${gateway},
-                    "port": ${port},
+                    "gateway": "${gateway}",                    
                     "phone": "${phone}"
                 }
             }`;
+
+            console.log("response: " + response);
 
             let respJson = JSON.parse(response);
 
             console.log("respJson: " + JSON.stringify(respJson));
 
-            var promises_switch = await new Promise( async (resolve, reject) => {            
+            var active_date_port = await GetActiveDatePort();
+
+            console.log("");
+            console.log("active_date_port: " + active_date_port);
+            console.log("");
+
+            var send_message = await new Promise( async (resolve, reject) => {            
             
-                var promises = [];
+                var promises = [];               
     
-                await firestore
-                    .collectionGroup(date_ports)
-                    .where(channelstatus, "in", ["Exist", "Using"])
-                    .get().then(async (querySnapshot) => {
-    
-                    size = querySnapshot.docs.length;
-    
-                    querySnapshot.forEach(async (doc) => {
-                        
-                        let parent = doc.ref.parent.parent;
-            
-                        if (parent.id === gateway) {
-                            //var gateway_number = parent.id.replace( /^\D+/g, '');
-                            var port_number = doc.id.replace(/^\D+/g, "");
-                
-                            var num;
-                            switch (card) {
-                                case "A":
-                                position = num = 0;
-                                break;
-                                case "B":
-                                position = num = 1;
-                                break;
-                                case "C":
-                                position = num = 2;
-                                break;
-                                case "D":
-                                position = num = 3;
-                                break;
-                            }
-                
-                            //cambiar esta posicion
-                            var info = parseInt(port_number) - 1 + ":" + position;
-                            var port = 8000 + parseInt(gateway_number);
-                
-                            var options = {
-                                method: "POST",
-                                uri: "http://synway.notimation.com:" + port + "/5-9-2SIMSwitch.php",
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded",
-                                    Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                                    Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
-                                },
-                                form: {
-                                    action: "SIMSwitch",
-                                    info: info,
-                                },
-                            };
-                
-                            //console.log("options: " + JSON.stringify(options));
-                            //console.log("-------");
-                
-                            promises.push(rp(options));
-    
-                            if (count === (size-1)) {
-                                resolve(promises);
-                            }
-    
-                            count++;
-    
-                        }
-                    }); 
-    
-                    return {};
                     
-                }).catch((error) => {
-                    console.log("error: " + error);
-                    return error;
-                });
+                        
+                let parent = doc.ref.parent.parent;
+    
+                if (parent.id === gateway) {
+                    //var gateway_number = parent.id.replace( /^\D+/g, '');
+                    var port_number = doc.id.replace(/^\D+/g, "");
+        
+                    var num;
+                    switch (card) {
+                        case "A":
+                        position = num = 0;
+                        break;
+                        case "B":
+                        position = num = 1;
+                        break;
+                        case "C":
+                        position = num = 2;
+                        break;
+                        case "D":
+                        position = num = 3;
+                        break;
+                    }
+        
+                    //cambiar esta posicion
+                    var info = parseInt(port_number) - 1 + ":" + position;
+                    var port = 8000 + parseInt(gateway_number);
+
+                    var options = {
+                        'method': 'POST',
+                        'hostname': 'synway.notimation.com',
+                        'port': 8009,
+                        'path': '/en/5-3-3SMSsending.php',
+                        'headers': {
+                            'Authorization': 'Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=',
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        'maxRedirects': 20
+                    };
+
+                    var postData = qs.stringify({
+                        'action': 'SendSMS',
+                        'info': '-1:0:3:1151812085:0:0:Hello'
+                    });
+        
+                    var options = {
+                        method: "POST",
+                        uri: "http://synway.notimation.com:" + port + "/5-9-2SIMSwitch.php",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            Authorization: "Basic YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                            Cookie: "PHPSESSID=3duuuba087srnotdfkda9d8to3",
+                        },
+                        form: {
+                            action: "SIMSwitch",
+                            info: info,
+                        },
+                    };
+        
+                    console.log("options: " + JSON.stringify(options));
+                    console.log("-------");
+        
+                    promises.push(rp(options));
+
+                    if (count === (size-1)) {
+                        resolve(promises);
+                    }
+
+                    count++;
+
+                }
+                    
+    
+            
                 
             });
 
@@ -116,6 +155,8 @@
         }
 
     });
+
+    
 
 
     //Authorizaation
