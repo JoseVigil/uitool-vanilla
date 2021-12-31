@@ -21,10 +21,6 @@
 
     const readXlsxFile = require('read-excel-file/node');
 
-    /**
-     * Remote gateway control
-     */    
-
     serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-c634d4946a.json");   
 
     const { parse, join } = require('path');
@@ -64,16 +60,12 @@
     firebase.functions().useFunctionsEmulator('http://localhost:5001');    
 
     const settings = {timestampsInSnapshots: true};          
-    firestore.settings(settings);             
+    firestore.settings(settings); 
+
+    admins = ["josemanuelvigil@gmail.com"];
 
     //api
-    exports.api = require("./api");
-
-    //gateway
-    //exports.gateway = require("./run/gateway");    
-    
-    //automation
-    exports.automation = require("./run/automation");    
+    exports.api = require("./src/api");  
     
     /**
      * SERVER ALL INCOMING
@@ -126,14 +118,8 @@
             case "designer":
               static_url = 'web_composer.html';        
               break;
-            //case "preview":
-            //  static_url = 'preview_composer.html';        
-            //  break;  
             case "thumbnail":
               static_url = 'thumbnail.html';
-              break;
-            case "gateways":
-              static_url = 'gateways.html';
               break;
             default:
               static_url = 'composer.html';
@@ -229,7 +215,6 @@
     exports.app = functions.https.onRequest(app);
 
     var SERVER_ACTION           = 'action';
-    var SERVER_GATEWAY          = 'gateway';
     var ACTION_EXPORT           = 'export'; 
 
     exports.server = functions.https.onRequest( async (req, res) => {
@@ -242,7 +227,7 @@
 
         var user, pass;
 
-        if ( path === SERVER_GATEWAY || path === SERVER_ACTION ) {          
+        if ( path === SERVER_ACTION ) {          
 
             var autorization = req.body.data.autorization;      
       
@@ -269,7 +254,6 @@
           console.log("req.path.split('/')[1]:" + path);
 
           switch (path) {                        
-            case SERVER_GATEWAY: GatewayOperations(req, res); break;
             case SERVER_ACTION: Action(req, res); break;              
           } 
 

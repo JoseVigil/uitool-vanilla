@@ -156,9 +156,18 @@
                   }).then((user) => {
 
                     var email = user.user.email;
+
+                    var name =  user.name;           
+                    var uid =  user.uid;                                      
+
+                    let local = window.location.href;
+
+                    let urlcampaign = local+ "composer/campaign?&account=" + uid;
+
+                    window.location.href = urlcampaign;
                   
                     // user signed in
-                    db.collection("accounts").where("email", "==", email).get()
+                    /*db.collection("accounts").where("email", "==", email).get()
                     .then(function(account) {
 
                       var name =  account.docs[0].data().name;                
@@ -171,7 +180,7 @@
 
                       window.location.href = urlcampaign;
 
-                    });
+                    });*/
 
                   }).catch( function(error) {  
                       
