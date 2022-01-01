@@ -25,12 +25,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   <script src="vendor/loading_indicator/jquery.loading-indicator.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
-  <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>     
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script> 
+
 
   <body class="login_body">
 
@@ -83,16 +83,40 @@
         measurementId: "G-8T5N81L78J"
       };
 
-      firebase.initializeApp(firebaseConfig);
-      //firebase.functions().useFunctionsEmulator('http://localhost:5001');
-      //firebase.functions().useFunctionsEmulator('http://localhost:5000') 
+      var fireApp   = firebase.initializeApp(firebaseConfig);
+      var fireAuth  = fireApp.auth();     
 
-      const db = firebase.firestore();
-      /*const storage = firebase.storage();
-      const database = firebase.database();
-      const functions = firebase.functions();*/
+      var API_ROOT = "";
+      if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+        API_ROOT = "http://localhost:5001/radon-network/us-central1";
+      }else{
+        API_ROOT = "https://us-central1-radon-network.cloudfunctions.net";
+      }
+
+      if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+        fireAuth.useEmulator("http://localhost:9099");   
+        //firestore.useEmulator("localhost", 8080);    
+        //storage.useEmulator("localhost", 9199);                    
+      } 
 
       $(document).ready(function () {
+
+          function gotoMain(user) {                   
+              var email = user.user.email;
+              var name =  user.user.displayName;           
+              var uid =  user.user.uid;
+              let local = window.location.href;
+              let urlcampaign = local+ "composer/campaign?&account=" + uid;
+              window.location.href = urlcampaign;
+          }
+
+          fireAuth.onAuthStateChanged(function (user) {
+            if (user) {              
+              gotoMain(user);            
+            } else {
+              //homeLoader.hide();             
+            }
+          }); 
 
           homeLoader.hide();
 
@@ -110,8 +134,7 @@
               var errorMessage; 
 
               var inputEmail = $("#inputEmail").val();
-              var inputPassword = $("#inputPassword").val();          
-              
+              var inputPassword = $("#inputPassword").val();       
 
               if (inputEmail=="" || inputPassword=="") {                                           
 
@@ -138,14 +161,14 @@
               } else {
 
 
-                  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+                fireAuth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
                   .then(() => {
                     // Existing and future Auth states are now persisted in the current
                     // session only. Closing the window would clear any existing state even
                     // if a user forgets to sign out.
                     // ...
                     // New sign-in will be persisted with session persistence.
-                    return firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword);
+                    return fireAuth.signInWithEmailAndPassword(inputEmail, inputPassword);
                   })
                   .catch((error) => {
                     
@@ -153,18 +176,13 @@
                     var errorCode = error.code;
                     var errorMessage = error.message;
 
+                    $("#passwordHelp").html(errorMessage);           
+
+                    form.addClass('was-validated');
+
                   }).then((user) => {
 
-                    var email = user.user.email;
-
-                    var name =  user.name;           
-                    var uid =  user.uid;                                      
-
-                    let local = window.location.href;
-
-                    let urlcampaign = local+ "composer/campaign?&account=" + uid;
-
-                    window.location.href = urlcampaign;
+                    gotoMain(user);      
                   
                     // user signed in
                     /*db.collection("accounts").where("email", "==", email).get()

@@ -66,18 +66,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
-    <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>     
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script> 
+
 
     <script src="https://kit.fontawesome.com/f014efefd7.js" crossorigin="anonymous"></script>
 
-    <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>
-
-       
+    <script src="/vendor/colorPicker/js/bootstrap-colorpicker.js"></script>       
 
     <header>
       <img class="logo_ui" src="/images/uitool_logo.png">
@@ -279,7 +276,7 @@
         var jsonCat = {}; 
         var active_campaign = 0;
 
-        var campaign_name, campaign_domain, campaign_id, client_name, client_name_label;
+        var campaign_name, campaign_domain, campaign_id, client_name; //, client_name_label;
 
         const firebaseConfig = {
           apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
@@ -291,12 +288,24 @@
           appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
           measurementId: "G-8T5N81L78J"
         };
-        firebase.initializeApp(firebaseConfig);       
 
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-        const database = firebase.database();
-        const functions = firebase.functions();      
+        var fireApp   = firebase.initializeApp(firebaseConfig);
+        var fireAuth  = fireApp.auth();
+        var firestore = firebase.firestore();
+        //var storage   = firebase.storage();
+
+        var API_ROOT = "";
+        if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+          API_ROOT = "http://localhost:5001/radon-network/us-central1";
+        }else{
+          API_ROOT = "https://us-central1-radon-network.cloudfunctions.net";
+        }
+
+        if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+          fireAuth.useEmulator("http://localhost:9099");   
+          firestore.useEmulator("localhost", 8080);    
+          //storage.useEmulator("localhost", 9199);                    
+        } 
 
         var getUrlParameter = function getUrlParameter(sParam) {
             var sPageURL = window.location.search.substring(1),
@@ -311,29 +320,12 @@
                     return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
                 }
             }
-        };           
+        };          
 
-        /*$( "#login" ).click(function() {       
-
-          firebase.auth()
-          .signInWithEmailAndPassword("josemanuelvigil@gmail.com", "master")
-          .then(function(user) {                      
-
-            console.log(user.id);
-            window.location.reload();            
-
-          }).catch( function(error) {                         
-              var errorMessage = error.message;  
-              console.log(errorMessage);
-          });
-
-        });*/
 
         $( "#btn_loguot" ).click(function() {       
 
-          firebase
-            .auth()
-            .signOut()
+          fireAuth.signOut()
             .then(function () {            
 
               window.location.reload();  
@@ -343,187 +335,192 @@
               console.log(errorMessage);
             });
 
-        });          
+        });           
 
-        firebase.auth().onAuthStateChanged(function (user) {
+        fireAuth.onAuthStateChanged(function (user) {
 
           if (user) { 
 
             $( "#login" ).text("Campoaign composer - Logged");
 
-            window.account = getUrlParameter('account');                     
-
-            db.doc('accounts/' + window.account).get()
-                .then(function(doc) {                                   
-                if (doc.exists) {
-                  client_name =  doc.data().name;   
-                  $( "#client_name").text(client_name);        
-                  client_name_label =  doc.data().name_label; 
-                }                
-            });           
+            window.account = getUrlParameter('account');    
             
-            db.collection('accounts')
-            .doc(window.account)
-            .collection("campaigns")
-            .onSnapshot(snapshot => {
-              
-                var size = snapshot.size;            
-                let changes = snapshot.docChanges();  
-
-                if (size>0) {
+            firestore.collection("accounts").where("uid", "==", user.uid)
+            .get().then(function(doc) {                                   
                 
-                  $("#campaign-table tbody tr").remove();
-                  $("#field-table tbody tr").remove();
-                  $("#campaign-name").val('');                
+              if (doc.docs.length>0) {
+                  client_name =  doc.docs[0].data().name;   
+                  $( "#client_name").text(client_name);        
+                  //client_name_label =  doc.data().name_label; 
+                  return doc.docs[0].id;
+              }
 
-                  var _json_campaign_ = `{"campaigns":[`;
+            }).then(function(accountId) {             
+            
+              firestore.collection('accounts')
+              .doc(accountId)
+              .collection("campaigns")
+              .onSnapshot(snapshot => {
+                
+                  var size = snapshot.size;            
+                  let changes = snapshot.docChanges();  
+
+                  if (size>0) {
                   
-                  var count_campaigns = 0;
+                    $("#campaign-table tbody tr").remove();
+                    $("#field-table tbody tr").remove();
+                    $("#campaign-name").val('');                
 
-                  changes.forEach(change => {
-                      
-                      var document = change.doc;
-                      var id = document.id;  
-                      window.campaignId = id;
-                      let last = document.data().last_update.toDate();
-                      let last_update = formatDate(last);                     
-                      
-                      var _campaign_name    =  document.data().name;
-                      var _campaign_domain  =  document.data().subdomain;                                      
-                      
-                      let item_campaign = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">                      
-                      <td>${_campaign_name}</td>
-                      <td>${_campaign_domain}</td>
-                      <td>${last_update}</td>`;                    
+                    var _json_campaign_ = `{"campaigns":[`;
+                    
+                    var count_campaigns = 0;
 
-                      var item_campaign_joined = item_campaign.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
-                          
-                      console.log(item_campaign_joined);
-                      console.log("");
-
-                      _json_campaign_ += `{"id":"${id}","name":"${_campaign_name}","subdomain":"${_campaign_domain}","item":"${item_campaign_joined}","fields":[`;
-
-                      let fields = document.data().fields;
-
-                      var fields_html = [];
-
-                      if ( fields.length>0 ) {                    
-
-                        $("#field0").remove(); 
-
-                        var count_field = fields.length;
+                    changes.forEach(change => {
                         
-                        var count = 0;
+                        var document = change.doc;
+                        var id = document.id;  
+                        window.campaignId = id;
+                        let last = document.data().last_update.toDate();
+                        let last_update = formatDate(last);                     
+                        
+                        var _campaign_name    =  document.data().name;
+                        var _campaign_domain  =  document.data().subdomain;                                      
+                        
+                        let item_campaign = `<tr id=\\"${count_campaigns}\\" data-id=\\"${document.id}\\">                      
+                        <td>${_campaign_name}</td>
+                        <td>${_campaign_domain}</td>
+                        <td>${last_update}</td>`;                    
 
-                        for (var i=0; i < count_field; i++) {              
-
-                          let field = fields[i];                  
-                          let name = field.name;
-                          let value = field.value;
-
-                          let field_item = `<tr id=\\"field${i}\\">                            
-                            <td>
-                              <input id=\\"name_${i}\\" value=\\"${name}\\" type=\\"text\\" class=\\"form-control\\">
-                            </td>
-                            <td>
-                              <input id=\\"value_${i}\\" value=\\"${value}\\" type=\\"text\\" class=\\"form-control\\">
-                            </td>                               
-                          </tr>`;                             
-
-                          var field_item_joined = field_item.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
-                          
-                          //console.log(field_item_joined);
-                          //console.log("");
-
-                          _json_campaign_ += `"${field_item_joined}"`;
-
-                          if (count == (count_field-1)) {
-
-                            _json_campaign_ += `],"designs":[`; 
-
-                            if (count_campaigns == (size-1)) {                              
-                              _json_campaign_ += `]}]}`; 
-                              jsonCat = JSON.parse(_json_campaign_);
-                              loadCampaignById(active_campaign);
-                            }
-                            count_campaigns++;
-
-                          } else {
-                            _json_campaign_ += `,`; 
-                          }
-                          count ++;
-
-                        }                
-
-                      }  
-                      
-                      const designs = db.collection('accounts')
-                      .doc(window.account)
-                      .collection("campaigns")
-                      .doc(id)
-                      .collection("designs");
-                      designs.get().then((querySnapshot) => {
-
-                          jsonCat.campaigns[active_campaign]["designs"] = [];
-                          
-                          var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
-                          let cardSize = querySnapshot.docs.length;        
-                          window.newdesign = alphabet[cardSize];  
-                          
-                          var countDesigns = 0;
-
-                          if (cardSize > 0) {
-
-                            querySnapshot.docs.map((doc) => {                             
-
-                                if (doc.exists) {
-
-                                  var id_card = doc.id;
-
-                                  db.collection('accounts')
-                                  .doc(window.account)
-                                  .collection("campaigns")
-                                  .doc(id)
-                                  .collection("designs")
-                                  .doc(id_card)
-                                  .onSnapshot((cardSnapshot) => {
-                                  
-                                      let name = cardSnapshot.data().name;
-                                      let piw = cardSnapshot.data().public_image_web;
-                                      let pip = cardSnapshot.data().public_image_preview;
-                                      let card = filterCard(id, id_card, name, piw, pip);     
-                                      
-                                      if (card != undefined) {
-
-                                        let card_joined = card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
-                                        let json_card = `{"id":"${id_card}", "name":"${name}","card":"${card_joined}"}`;                            
-                                        jsonCat.campaigns[active_campaign]["designs"].push(JSON.parse(json_card));
-
-                                        //if (countDesigns == (cardSize-1)) {
-                                          loadCampaignById(active_campaign);
-                                        //}
-
-                                        $(`#preview-${id}-${id_card}`).click({param: id_card}, preview_click);                                    
-                                        $(`#web-${id}-${id_card}`).click({param: id_card}, web_click);                                                                      
-
-                                        countDesigns++;
-
-                                      }  
-                                  });                             
-
-                                }
-                            });
-
-                          }
+                        var item_campaign_joined = item_campaign.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
                             
-                      });
+                        console.log(item_campaign_joined);
+                        console.log("");
 
-                  //end foreach
-                  });                             
-                  
-                //end size
-                }  
+                        _json_campaign_ += `{"id":"${id}","name":"${_campaign_name}","subdomain":"${_campaign_domain}","item":"${item_campaign_joined}","fields":[`;
 
+                        let fields = document.data().fields;
+
+                        var fields_html = [];
+
+                        if ( fields.length>0 ) {                    
+
+                          $("#field0").remove(); 
+
+                          var count_field = fields.length;
+                          
+                          var count = 0;
+
+                          for (var i=0; i < count_field; i++) {              
+
+                            let field = fields[i];                  
+                            let name = field.name;
+                            let value = field.value;
+
+                            let field_item = `<tr id=\\"field${i}\\">                            
+                              <td>
+                                <input id=\\"name_${i}\\" value=\\"${name}\\" type=\\"text\\" class=\\"form-control\\">
+                              </td>
+                              <td>
+                                <input id=\\"value_${i}\\" value=\\"${value}\\" type=\\"text\\" class=\\"form-control\\">
+                              </td>                               
+                            </tr>`;                             
+
+                            var field_item_joined = field_item.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                            
+                            //console.log(field_item_joined);
+                            //console.log("");
+
+                            _json_campaign_ += `"${field_item_joined}"`;
+
+                            if (count == (count_field-1)) {
+
+                              _json_campaign_ += `],"designs":[`; 
+
+                              if (count_campaigns == (size-1)) {                              
+                                _json_campaign_ += `]}]}`; 
+                                jsonCat = JSON.parse(_json_campaign_);
+                                loadCampaignById(active_campaign);
+                              }
+                              count_campaigns++;
+
+                            } else {
+                              _json_campaign_ += `,`; 
+                            }
+                            count ++;
+
+                          }                
+
+                        }  
+                        
+                        const designs = firestore.collection('accounts')
+                        .doc(window.account)
+                        .collection("campaigns")
+                        .doc(id)
+                        .collection("designs");
+                        designs.get().then((querySnapshot) => {
+
+                            jsonCat.campaigns[active_campaign]["designs"] = [];
+                            
+                            var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+                            let cardSize = querySnapshot.docs.length;        
+                            window.newdesign = alphabet[cardSize];  
+                            
+                            var countDesigns = 0;
+
+                            if (cardSize > 0) {
+
+                              querySnapshot.docs.map((doc) => {                             
+
+                                  if (doc.exists) {
+
+                                    var id_card = doc.id;
+
+                                    firestore.collection('accounts')
+                                    .doc(window.account)
+                                    .collection("campaigns")
+                                    .doc(id)
+                                    .collection("designs")
+                                    .doc(id_card)
+                                    .onSnapshot((cardSnapshot) => {
+                                    
+                                        let name = cardSnapshot.data().name;
+                                        let piw = cardSnapshot.data().public_image_web;
+                                        let pip = cardSnapshot.data().public_image_preview;
+                                        let card = filterCard(id, id_card, name, piw, pip);     
+                                        
+                                        if (card != undefined) {
+
+                                          let card_joined = card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
+                                          let json_card = `{"id":"${id_card}", "name":"${name}","card":"${card_joined}"}`;                            
+                                          jsonCat.campaigns[active_campaign]["designs"].push(JSON.parse(json_card));
+
+                                          //if (countDesigns == (cardSize-1)) {
+                                            loadCampaignById(active_campaign);
+                                          //}
+
+                                          $(`#preview-${id}-${id_card}`).click({param: id_card}, preview_click);                                    
+                                          $(`#web-${id}-${id_card}`).click({param: id_card}, web_click);                                                                      
+
+                                          countDesigns++;
+
+                                        }  
+                                    });                             
+
+                                  }
+                              });
+
+                            }
+                              
+                        });
+
+                    //end foreach
+                    });                             
+                    
+                  //end size
+                  }  
+
+              });
+            
             });
 
             $(".clickable-row").click(function() {
@@ -565,7 +562,7 @@
         }
 
         async function buildLink(type, id) {           
-          await db.collection('accounts')
+          await firestore.collection('accounts')
           .doc(window.account)
           .collection("campaigns")
           .doc(campaignId)
@@ -775,7 +772,7 @@
 
         if (existing_name == campaign_name) {
 
-          campaign = await db.collection('accounts')
+          campaign = await firestore.collection('accounts')
             .doc(window.account)
             .collection("campaigns")
             .doc(existing_id).get();
@@ -786,7 +783,7 @@
 
         } else {
 
-          campaign = await db.collection('accounts')
+          campaign = await firestore.collection('accounts')
             .doc(window.account)
             .collection("campaigns")
             .doc();                
@@ -871,7 +868,7 @@
                     web_update: true                
                   };     
                   
-                  return db.collection('accounts')
+                  return firestore.collection('accounts')
                   .doc(window.account)
                   .collection("campaigns")
                   .doc(campaignId)
