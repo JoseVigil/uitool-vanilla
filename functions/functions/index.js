@@ -2,7 +2,7 @@
     functions = require('firebase-functions');
     firebase = require('firebase');
     admin = require('firebase-admin');
-    request = require('request');     
+    request = require('request');             
 
     var firestoreService = require('firestore-export-import');      
     var path = require('path');       
@@ -21,7 +21,7 @@
 
     const readXlsxFile = require('read-excel-file/node');
 
-    serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-c634d4946a.json");   
+    serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-91b5b2783c.json");   
 
     const { parse, join } = require('path');
     const { url } = require('inspector');
@@ -34,10 +34,13 @@
         databaseURL: db_url,          
     });    
 
-    /*firestoreService.initializeApp({
+    firestoreService.initializeApp({
+      project_id:serviceAccount.project_id,
+      private_key:serviceAccount.private_key,
+      client_email:serviceAccount.client_email,
       credential: admin.credential.cert(serviceAccount),
       databaseURL: db_url,             
-    });*/
+    });
     
     const appName = 'notims'
     firestoreService.initializeApp(serviceAccount, appName)
@@ -64,6 +67,7 @@
 
     admins = ["josemanuelvigil@gmail.com"];
 
+    
     //api
     exports.api = require("./src/api");  
     
@@ -80,6 +84,17 @@
     app.use(cors);   
       
     app.get('*', (req, res) => {
+
+        function getJsonFromUrl(url) {          
+          if (!url) url = location.search;
+          //var query = url.substr(1);          
+          var result = {};
+          url.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+          });
+          return result;
+        }
         
         console.log("<<<<<<<<<<<<<<<<<<<<======================");
 
@@ -126,13 +141,27 @@
               break;              
           }
 
-          if (urlParams) {
+          if (urlParams!=undefined) {
             return res.render(static_url, urlParams); 
           } else {
             return res.render(static_url); 
-          }
+          }     
 
-        } else {         
+        } else {           
+          
+          const getOpenGraph = (image, desc, title) => {
+            let og = `<meta property="fb:app_id" content="921373517372" />`;
+            og += `<meta property="og:type" content="website" />`;      
+            og += `<meta property="og:title" content="${title}" />`;
+            og += `<meta property="og:description" content="${desc}" />`;
+            og += `<meta property="og:image" content="${image}" />`;
+            og += `<meta property="og:url" content="https://example.com" />`;
+            return og;      
+          };
+
+          const getMeta = () => {
+            // return other meta tags
+          };  
           
           const userAgent = req.headers['user-agent'].toLowerCase();
 
@@ -149,9 +178,9 @@
               var ogPlaceholder = '<meta name="functions-insert-dynamic-og">';          
               var DesignAppIdPlaceholder = "<functions-path-design-app-id>";       
 
-                let meta_title = document.data().meta_title;
-                let meta_desc = document.data().meta_desc;
-                let meta_image = document.data().meta_image;
+                let meta_title  = document.data().meta_title;
+                let meta_desc   = document.data().meta_desc;
+                let meta_image  = document.data().meta_image;
                 let path_design = document.data().path_design;
 
                 let html_meta = getOpenGraph(meta_image, meta_desc, meta_title);
@@ -172,45 +201,25 @@
 
           });
 
-        }
-
-        function getJsonFromUrl(url) {
-          if (!url) url = location.search;
-          var query = url.substr(1);
-          var result = {};
-          query.split("&").forEach(function(part) {
-            var item = part.split("=");
-            result[item[0]] = decodeURIComponent(item[1]);
-          });
-          return result;
-        }
+        }        
        
     });
 
-    const defaultDesc = 'The mobsters, bootleggers and gangsters of the 1920s and 30s, such as Al Capone, Lucky Luciano, and Bugs Moran.';
-    const defaultTitle = 'Original Gangsters';
-    const defaultLogo = 'https://example.com/images/headerHQ.jpg';
-
-    const getOpenGraph = (image, desc, title) => {
-      let og = `<meta property="fb:app_id" content="921373517372" />`;
-      og += `<meta property="og:type" content="website" />`;      
-      og += `<meta property="og:title" content="${title}" />`;
-      og += `<meta property="og:description" content="${desc}" />`;
-      og += `<meta property="og:image" content="${image}" />`;
-      og += `<meta property="og:url" content="https://example.com" />`;
-      return og;      
+    //Functions seciruty Bearer token 
+    validateFirebaseIdToken = async (req, res, next) => {
+      cors(req, res, () => {
+        const idToken = req.headers.authorization.split('Bearer ')[1];
+        admin.auth().verifyIdToken(idToken).then(decodedIdToken => {
+          console.log('ID Token correctly decoded', decodedIdToken);
+          req.user = decodedIdToken;
+          next();
+        }).catch(error => {
+          console.error('Error while verifying Firebase ID token:', error);
+          res.status(403).send('Unauthorized');
+        });
+      });
     };
-
-    const getMeta = () => {
-      // return other meta tags
-    };    
- 
-    // When a user is created, register the account
-    /*exports.onCreateUser = functions.auth.user().onCreate(async (user) => {
-      let email = user.email;
-      let userId = user.uid;
-      return firestore.collection('accounts').doc(userId).set({uid:userId, email: email});
-    });*/
+   
 
     exports.app = functions.https.onRequest(app);
 
@@ -315,7 +324,7 @@
       
     };  
     
-    const Composer = async function(req, res) {       
+    /*const Composer = async function(req, res) {       
 
       const pathParams = req.path.split('/');
       var module = pathParams[2];
@@ -367,7 +376,7 @@
         return result;
       }
 
-    }; 
+    };*/ 
 
     
     const Action = async function(req, res) { 
@@ -429,7 +438,9 @@
           var buff = Buffer.from(encoded_path, 'base64'); 
           let url_path = buff.toString('ascii');
 
-          console.log("path: " + path);      
+          console.log("---------------------------------"); 
+          console.log("url_path: " + url_path);      
+          console.log();
           
           var type, image_width, image_height;
           
@@ -465,7 +476,7 @@
           await rp(_json)
           .then( async (response_image) => {
 
-            console.log("response: " + JSON.stringify(response_image)); 
+            console.log("response buildimage: " + JSON.stringify(response_image)); 
 
             if (response_image.status === 200 ) {           
 
@@ -491,7 +502,7 @@
     }); 
 
 
-    exports.buildimage = functions.https.onRequest(async (request, response) => {
+    exports.buildimage_local = functions.https.onRequest(async (request, response) => {
         
 
         console.log("ENTRA : BuildImage");

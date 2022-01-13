@@ -84,39 +84,40 @@
       };
 
       var fireApp   = firebase.initializeApp(firebaseConfig);
-      var fireAuth  = fireApp.auth();     
+      var fireAuth  = fireApp.auth();   
+      var firestore = firebase.firestore();  
 
       var API_ROOT = "";
       if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
-        API_ROOT = "http://localhost:5001/radon-network/us-central1";
+        API_ROOT = "http://localhost:5001/notims/us-central1/";
       }else{
-        API_ROOT = "https://us-central1-radon-network.cloudfunctions.net";
+        API_ROOT = "https://us-central1-notims.cloudfunctions.net";
       }
 
       if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
         fireAuth.useEmulator("http://localhost:9099");   
-        //firestore.useEmulator("localhost", 8080);    
+        firestore.useEmulator("localhost", 8080);    
         //storage.useEmulator("localhost", 9199);                    
       } 
 
       $(document).ready(function () {
 
           function gotoMain(user) {                   
-              var email = user.user.email;
-              var name =  user.user.displayName;           
-              var uid =  user.user.uid;
+              var email = user.email;
+              var name =  user.displayName;           
+              var uid =  user.uid;
               let local = window.location.href;
               let urlcampaign = local+ "composer/campaign?&account=" + uid;
               window.location.href = urlcampaign;
           }
 
-          fireAuth.onAuthStateChanged(function (user) {
+          /*fireAuth.onAuthStateChanged(function (user) {
             if (user) {              
               gotoMain(user);            
             } else {
               //homeLoader.hide();             
             }
-          }); 
+          });*/ 
 
           homeLoader.hide();
 
@@ -182,23 +183,41 @@
 
                   }).then((user) => {
 
-                    gotoMain(user);      
+                    //gotoMain(user);      
                   
                     // user signed in
                     /*db.collection("accounts").where("email", "==", email).get()
-                    .then(function(account) {
+                    .then(function(account) {*/
+
+                    let uid = user.user.uid;
+                    
+                    firestore.collection("accounts").where("uid", "==", uid).get()
+                    .then(async function(account) {
 
                       var name =  account.docs[0].data().name;                
                       var name_label =  account.docs[0].data().name_label;    
                       var uid =  account.docs[0].data().uid;                                      
-
                       let local = window.location.href;
 
-                      let urlcampaign = local+ "composer/campaign?&account=" + uid;
+                      firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then(async function(idToken) {
+                     
+                        await firestore.collection("accounts").doc(uid).set({token:idToken}, {merge:true});
 
-                      window.location.href = urlcampaign;
+                        let urlcampaign = local+ "composer/campaign?&account=" + uid;
 
-                    });*/
+                        window.location.href = urlcampaign;
+
+                      
+                      }).catch(function(error) {
+
+                        $("#passwordHelp").html(error);           
+
+                        form.addClass('was-validated');
+                     
+                      });
+
+                      
+                    });
 
                   }).catch( function(error) {  
                       

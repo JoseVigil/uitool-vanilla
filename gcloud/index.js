@@ -1,8 +1,9 @@
+//https://github.com/GoogleCloudPlatform/functions-framework-nodejs
+
 const {Firestore} = require('@google-cloud/firestore');
 const {Storage} = require('@google-cloud/storage');		
 const chromium = require("chrome-aws-lambda");	
 const {Logging} = require('@google-cloud/logging');
-
 
 const htmlFunctions = require('./build_html.js');
 
@@ -51,7 +52,6 @@ const timer = ms => new Promise( res => setTimeout(res, ms));
 
 const getDefault = function getDefault(req, res) { res.status(404).send('Bad URL'); }	
 
-
 var BUILD_IMAGE_WEB			= 'web';
 var BUILD_IMAGE_PREVIEW		= 'preview';
 
@@ -64,6 +64,7 @@ const buildimage = async function(req, res) {
 
 	let url_path 			= req.body.data.url_path;
 	var public_url 			= "https://noti.ms/composer/thumbnail?&path=/" + url_path;
+	
 	var documentRef 		= firestore.doc(url_path);
 
 	var paths = url_path.split("/");	

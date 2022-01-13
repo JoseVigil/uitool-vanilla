@@ -2,17 +2,18 @@
   "name": "notims",
   "version": "1.0.0",
   "description": "Notimation ",
-  "main": "index.js", 
-  "dependencies": {    
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^2.1.0",
+    "@google-cloud/logging": "8.0.3",
     "@google-cloud/storage": "5.1.2",
     "chrome-aws-lambda": "5.5.0",
-    "puppeteer-core": "5.5.0",
-    "iltorb": "^2.4.5",      
-    "firebase-admin": "^8.13.0",    
-    "@google-cloud/logging": "8.0.3"
-  }, 
+    "firebase-admin": "^8.13.0",
+    "iltorb": "^2.4.5",
+    "puppeteer-core": "5.5.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "functions-framework --target=backend --port=8081"
   },
   "author": "Jose Vigil",
   "license": "ISC"

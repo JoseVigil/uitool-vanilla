@@ -42,7 +42,7 @@
      <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">     
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
      <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
-     <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
+     <link rel="icon" type="image/x-icon" href="https://vigil.com.ar/favicons/uitool.ico"/>
      
      <title>Noti.ms</title>
   
@@ -66,12 +66,10 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>    
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>
 
-        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
-        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
-        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
+        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>     
+        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script> 
 
         <div class="container-fluid">
             <main id="main"></main>
@@ -102,19 +100,29 @@
                     appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
                     measurementId: "G-8T5N81L78J"
                 };
-                firebase.initializeApp(firebaseConfig);
-
-                const db = firebase.firestore();
-                const storage = firebase.storage();
-                const database = firebase.database();
-                const functions = firebase.functions();              
+                var fireApp   = firebase.initializeApp(firebaseConfig);
+                var fireAuth  = fireApp.auth();   
+                var firestore = firebase.firestore();     
                 
-                firebase.auth().signInAnonymously()
+                var API_ROOT = "";
+                if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+                    API_ROOT = "http://localhost:5001/notims/us-central1/";
+                } else{
+                    API_ROOT = "https://us-central1-notims.cloudfunctions.net";
+                }
+
+                if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+                    fireAuth.useEmulator("http://localhost:9099");   
+                    firestore.useEmulator("localhost", 8080);    
+                    //storage.useEmulator("localhost", 9199);                    
+                }          
+                
+                fireAuth.signInAnonymously()
                     .then(function() {  
                     
                     //let rocRef = db.doc("/clients/kairos/campaigns/DEUDA_345_ASF/web/default");
 
-                    let rocRef = db.doc(window.path);
+                    let rocRef = firestore.doc(window.path);
                     rocRef.get()
                     .then(function(doc) { 
                         

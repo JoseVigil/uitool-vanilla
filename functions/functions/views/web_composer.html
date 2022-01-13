@@ -479,12 +479,9 @@
         appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
         measurementId: "G-8T5N81L78J"
       };
-      firebase.initializeApp(firebaseConfig);
-
-      const db = firebase.firestore();
-      const storage = firebase.storage();
-      const database = firebase.database();
-      const functions = firebase.functions();
+      var fireApp   = firebase.initializeApp(firebaseConfig);
+      var fireAuth  = fireApp.auth();   
+      var firestore = firebase.firestore();   
 
       var getUrlParameter = function getUrlParameter(sParam) {
           var sPageURL = window.location.search.substring(1),
@@ -580,10 +577,10 @@
 
           let designPath = window.documentPath + "/designs/" + window.designId;
 
-          let docDesign = await db.doc(designPath).get();
+          let docDesign = await firestore.doc(designPath).get();
           window.type   = docDesign.data().load_type;
           
-          db.doc(window.documentPath).get()
+          firestore.doc(window.documentPath).get()
               .then(function(doc) {   
 
                 // LOAD FIELDS
@@ -1012,8 +1009,7 @@
                               GetHTML();
 
                             }
-                        }
-                      
+                        }                      
 
                       } else if (window.type=="web") { 
                       
@@ -1166,7 +1162,7 @@
 
               var docPath = window.documentPath + "/designs/" + window.designId;              
               const encodedPath = window.btoa(docPath);
-              var htmlRef = db.doc(docPath); 
+              var htmlRef = firestore.doc(docPath); 
 
               if (window.type=="preview") {
 
@@ -1237,7 +1233,7 @@
 
               }       
 
-              db.doc(docPath).set(payload,{ merge: true }).then(docRefSet => {
+              firestore.doc(docPath).set(payload,{ merge: true }).then(docRefSet => {
 
                  //let path = docRefSet.path;
 
