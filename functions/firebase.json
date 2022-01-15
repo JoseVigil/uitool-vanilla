@@ -12,7 +12,8 @@
     "rewrites": [ {
       "source": "**",
       "function": "app"  
-    } ]
+    }]
+
   },
   "storage": {
     "rules": "storage.rules"
@@ -37,6 +38,12 @@
       "enabled": true,
       "host": "localhost",
       "port": 4002
+    },
+    "auth": {
+      "port": 9099
+    },
+    "storage": {
+      "port": 9199
     }
   },
   "firestore": {
@@ -48,5 +55,8 @@
       "npm --prefix \"$RESOURCE_DIR\" run lint"
     ],
     "source": "functions"
+  },
+  "remoteconfig": {
+    "template": "remoteconfig.template.json"
   }
 }

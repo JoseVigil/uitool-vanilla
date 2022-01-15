@@ -8,15 +8,15 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>uiTool</title>
+    <title>Notimation Gateways</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">    
     <!-- <link rel="stylesheet" href="vendor\bootstrap\css\bootstrap.min.css"> -->       
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="icon" type="image/x-icon" href="https://vigil.com.ar/favicons/uitool.ico"/>                    
+    <link rel="icon" type="image/x-icon" href="https://vigil.com.ar/favicons/notimation.ico"/>                    
     <link type="text/css" rel="stylesheet" href="vendor/loading_indicator/jquery.loading-indicator.css" />
-    <link rel="stylesheet" type="text/css" href="css/styles_uitool.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
   </head>
 
   <!-- Optional JavaScript -->
@@ -25,20 +25,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   <script src="vendor/loading_indicator/jquery.loading-indicator.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
-  <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>
+ 
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script> 
 
   <body class="login_body">
 
     <div class="container-fluid">
       <div class="cnt_login">
         <div class="box_login">
-          <img class="logo_login" alt="Bootstrap Image Preview" src="images\uitool_logo.png" />
-          <p class="login_text">Ingresa tu usuario y contraseña</p>
+          <img class="logo_login" alt="Bootstrap Image Preview" src="images\notimation.png" />
+          <p class="login_text">Administracion Gateways</p>
           <form role="form">
             <div class="form-group">                       
               <label for="inputEmail">Email address</label>
@@ -70,7 +67,7 @@
 
       var editObjects = new Object();
       
-      var homeLoader = $('body').loadingIndicator({ useImage: false,}).data("loadingIndicator");
+      //var homeLoader = $('body').loadingIndicator({ useImage: false,}).data("loadingIndicator");
 
       var firebaseConfig = {
         apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
@@ -83,142 +80,127 @@
         measurementId: "G-8T5N81L78J"
       };
 
-      firebase.initializeApp(firebaseConfig);
-      //firebase.functions().useFunctionsEmulator('http://localhost:5001');
-      //firebase.functions().useFunctionsEmulator('http://localhost:5000') 
+      const firebaseApp = firebase.initializeApp(firebaseConfig);
+      const auth = firebaseApp.auth();
 
-      const db = firebase.firestore();
-      /*const storage = firebase.storage();
-      const database = firebase.database();
-      const functions = firebase.functions();*/
+      if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+        auth.useEmulator("http://localhost:9099");
+      }    
 
       $(document).ready(function () {
 
-          homeLoader.hide();
+        let _json = {
+              url_managment : "/en/10-6SMSManagement.php",
+              url_send : "/en/5-3-2SMSsend.php",
+              url_base_local : "http://localhost:5001/notims/us-central1",
+              url_using : "/en/5-9SIM.php",
+              url_ussd : "/en/5-5USSD.php",
+              params_send : "/backend/gateway/send",
+              params_send_only : "/backend/gateway/sendonly",
+              url_domain : ".notimation.com",
+              url_base_remote : "https://us-central1-notims.cloudfunctions.net",
+              url_switch : "/en/5-9-1SIMSet.php",
+              params_status : "/backend/gateway/status",
+              params_ussdsend : "/backend/gateway/ussdsend",
+              params_ussdread : "/backend/gateway/ussdread",
+              url_base : "http://s",
+              parmas_using : "/backend/gateway/using",
+              parmas_managment : "/backend/gateway/managment",
+              url_status : "/en/1-2chstatus.php",
+              params_received : "/backend/gateway/smsreceived",
+              url_received : "/en/5-3-1SMSinfo.php?ch=",
+              url_sendweb : "/backend/gateway/sendweb",
+              url_save_phone : "/en/5-2-1mobilemodify.php?id=",
+              params_save_phone : "/backend/gateway/savephone"
+          };
 
-          $('#btn-login').click(function(e) {                            
-              e.preventDefault(); 
-              
-              var form = $("#loginForm")
+          let t = _json.url_base_remote;
 
-              /*if (form[0].checkValidity() === false) {
-                  event.preventDefault()
-                  event.stopPropagation()
-              }*/           
+          //let j =  JSON.parse(_json);
 
-              var empty = false;        
-              var errorMessage; 
+        function gotoMain(uid) {                   
+            let local = window.location.href;            
+            let urlmain = local+ "gateways?&uid=" + uid;
+            window.location.href = urlmain;
+            //homeLoader.hide();
+        }
+        
+        auth.onAuthStateChanged(function (user) {
+          if (user) {
+            var uid = user.uid; 
+            gotoMain(uid);            
+          } else {
+            //homeLoader.hide();             
+          }
+        });         
 
-              var inputEmail = $("#inputEmail").val();
-              var inputPassword = $("#inputPassword").val();          
-              
+        $('#btn-login').click(async function(e) {                            
+            e.preventDefault(); 
+            
+            var form = $("#loginForm");   
 
-              if (inputEmail=="" || inputPassword=="") {                                           
+            var empty = false;        
+            var errorMessage; 
 
-                  empty = true;             
-                  let prob = 0;
+            var inputEmail = $("#inputEmail").val();
+            var inputPassword = $("#inputPassword").val();              
 
-                  if (inputEmail=="" && inputPassword=="") {
-                      errorMessage = "Los campor email y password están vacios";    
-                  } else if (inputEmail=="") {
-                      errorMessage = "El campor email está vacío";    
-                  } else if (inputPassword=="") {
-                      errorMessage = "El campor password está vacío";    
-                  }
+            if (inputEmail=="" || inputPassword=="") {                                           
+
+                empty = true;             
+                let prob = 0;
+
+                if (inputEmail=="" && inputPassword=="") {
+                    errorMessage = "Los campor email y password están vacios";    
+                } else if (inputEmail=="") {
+                    errorMessage = "El campor email está vacío";    
+                } else if (inputPassword=="") {
+                    errorMessage = "El campor password está vacío";    
+                }
+                
+            }  
+
+            if (empty) {       
+                
+                $("#passwordHelp").html(errorMessage);           
+
+                form.addClass('was-validated');
+                
+
+            } else {
+
+
+                var user = await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+                .then(() => {
+                  // Existing and future Auth states are now persisted in the current
+                  // session only. Closing the window would clear any existing state even
+                  // if a user forgets to sign out.
+                  // ...
+                  // New sign-in will be persisted with session persistence.
+                  return firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword);
+                })
+                .catch((error) => {
                   
-              }  
+                  // Handle Errors here.
+                  var errorCode = error.code;
+                  var errorMessage = error.message;
 
-              if (empty) {       
-                  
                   $("#passwordHelp").html(errorMessage);           
 
                   form.addClass('was-validated');
-                  
 
-              } else {
+                });                  
 
+                var email = user.email;
+                var uid = user.uid; 
 
-                  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
-                  .then(() => {
-                    // Existing and future Auth states are now persisted in the current
-                    // session only. Closing the window would clear any existing state even
-                    // if a user forgets to sign out.
-                    // ...
-                    // New sign-in will be persisted with session persistence.
-                    return firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword);
-                  })
-                  .catch((error) => {
-                    
-                    // Handle Errors here.
-                    var errorCode = error.code;
-                    var errorMessage = error.message;
+                gotoMain(uid);                
+          
+            } 
+        });     
+            
+    });
 
-                  }).then((user) => {
-
-                    var email = user.user.email;
-                  
-                    // user signed in
-                    db.collection("accounts").where("email", "==", email).get()
-                    .then(function(account) {
-
-                      var name =  account.docs[0].data().name;                
-                      var name_label =  account.docs[0].data().name_label;    
-                      var uid =  account.docs[0].data().uid;                                      
-
-                      let local = window.location.href;
-
-                      let urlcampaign = local+ "composer/campaign?&account=" + uid;
-
-                      window.location.href = urlcampaign;
-
-                    });
-
-                  }).catch( function(error) {  
-                      
-                      //var errorCode = error.code;
-                      var errorMessage = error.message;  
-
-                      $("#passwordHelp").html(errorMessage);           
-
-                      form.addClass('was-validated');
-
-                  });
-
-
-                  /*firebase.auth().signInWithEmailAndPassword(inputEmail, inputPassword).then(function(user) {
-
-                      var email = user.user.email;
-                  
-                      // user signed in
-                      db.collection("accounts").where("email", "==", email).get()
-                      .then(function(account) {
-
-                        var name =  account.docs[0].data().name;                
-                        var name_label =  account.docs[0].data().name_label;    
-                        var uid =  account.docs[0].data().uid;                                      
-
-                        let local = window.location.href;
-
-                        let urlcampaign = local+ "composer/campaign?&account=" + uid;
-
-                        window.location.href = urlcampaign;
-
-                      });
-                  
-                  
-                  }).catch( function(error) {  
-                      
-                      //var errorCode = error.code;
-                      var errorMessage = error.message;  
-
-                      $("#passwordHelp").html(errorMessage);           
-
-                      form.addClass('was-validated');
-
-                  });*/
-              } 
-          });         
-      });
 
       
   </script>

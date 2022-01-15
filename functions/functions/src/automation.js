@@ -109,20 +109,15 @@
             
                         promises.push(rp(options));
 
-                        if (count === (size-1)) {
+                        if (count == (size-1)) {
                             resolve(promises);
                         }
 
                         count++;
 
                     }
-                }); 
-
-                return {};
+                });
                 
-            }).catch((error) => {
-                console.log("error: " + error);
-                return error;
             });
             
         });
@@ -283,17 +278,6 @@
                             jsonCards += `}`;
                             let jsonPorts = JSON.parse(jsonCards);
                             countAdded = 0;
-
-                            //Store date_ports into automation
-                            promises_sims.push(
-                            firestore
-                                .collection("automation")
-                                .doc("presets")
-                                //.collection("active_date_port")
-                                //.doc(date_ports)
-                                .set({"active_date_port":date_ports}, { merge: true })
-                            );
-
                             promises_sims.push(
                                 firestore
                                 .collection("gateways")
@@ -302,7 +286,6 @@
                                 .doc(portName)
                                 .set(jsonPorts, { merge: true })
                             );
-
                         } else {
                             jsonCards += `,`;
                             countAdded++;
@@ -875,12 +858,10 @@
         var stageC = []; 
         var stageD = []; 
         
-        
         for (var i=0; i<cards.length; i++) {
 
             let card = cards[i];
 
-            //ACA RESOLVER
             switch (card) {
                 
                 case "A":    
@@ -1233,8 +1214,7 @@
         for (var i=0; i<cards.length; i++) {
 
             let card = cards[i];
-            
-            //ACA RESOLVER
+
             switch (card) {
                 
                 case "A":    
@@ -1265,7 +1245,7 @@
                     }    
                 break;   
                 
-            }  
+            }   
             
         }
 
@@ -1424,7 +1404,6 @@
 
                         console.log("");
                         console.log("*********************");                                    
-                        console.log("_gateway   : " + _gateway);   
                         console.log("json       : " + _json);                                    
                         console.log("port       : " + port_number);                                                            
                         console.log("portname   : " + portname);   
@@ -1441,7 +1420,7 @@
                                 .set(jsonCards, { merge: true })
                         ); 
 
-                        if (count === (size-1)) {
+                        if (count == (size-1)) {
 
                             console.log("");
                             console.log("Termina carga reset");                                                                
@@ -1846,12 +1825,12 @@
 
                                 if (numbers_array.length>0) {
 
-                                    for (var t=0; t<numbers_array.length; t++) {
+                                    for (var i=0; i<numbers_array.length; i++) {
 
                                         //let using = `{"card":"${card}","operator":"${operator}", "port":${port}, "phone":${phone}}`;
-                                        let card = numbers_array[t].card;
-                                        let port = numbers_array[t].port;
-                                        let phone = numbers_array[t].phone;
+                                        let card = numbers_array[i].card;
+                                        let port = numbers_array[i].port;
+                                        let phone = numbers_array[i].phone;
                                         
                                         let json = { card:card, port:port, phone:phone };
                                         let realPort = port+1;
@@ -1907,21 +1886,21 @@
 
                                     if ( length_limit > 0 ) {        
                                         
-                                        for(var k=0; k<length_limit; k++) {
+                                        for(var i=0; i<length_limit; i++) {
                                         
-                                            let card = send_queue_limit[k].card;
-                                            let port = send_queue_limit[k].port;
-                                            let path = send_queue_limit[k].path;
-                                            let phone = send_queue_limit[k].phone;
+                                            let card = send_queue_limit[i].card;
+                                            let port = send_queue_limit[i].port;
+                                            let path = send_queue_limit[i].path;
+                                            let phone = send_queue_limit[i].phone;
                                             var jsonCard = {card:card ,port:port, phone:phone, path:path};                                        
 
                                             let page = parseInt(port)-1;
 
-                                            var _url_ = _urls.url_base_remote + _urls.params_save_phone;
+                                            var _url = _urls.url_base_remote + _urls.params_save_phone;
 
                                             var option_sendphone = {
                                                 method: "POST",
-                                                uri: _url_,
+                                                uri: _url,
                                                 body: {
                                                     data: {
                                                         "gateway": gateway_number,
@@ -1937,8 +1916,7 @@
                                             console.log("option_sendphone: " + JSON.stringify(option_sendphone));
                                             console.log();
 
-                                            //ACA RESOLVER
-                                            var results_sendphone =  await rp(option_sendphone);                                                                                                                                                                    
+                                            var results_sendphone =  await rp(option_sendphone);                                                                                                                                                                     
 
                                             let data            = results_sendphone;                                            
                                             let path_delete     = data.path;    
@@ -1946,8 +1924,8 @@
                                             let phone_delete    = data.phone;  
                                             var port_name       = "port" + port_delete;                                            
                                             
-                                            var _json_ = `{"${data.card}":{"stage":${STAGE_SAVED_NUMBER}}}`;
-                                            var _jsonCard = JSON.parse(_json_);
+                                            var _json = `{"${data.card}":{"stage":${STAGE_SAVED_NUMBER}}}`;
+                                            var jsonCard = JSON.parse(_json);
                                             
                                             console.log("");
                                             console.log("*********************");                                    
@@ -1955,7 +1933,7 @@
                                             console.log("_gateway   : " + gateway_number);
                                             console.log("_date_ports: " + _date_ports);
                                             console.log("port_name  : " + port_name);
-                                            console.log("jsonCard   : " + JSON.stringify(_jsonCard)); 
+                                            console.log("jsonCard   : " + JSON.stringify(jsonCard)); 
                                             console.log("phone      : " + phone_delete);                                    
                                             console.log("*********************");
                                             console.log("");                        
@@ -1973,25 +1951,23 @@
                                                     .set(jsonCard, { merge: true })
                                             ); 
 
-                                            //ACA RESOLVER
                                             await Promise.all(promises_save).catch((error) => {                                            
                                                 console.log("error post: " + error);                                          
                                                 return error;
                                             });
 
-                                            if (count === (length_limit-1)) {
+                                            if (count == (length_limit-1)) {
 
                                                 var countsave = parseInt(count_save_number);
                                                 countsave++;
 
-                                                //ACA RESOLVER
                                                 await firestore
                                                 .collection("automation")
                                                 .doc(automation_id)
                                                 .set({
                                                     read_quenue: false,
                                                     count_save_number: countsave,
-                                                }, { merge: true });                                   
+                                                }, { merge: true });                                        
 
                                             }
 
@@ -2036,9 +2012,9 @@
                                 try 
                                 {
                                                                 
-                                    var _reset_state = await FB_ResetStatus("S" + gateway_number, "A", _date_ports);
+                                    var _reset_state = await FB_ResetStatus(_gateway, "A", _date_ports);
 
-                                    /*if (_reset_state) {
+                                    if (_reset_state) {
 
 
                                     
@@ -2047,7 +2023,7 @@
 
                                     } else {
 
-                                    }*/
+                                    }
 
                                     await firestore
                                             .collection("automation")

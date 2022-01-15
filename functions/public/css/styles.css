@@ -1,6 +1,6 @@
 .login_body{
 	background-color: #e1e1e1;
-	background-image: url('../images/fondo_login.png');
+	/*background-image: url('../images/fondo_login.png');*/
 }
 .cnt_login{
 	display: flex;
@@ -141,7 +141,7 @@ html{
 }
 .body_campaing{
 	background-color: #000;
-	background-image: url('../images/fondo_campaing.png');
+	/*background-image: url('../images/fondo_campaing.png');*/
 	display: flex;
 	flex-direction: column;
 	height: 100%;
