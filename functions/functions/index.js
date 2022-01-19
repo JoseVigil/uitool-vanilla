@@ -25,14 +25,13 @@
      * Remote gateway control
      */    
 
-    serviceAccount = require("./key/notims-firebase-adminsdk-rwhzg-c634d4946a.json");   
+    serviceAccount = require("./key/noti-gateways-firebase-adminsdk-2vseb-9294c130dd.json");   
 
     const { parse, join } = require('path');
     const { url } = require('inspector');
 
-    db_url = "https://notims.firebaseio.com";
-    var _payloadUrl = "http://noti.ms/";    
-    
+    db_url = "https://noti-gateways.firebaseio.com";
+        
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         databaseURL: db_url,          
