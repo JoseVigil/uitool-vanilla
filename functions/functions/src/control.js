@@ -6,7 +6,7 @@
     var STAGE_NOT_RECEIVED      = 1002;
     var STAGE_SENT_FAILED       = 1003;    
     var STAGE_RECEIVED          = 1004;   
-    var STAGE_SAVED_NUMBER      = 1010;
+    var STAGE_SAVED_NUMBER      = 1010;    
 
     var GetURLS = function () {
         let _json = {
@@ -35,6 +35,18 @@
         };
         return _json;  
     };
+
+    function sleep(milliseconds) {
+        console.log();        
+        console.log("SLEEP: " + milliseconds);                                                                      
+        console.log();
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e30; i++) {
+            if ((new Date().getTime() - start) > milliseconds){
+            break;
+            }
+        }
+    }
 
     var getDateLabel = function() {
         
@@ -328,14 +340,14 @@
             json: true,
         };
 
-        //console.log(JSON.stringify(option_status));
+        console.log(JSON.stringify(option_status));
 
         await rp(option_status)
             .then(async function (results_status) {
                 
-            //console.log(
-            //    " ------ results_status ------- " + JSON.stringify(results_status)
-            //);
+            console.log(
+                " ------ results_status ------- " + JSON.stringify(results_status)
+            );
 
             var length = results_status.managment.length;
             var count = 0;
@@ -363,14 +375,17 @@
                 case 3:
                     card = "D";
                     break;
-                }
+                }           
                 
+                if (operator == "---") {
+                    operator = "Claro AR";
+                };
 
                 let jsonStatus = JSON.parse(
                     `{"${card}":{"operator":"${operator}","signal":"${signal}"}}`
                 );
 
-                //console.log("operator: " + operator);
+                console.log("operator: " + operator);
 
                 //if (operator != "---") {
 
@@ -655,7 +670,7 @@
         }
     }  
     
-    var FB_UsingPhones = async function (gateway_number, date_ports) {
+    /*var FB_UsingPhones = async function (gateway_number, date_ports) {
 
         var usingAll = [];        
 
@@ -666,17 +681,17 @@
 
         var usingB  = await FB_OperatorFromCard("B", date_ports);
         if (usingB.length > 0) {
-            //console.log("usingB: " + JSON.stringify(usingB));                
+            console.log("usingB: " + JSON.stringify(usingB));                
         }
 
         var usingC  = await FB_OperatorFromCard("C", date_ports);
         if (usingC.length > 0) {
-            //console.log("usingC: " + JSON.stringify(usingC));                
+            console.log("usingC: " + JSON.stringify(usingC));                
         }
 
         var usingD  = await FB_OperatorFromCard("D", date_ports);
         if (usingD.length > 0) {
-            //console.log("usingD: " + JSON.stringify(usingD));                
+            console.log("usingD: " + JSON.stringify(usingD));                
         }            
 
         usingAll.push(...usingA, ...usingB, ...usingC, ...usingD);
@@ -687,7 +702,7 @@
 
         return usingAll;
         
-    }
+    }*/
 
     var FB_OperatorFromCard = async function (card, date_ports) {
 
@@ -757,8 +772,437 @@
 
         return usingArray;
 
-    } 
+    }
+
+    var FB_StageReceive = async function (card, port_date, stage_process) {
+
+        var _card = card;
+
+        var usingArray = await new Promise( async (resolve, reject) => {
+
+            var stages = [];
+
+            var size = 0;
+            var count = 0;
+
+            var stage = card + ".stage";
+            var status = card + ".status";           
+
+            await firestore
+                .collectionGroup(port_date)                                      
+                //.where(status, "in", ["Using"])
+                .where(stage, "in", [stage_process]) 
+                .get().then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;
+                //console.log("size: "+ size);
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        //let stage = doc.data()[_card].stage; 
+
+                        //if (stage == stage_process) {
+
+                        let status = doc.data()[_card].status; 
+                        //console.log("status: " + status);
+
+                        let operator = doc.data()[_card].operator;                   
+                        let port = doc.id.match(/[0-9]+/g);                          
+                        let using = `{"card":"${_card}","operator":"${operator}", "port":${port}}`;
+                        stages.push(JSON.parse(using));
+                        
+                        //}
+
+                        if (count === (size-1)) {
+                            resolve(stages);
+                        }
+
+                        count++;
+                        
+                    });
+
+                } else {
+                    resolve(stages);
+                }
+
+                return {};
+
+            }).catch((error) => {
+                console.log("error carajo: " + error);
+                return error;
+            });
+            
+        });  
+
+        return usingArray;
+
+    }
     
+    var FB_StageProcessReceive = async function (cards, date_ports, stage) {
+
+        var stageAll = [];    
+
+        var stageA = []; 
+        var stageB = []; 
+        var stageC = []; 
+        var stageD = []; 
+        
+        for (var i=0; i<cards.length; i++) {
+
+            let card = cards[i];
+
+            switch (card) {
+                
+                case "A":    
+                    stageA  = await FB_StageReceive("A", date_ports, stage);
+                    if (stageA.length > 0) {
+                        //console.log("stageA: " + JSON.stringify(stageA));            
+                    }        
+                break;    
+
+                case "B": 
+                    stageB  = await FB_StageReceive("B", date_ports, stage);
+                    if (stageB.length > 0) {
+                        //console.log("stageB: " + JSON.stringify(stageB));                
+                    }
+                break; 
+
+                case "C":    
+                    stageC  = await FB_StageReceive("C", date_ports, stage);
+                    if (stageC.length > 0) {
+                        //console.log("stageC: " + JSON.stringify(stageC));                
+                    }
+                break;
+
+                case "C":    
+                    stageD  = await FB_StageReceive("D", date_ports, stage);
+                    if (stageD.length > 0) {
+                        //console.log("stageD: " + JSON.stringify(stageD));                
+                    }            
+                break;
+            
+            }
+
+            stageAll.push(...stageA, ...stageB, ...stageC, ...stageD);
+
+            stageAll.sort(GetSortOrder("gateway"));
+
+            //console.log("stageAll: " + JSON.stringify(stageAll));
+        }
+
+        return stageAll;
+        
+    }
+
+    var GetSortOrder = function(prop) {    
+        return function(a, b) {    
+            if (a[prop] > b[prop]) {    
+                return 1;    
+            } else if (a[prop] < b[prop]) {    
+                return -1;    
+            }    
+            return 0;    
+        }    
+    }
+
+    var GW_QueueSims = async function(cards, automationId, date_ports, stage) {             
+        
+        try  {
+        
+            let stageArray = await FB_StageProcessReceive(cards, date_ports, stage);             
+
+            console.log("-----------------------");
+            console.log("stageArray: " + JSON.stringify(stageArray));
+            console.log("-----------------------");
+            console.log("");
+
+            var promises_queue = [];
+            
+            var claro_data_receive = [];
+            var movistar_data_receive = [];
+            
+            var claro_phones = [];
+            var movistar_phones = [];
+            var personal_phones = [];            
+
+            if (stageArray.length>0) {            
+
+                for (var s in stageArray) {
+                    
+                    let stage = stageArray[s];             
+
+                    var operator = stage.operator;
+                    var card = stage.card;
+                    var port = parseInt(stage.port)-1;              
+                    
+                    //console.log("operator: " + operator);
+                    //console.log("i: " + i);
+                    
+                    if (operator === "Claro AR") {
+
+                        //claro_phones.push(port-1);                
+                        //claro_data_receive.push({ id:port, operator:operator, card:card, port:port-1 });                
+                        //claro_phones = claro_phones.slice(i, i+4);
+                        //claro_data_receive.slice(i, i+4);
+                        
+                        let json = { card:card, port:port };
+                        let realPort = port+1;
+                        var portName = "port" + realPort;
+
+                        promises_queue.push(
+                            firestore
+                                .collection("automation")
+                                .doc(automationId)
+                                .collection("queue_sent")
+                                .doc(portName)
+                                .set(json, { merge: true })
+                        );
+                    }
+
+                    if (operator === "Movistar") {
+                        //movistar_phones.push(port-1);                
+                        movistar_data_receive.push({ operator:operator, card:card, port:port });
+                    }
+
+                    if (operator === "Personal") {
+                        personal_phones.push(port);                
+                    }              
+
+                } 
+                
+                if (promises_queue.length > 0) {                    
+                    await Promise.all(promises_queue).catch((error) => {
+                        console.log("error post: " + error);
+                        return error;
+                    });                    
+                    return true;
+                }  else  {
+                    return false;
+                }
+
+            } else {
+                return false;
+            }
+
+        } catch (error) {
+            console.error(error);
+            return false;        
+        }        
+    } 
+
+    var FB_SentQueuedLimit = async function (automationId) {        
+
+        var queueArray = await new Promise( async (resolve, reject) => {
+
+            var queued = [];
+            var count  = 0;
+           
+            await firestore
+                .collection("automation")
+                .doc(automationId)
+                .collection("queue_sent")
+                .limit(3)                             
+                .get()
+                .then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;                
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let port = doc.data().port; 
+                        let card = doc.data().card; 
+                        let path = doc.ref.path;                                                 
+                        queued.push({port:port, card:card, path:path});
+
+                    if (count === (size-1)) {
+                        resolve(queued);
+                    }
+
+                    count++;
+                    
+                    });
+
+                } else {
+                    resolve(queued);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return queueArray;
+
+    }
+
+    var searchByPort = function (nameKey, myArray){
+        for (var i=0; i < myArray.length; i++) {
+            if (myArray[i].port === nameKey) {
+                return {
+                    card:myArray[i].card,
+                    path:myArray[i].path,
+                };
+            }
+        }
+    }
+
+    var ReadData = async function(automation_id, gateway_number, _date_ports) {    
+
+        console.log();
+        console.log("FB_SentQueuedLimit");
+        console.log();
+
+        let docau = await firestore.collection("automation").doc("presets").get();
+        var count_read =  docau.data().count_read;    
+        
+        console.log();
+        console.log("count_read: " + count_read);
+        console.log();
+
+        let _urls = GetURLS();
+
+        try 
+        {
+                                        
+            var queue_limit = await FB_SentQueuedLimit(automation_id);
+
+            var phones = [];     
+
+            if ( queue_limit.length > 0 ) {        
+                
+                for(var i=0; i<queue_limit.length; i++) {
+                    let port = queue_limit[i].port;
+                    phones.push(port);
+                }
+
+                var _url = _urls.url_base_remote + _urls.params_ussdread;
+
+                var option_ussdread = {
+                    method: "POST",
+                    uri: _url,
+                    body: {
+                        data: {
+                            "gateway": gateway_number,
+                            "url": _urls.url_ussd,
+                            "channels": phones,
+                            "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                        },
+                    },
+                    json: true,
+                };
+
+                var promises_state_receive = [];
+
+                var results_ussdread =  await rp(option_ussdread);                   
+                                
+                var _gateway = "S" + gateway_number;
+                let _length = results_ussdread.length;                                  
+
+                for (var j=0; j<_length; j++) {   
+
+                    let data  = results_ussdread[j];
+                    let port  = data.channel;
+                    let phone = data.phone;   
+                    let path  = data.path;                                    
+
+                    let cardpath = searchByPort(port-1, queue_limit);                         
+
+                    let _json;
+                    
+                    if (phone) {
+
+                        _json = `{"${cardpath.card}":{"stage":${STAGE_RECEIVED},"phone":${parseInt(phone)}}}`;                                                                   
+
+                    } else  {
+
+                        _json = `{"${cardpath.card}":{"stage":${STAGE_NOT_RECEIVED}}}`;                                            
+
+                    }
+
+                    promises_state_receive.push(
+                        firestore.doc(cardpath.path).delete()
+                    );
+
+                    console.log("");
+                    console.log("*********************");                                    
+                    console.log("_json: " + _json);                                    
+                    console.log("*********************");
+                    console.log("");
+
+                    var jsonCards = JSON.parse(_json);                                    
+                    let portname = "port" + port;                           
+
+                    promises_state_receive.push(
+                        firestore
+                            .collection("gateways")
+                            .doc(_gateway)
+                            .collection(_date_ports)
+                            .doc(portname)
+                            .set(jsonCards, { merge: true })
+                    );                                        
+
+                }                                                   
+                
+                if (promises_state_receive.length > 0) {
+
+                    await Promise.all(promises_state_receive).catch((error) => {                                            
+                        console.log("error post: " + error);                                          
+                        return error;
+                    });
+
+                    var countread = parseInt(count_read);
+                    countread++;
+
+                    await firestore
+                    .collection("automation")
+                    .doc(automation_id)
+                    .set({
+                        read_quenue: false,
+                        count_read: countread,
+                    }, { merge: true });
+
+                }   
+                
+                sleep(5000);
+
+            } else {
+
+                //FINISHED
+
+                // If there are pendings queue again else send phone.
+                //if ()
+
+                await firestore
+                .collection("automation")
+                .doc(automation_id)
+                .set({
+                    read_quenue: false,
+                    read_data: false,
+                    count_read: 0,
+                    save_number_queue: true
+                }, { merge: true });
+
+            }  
+        
+        } catch (error) {
+
+            console.error(error);
+
+            await firestore
+            .collection("automation")
+            .doc(automation_id)
+            .set({
+                last_update: new Date()                                        
+            }, { merge: true });
+            
+        }
+
+    }
+
     exports.actions =  functions.https.onRequest( async (req, res) =>  {    
 
         res.set("Access-Control-Allow-Origin", "*");
@@ -791,7 +1235,11 @@
                         card = req.body.card;
                         console.log("card: " + card);
                     }
-                   
+                    let automation_id = "";
+                    if (req.body.automation_id!=undefined) {
+                        automation_id = req.body.automation_id;
+                        console.log("automation_id: " + automation_id);
+                    }                   
                     console.log("-----------------------");
 
                     let result;
@@ -806,7 +1254,15 @@
                         case "send_data":
                             result = await GW_SendPhones(gateway_number, _date_ports, card);
                             break;
+                        case "read_quenue":
+                            result = await GW_QueueSims([card], automation_id, _date_ports, STAGE_SENT); 
+                            break;
+                        case "read_data":
+                            result = await ReadData(automation_id, gateway_number, _date_ports); 
+                            break;
                     }
+
+                    return res.status(200).send({"result":result}); 
 
                     
                 } catch (e) {
@@ -816,5 +1272,21 @@
 
             }
         }
+
+    });
+
+
+    exports.presets = functions.firestore
+      .document('automation/presets')
+      .onUpdate( async (snap, context) => {
+
+        console.log("entra");
+
+        var documentData = snap.after.data(); 
+
+        let automation_id = snap.after.id;
+
+        console.log("automation_id: " +automation_id);
+
 
     });

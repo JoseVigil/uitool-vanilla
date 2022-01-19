@@ -1498,7 +1498,7 @@
     var _urls;
     var _cards;
 
-    exports.automate = functions.firestore
+    /*exports.automate = functions.firestore
       .document('automation/{automationId}')
       .onUpdate( async (snap, context) => {
 
@@ -2056,4 +2056,4 @@
 
         }             
 
-    });    
+    }); */   
