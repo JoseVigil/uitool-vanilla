@@ -204,20 +204,19 @@ async function timeout(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-var OPTION_SWITCH_SIM    		= 'switchsim';
-var OPTION_USING 			    = 'using';
-var OPTION_STATUS	 			= 'status';
-var OPTION_MANAGMENT 			= 'managment';
-var OPTION_SEND 				= 'send';
-var OPTION_SEND_ONLY 			= 'sendonly';
-var OPTION_SEND_WEB 			= 'sendweb';
-var OPTION_SMS_RECEIVED    		= 'smsreceived';
-var OPTION_REBOOT		    	= 'reboot';	
-var OPTION_BUILD_IMAGE			= 'buildimage';	
-var OPTION_USSD_SEND   			= 'ussdsend';
-var OPTION_USSD_READ   			= 'ussdread';
-var OPTION_SAVE_PHONE		    = 'savephone';
-
+var OPTION_LOCK_SWITCH    = 'lockswitch';
+var OPTION_USING 		  = 'using';
+var OPTION_STATUS	 	  = 'status';
+var OPTION_MANAGMENT 	  = 'managment';
+var OPTION_SEND 		  = 'send';
+var OPTION_SEND_ONLY 	  = 'sendonly';
+var OPTION_SEND_WEB 	  = 'sendweb';
+var OPTION_SMS_RECEIVED   = 'smsreceived';
+var OPTION_REBOOT		  = 'reboot';	
+var OPTION_BUILD_IMAGE	  = 'buildimage';	
+var OPTION_USSD_SEND   	  = 'ussdsend';
+var OPTION_USSD_READ   	  = 'ussdread';
+var OPTION_SAVE_PHONE	  = 'savephone';
 
 const gateway = async function(req, res) {
 
@@ -241,10 +240,9 @@ const gateway = async function(req, res) {
 			return browse(req, res, params);
 			break;		
 
-		case OPTION_SWITCH_SIM: 	
-			let applyto = parseInt(req.body.data.applyto);
-			let swurl = "http://synway.notimation.com:" + port + req.body.data.url + applyto;			
-			let sparams = { "option" : option, "applyto" : applyto,	"url" : swurl	};					
+		case OPTION_LOCK_SWITCH: 	
+			let swurl = "http://synway.notimation.com:" + port + req.body.data.url;			
+			let sparams = { "option" : option, "url" : swurl, "value":req.body.data.value};					
 			return browse(req, res, sparams);
 			break;	
 
@@ -415,19 +413,21 @@ const browse = async function(req, res, params) {
 
 				break;		
 		
-				case OPTION_SWITCH_SIM: 
+				case OPTION_LOCK_SWITCH: 
 
 					try { 
-
-						const portsCount = (await page.$$('.select option')).length;                						
-
-						var switch_mode = parseInt(req.body.data.switch_mode); 
-
+						
 						//disable
-						const radios = await page.$$('input[name="SwitchMode"]');
+						const radios = await page.$$('input[name="SimMethod"]');
+						let value = params.value;
+						
+						console.log("value: " + value);
+						console.log("radios: " + radios.length);
+					
 						await new Promise((resolve, reject) => {
-							radios.forEach(async (radio, i) => {								
-								if (i === switch_mode) {									
+							radios.forEach(async (radio, i) => {	
+								console.log("i: " + i);							
+								if (i === value) {		
 									radio.click();
 									resolve();
 								}
@@ -435,10 +435,7 @@ const browse = async function(req, res, params) {
 						});
 
 						//select all ports
-						var all = JSON.parse(req.body.data.all);	
-						if (all) {							
-							await page.click('.mr5'); 						
-						}
+						await page.click('.mr5'); 						
 
 						//submit
 						await page.click('.mr20');            
@@ -446,7 +443,7 @@ const browse = async function(req, res, params) {
 							await dialog.accept();							  
 						}); 		
 					
-						return res.status(200).send({"ports":portsCount}); 	
+						return res.status(200).send({"resutl":true}); 	
 
 					} catch (e) {							
 						return res.status(500).send(e);							

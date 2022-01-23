@@ -19,7 +19,8 @@
             params_send_only : "/backend/gateway/sendonly",
             url_domain : ".notimation.com",
             url_base_remote : "https://us-central1-notims.cloudfunctions.net",
-            url_switch : "/en/5-9-1SIMSet.php",
+            params_lock_switch: "/backend/gateway/lockswitch",
+            url_lock_switch : "/en/5-9-1SIMSet.php",
             params_status : "/backend/gateway/status",
             params_ussdsend : "/backend/gateway/ussdsend",
             params_ussdread : "/backend/gateway/ussdread",
@@ -448,6 +449,42 @@
             return false;        
         }
     }  
+
+    var GW_LockSwitch = async function (gateway_number, lock_switch_value) {
+
+        let _urls = GetURLS();
+
+        var _url = _urls.url_base_remote + _urls.params_lock_switch;
+
+        var option_lock_switch = {
+            method: "POST",
+            uri: _url,
+            body: {
+                data: {
+                    "gateway": gateway_number,
+                    "url": _urls.url_lock_switch,
+                    "value": lock_switch_value,
+                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                },
+            },
+            json: true,
+        };
+
+        console.log();
+        console.log("option_lock_switch: " + JSON.stringify(option_lock_switch));
+        console.log();
+
+        await rp(option_lock_switch)
+            .then(async function (results_lock_switch) {
+            
+                return {"resutl":results_lock_switch};
+            
+        }).catch((error) => {                                            
+            console.log("error post: " + error);                                          
+            return {"error":error};
+        });         
+
+    };
     
     var SwitchCard = async function (gateway_number, date_ports, card) {
         
@@ -889,7 +926,7 @@
 
             stageAll.sort(GetSortOrder("gateway"));
 
-            //console.log("stageAll: " + JSON.stringify(stageAll));
+            console.log("stageAll: " + JSON.stringify(stageAll));
         }
 
         return stageAll;
@@ -937,8 +974,7 @@
                     var card = stage.card;
                     var port = parseInt(stage.port)-1;              
                     
-                    //console.log("operator: " + operator);
-                    //console.log("i: " + i);
+                    console.log("operator: " + operator);
                     
                     if (operator === "Claro AR") {
 
@@ -1241,15 +1277,24 @@
                         console.log("automation_id: " + automation_id);
                     }                   
                     console.log("-----------------------");
+                    let lock_switch_value = 0;
+                    if (req.body.value!=undefined) {
+                        lock_switch_value = req.body.value;
+                        console.log("lock_switch_value: " + lock_switch_value);
+                    }                   
+                    console.log("-----------------------");
 
                     let result;
 
-                    switch (action) {
+                    switch (action) {                        
                         case "collect_data":
                             result = await GW_CollectData(gateway_number, _date_ports);  
                             break;
                         case "switch_cards":
                             result = await SwitchCard(gateway_number, _date_ports, card);
+                            break;
+                        case "lock_switch":
+                            result = await GW_LockSwitch(gateway_number, lock_switch_value);  
                             break;
                         case "send_data":
                             result = await GW_SendPhones(gateway_number, _date_ports, card);

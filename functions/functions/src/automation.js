@@ -149,7 +149,8 @@
                     urlObj.url_base = doc.data().url_base;
                     urlObj.url_management = doc.data().url_management;
                     urlObj.url_base = doc.data().url_base;
-                    urlObj.url_switch = doc.data().url_switch;
+                    urlObj.url_lock_switch = doc.data().url_lock_switch;
+                    urlObj.parmas_lock_switch = doc.data().parmas_lock_switch;
                     urlObj.url_base_remote = doc.data().url_base_remote;
                     urlObj.url_base_local = doc.data().url_base_local;
                     urlObj.parmas_using = doc.data().parmas_using;

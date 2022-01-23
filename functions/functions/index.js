@@ -49,14 +49,14 @@
     //const storage = admin.storage();
 
     const firebaseConfig = {
-        apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
-        authDomain: "notims.firebaseapp.com",
-        databaseURL: db_url,
-        projectId: "notims",
-        storageBucket: "notims.appspot.com",
-        messagingSenderId: "79471870593",
-        appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
-        measurementId: "G-8T5N81L78J"
+      apiKey: "AIzaSyCqHL-r0exNSssAxX_VZWQi5eNM3T3F4qk",
+      authDomain: "noti-gateways.firebaseapp.com",
+      databaseURL: "https://noti-gateways-default-rtdb.firebaseio.com",
+      projectId: "noti-gateways",
+      storageBucket: "noti-gateways.appspot.com",
+      messagingSenderId: "699429402101",
+      appId: "1:699429402101:web:34718cd8efa6b65ee45cbc",
+      measurementId: "G-REFPNHRQ5S"
     };
     
     firebase.initializeApp(firebaseConfig);    
