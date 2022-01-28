@@ -83,6 +83,22 @@
     /**
      * SERVER ALL INCOMING
      */
+
+     var GetJsonFromUrl = async function (url) {
+      if (!url) url = location.search;
+      var query = url.substr(1);
+      console.log("query: " + query);
+      var result = {};
+      query.split("&").forEach(function(part) {
+        console.log("part: " + part);
+        var item = part.split("=");
+        result[item[0]] = decodeURIComponent(item[1]);
+      });
+      console.log();
+      console.log("result: " + JSON.stringify(result));
+      console.log();
+      return result;
+    }
    
     const app = express();
     app.engine('html', engines.hogan); 
@@ -107,7 +123,7 @@
         
         if (url.indexOf('?') !== -1) {
           let params = url.split("?");
-          urlParams = getJsonFromUrl(params[1]);        
+          urlParams = GetJsonFromUrl(params[1]);        
         }    
         
         console.log();
@@ -133,17 +149,8 @@
           return res.render(static_url); 
         }     
         
-        function getJsonFromUrl(url) {
-          if (!url) url = location.search;
-          var query = url.substr(1);
-          var result = {};
-          query.split("&").forEach(function(part) {
-            var item = part.split("=");
-            result[item[0]] = decodeURIComponent(item[1]);
-          });
-          return result;
-        }
-
+        
+        
        
     });     
  

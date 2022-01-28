@@ -418,7 +418,8 @@
                             "params_send_only": "/backend/gateway/sendonly",
                             "url_domain": ".notimation.com",
                             "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
-                            "url_switch": "/en/5-9-1SIMSet.php",
+                            "params_lock_switch": "/backend/gateway/lockswitch",
+                            "url_lock_switch": "/en/5-9-1SIMSet.php",
                             "params_status": "/backend/gateway/status",
                             "params_ussdsend": "/backend/gateway/ussdsend",
                             "params_ussdread": "/backend/gateway/ussdread",
@@ -446,6 +447,54 @@
             }
         }
 
+    });
+
+    exports.getUserPassword =  functions.https.onRequest( async (req, res) =>  {  
+
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', '*');         
+        
+        const key = req.headers.authorization.split('Bearer ')[1];
+        
+        if (key!=bearer_key) {
+            res.status(403).send('Unauthorized');
+        } else {       
+
+            if (req.method === 'OPTIONS') {
+                res.end();
+            } else {                
+
+                try {
+
+                    var email = req.body.email; 
+
+                    admin.auth().getUserByEmail(email)
+                    .then(function(userRecord) {
+
+                        console.log("userRecord:", JSON.stringify(userRecord));
+
+                        let pass = userRecord.password;
+
+                        return res.status(200).send({"pass":pass});                 
+                        
+                    })
+                    .catch(function(error) {
+                        console.log("Error fetching user data:", error);
+                        return res.status(400).send(error);   
+                    });
+
+
+
+                } catch (e) {
+                    console.error(e);
+                    return res.status(400).send(error);                
+                }
+
+            }
+        }
+
+        
     });
     
 

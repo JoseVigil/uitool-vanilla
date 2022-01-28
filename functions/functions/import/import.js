@@ -1,7 +1,7 @@
 	
 	const firestoreService = require('firestore-export-import');
 	//const serviceAccount = require('../key/notims-firebase-adminsdk-rwhzg-9bd51fffc0.json');
-	const serviceAccount = require("../key/notims-firebase-adminsdk-rwhzg-c634d4946a.json");   
+	const serviceAccount = require("../key/noti-gateways-firebase-adminsdk-2vseb-9294c130dd.json");   
 
 	const args = process.argv.slice(2);
 	if (args[0].includes('emulate')) {

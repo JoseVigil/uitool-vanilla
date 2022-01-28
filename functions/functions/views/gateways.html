@@ -10,6 +10,9 @@
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
      <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
      <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
+
+     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="//cdn.rawgit.com/rainabba/jquery-table2excel/1.1.0/dist/jquery.table2excel.min.js"></script>
      
      <title>Noti.ms</title>
   
@@ -204,14 +207,14 @@
       var count_drop = 0;
 
       const firebaseConfig = {
-        apiKey: "AIzaSyAM4WQDHpHh1oRT_v-6ikquE4V809hA3kY",
-        authDomain: "notims.firebaseapp.com",
-        databaseURL: "https://notims.firebaseio.com",
-        projectId: "notims",
-        storageBucket: "notims.appspot.com",
-        messagingSenderId: "79471870593",
-        appId: "1:79471870593:web:ef29a72e1b1866b2bb4380",
-        measurementId: "G-8T5N81L78J"
+        apiKey: "AIzaSyCqHL-r0exNSssAxX_VZWQi5eNM3T3F4qk",
+        authDomain: "noti-gateways.firebaseapp.com",
+        databaseURL: "https://noti-gateways-default-rtdb.firebaseio.com",
+        projectId: "noti-gateways",
+        storageBucket: "noti-gateways.appspot.com",
+        messagingSenderId: "699429402101",
+        appId: "1:699429402101:web:34718cd8efa6b65ee45cbc",
+        measurementId: "G-REFPNHRQ5S"
       };
       firebase.initializeApp(firebaseConfig); 
 
@@ -271,11 +274,11 @@
           for (var i=0; i<dlength;i++) {
             
             let date = formatDate(days[i].date.toDate());
-            let coll = days[i].coll_name; 
+            let coll = days[i].date_ports; 
 
             console.log("date:" + date + " coll: " + coll);
 
-            let html = `<tr>
+            let html = `<tr data-row="${coll}">
                     <td>${coll}</td>
                     <td>${date}</td>                      
                     </tr>`;
@@ -305,7 +308,9 @@
 
         var content = $(e.target).html(); 
 
-        var coll_name;
+        var coll_name = $(this).data('row'); 
+
+        /*var coll_name;
 
         if (content.indexOf('ports') !== -1) {
           coll_name = content;
@@ -313,7 +318,7 @@
           let rep = content.replace(/-/g, "_");
           console.log("rep: " + rep);
           coll_name = "ports_" + rep;          
-        }
+        }*/
 
         console.log("coll_name:" + coll_name);
         console.log("gateway_selected:" + gateway_selected);        

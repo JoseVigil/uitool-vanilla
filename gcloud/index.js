@@ -4,7 +4,7 @@ const chromium = require("chrome-aws-lambda");
 const {Logging} = require('@google-cloud/logging');
 
 
-const htmlFunctions = require('./build_html.js');
+//const htmlFunctions = require('./build_html.js');
 
 const logging = new Logging();	
 const storage = new Storage();
@@ -1251,9 +1251,3 @@ const browse = async function(req, res, params) {
 	})();
 
 };
-
-
-			
-
-
-

@@ -8,17 +8,54 @@
     var STAGE_RECEIVED          = 1004;   
     var STAGE_SAVED_NUMBER      = 1010;    
 
+    var COLLECT_DATA    = "collect_data";
+    var SWITCH_CARDS    = "switch_cards";
+    var LOCK_SWITCH     = "lock_switch";
+    var SEND_DATA       = "send_data";
+    var READ_QUENUE     = "read_quenue";
+    var READ_DATA       = "read_data";
+
+    var GetStage = function (stage) {
+
+        var _stage = 0;
+
+        switch (stage) {
+            case "STAGE_SENT_IDLE":
+                _stage = 1000;
+                break;   
+            case "STAGE_SENT":
+                _stage = 1001;
+                break;        
+            case "STAGE_NOT_RECEIVED":
+                _stage = 1002;
+                break;
+            case "STAGE_SENT_FAILED":
+                _stage = 1003;
+                break;
+            case "STAGE_RECEIVED":
+                _stage = 1004;
+                break;
+            case "STAGE_SAVED_NUMBER":
+                _stage = 1010;
+                break;
+        }
+
+        return _stage;
+
+    }
+
     var GetURLS = function () {
         let _json = {
             url_managment : "/en/10-6SMSManagement.php",
             url_send : "/en/5-3-2SMSsend.php",
-            url_base_local : "http://localhost:5001/notims/us-central1",
+            url_base_local : "http://localhost:5001/noti-gateways/us-central1",
             url_using : "/en/5-9SIM.php",
             url_ussd : "/en/5-5USSD.php",
             params_send : "/backend/gateway/send",
             params_send_only : "/backend/gateway/sendonly",
             url_domain : ".notimation.com",
-            url_base_remote : "https://us-central1-notims.cloudfunctions.net",
+            url_base_remote : "https://us-central1-noti-gateways.cloudfunctions.net",
+            url_base_cloud_remote : "https://us-central1-notims.cloudfunctions.net",
             params_lock_switch: "/backend/gateway/lockswitch",
             url_lock_switch : "/en/5-9-1SIMSet.php",
             params_status : "/backend/gateway/status",
@@ -43,8 +80,8 @@
         console.log();
         var start = new Date().getTime();
         for (var i = 0; i < 1e30; i++) {
-            if ((new Date().getTime() - start) > milliseconds){
-            break;
+            if ((new Date().getTime() - start) > milliseconds) {
+                break;
             }
         }
     }
@@ -73,7 +110,7 @@
 
         let _urls = GetURLS();
 
-        var uri_remote = _urls.url_base_remote + _urls.parmas_using;
+        var uri_remote = _urls.url_base_cloud_remote + _urls.parmas_using;
         var url_gateway = _urls.url_using;
 
         if (Array.isArray(cards)) {
@@ -100,6 +137,13 @@
 
             var gateway = cards;
 
+            console.log("");
+            console.log("NOT ARRAY");
+            console.log("gateway: " + gateway);
+            console.log("uri_remote: " + uri_remote);
+            console.log("url_gateway: " + url_gateway);
+            console.log("");           
+
             let options = {
                 method: "POST",
                 uri: uri_remote,
@@ -118,14 +162,18 @@
 
         var promises_sims = [];
 
-        //console.log("ps: " + JSON.stringify(ps));
+        //console.log("GW_CollectPorts ps: " + JSON.stringify(ps));
         
         var _date_ = new Date();            
 
-        var promises = Promise.all(ps)
+        await Promise.all(ps)
             .then((results) => {
             var promises_gateway = [];
 
+            console.log();
+            console.log("results: " + results.length);
+            console.log();
+ 
             results.forEach(async (result) => {
 
                 let response = result.response;     
@@ -185,7 +233,9 @@
             return Promise.all(promises_gateway);
 
         }).then(async (results_gateway) => {
+
             return Promise.all(promises_sims);
+
         }).catch((error) => {
             console.log("error: " + error);
             return error;
@@ -199,7 +249,7 @@
 
         let _urls = GetURLS();
 
-        let url = _urls.url_base_remote + _urls.parmas_managment;
+        let url = _urls.url_base_cloud_remote + _urls.parmas_managment;
 
         //console.log("url: " + url);
         //console.log("url_managment: " + urls.url_managment);
@@ -322,9 +372,9 @@
 
         let _urls = GetURLS();
 
-        let url = _urls.url_base_remote + _urls.params_status;
+        let url = _urls.url_base_cloud_remote + _urls.params_status;
 
-        console.log("url: " + url);
+        console.log("url STATUS: " + url);
 
         var port = 8000 + parseInt(gateway_number);            
 
@@ -340,6 +390,8 @@
             },
             json: true,
         };
+
+        console.log("option_status STATUS: " + JSON.stringify(option_status));
 
         console.log(JSON.stringify(option_status));
 
@@ -386,7 +438,7 @@
                     `{"${card}":{"operator":"${operator}","signal":"${signal}"}}`
                 );
 
-                console.log("operator: " + operator);
+                //console.log("operator: " + operator);
 
                 //if (operator != "---") {
 
@@ -414,7 +466,7 @@
             return {};
 
         }).catch((error) => {
-            console.log("error carajo: " + error);
+            console.log("Error Status: " + error);
             return error;
         });
 
@@ -422,23 +474,23 @@
         return promises_status;
     };
 
-    var GW_CollectData = async function(gateway, date_ports) {                                                              
+    var GW_CollectData = async function(gateway, date_ports) {   
+        
+        console.log("date_ports: " + date_ports);       
 
         try {     
 
             console.log();
             console.log("GW_CollectPorts");            
-            await GW_CollectPorts(gateway, date_ports);                                 
+            await GW_CollectPorts(gateway, date_ports);                                               
 
             console.log();
-            console.log("GW_CollectStatus");
-            console.log();
-            await GW_CollectStatus(gateway, date_ports);        
+            console.log("GW_CollectStatus");            
+            await GW_CollectStatus(gateway, date_ports);           
 
             console.log();
             console.log("GW_GetConsumptions");
-            console.log();
-            await GW_GetConsumptions(gateway, date_ports);                       
+            await GW_GetConsumptions(gateway, date_ports);                                 
             console.log();
             
             return true;
@@ -454,7 +506,7 @@
 
         let _urls = GetURLS();
 
-        var _url = _urls.url_base_remote + _urls.params_lock_switch;
+        var _url = _urls.url_base_cloud_remote + _urls.params_lock_switch;
 
         var option_lock_switch = {
             method: "POST",
@@ -581,13 +633,13 @@
 
     };
 
-    var GW_SendPhones = async function(gateway, date_ports, card) {  
+    var GW_SendPhones = async function(gateway, date_ports, card, STAGE) {  
         
         let _urls = GetURLS();
         
         //let usingArray = await FB_UsingPhones(gateway, date_ports);    
         
-        var usingArray  = await FB_OperatorFromCard(card, date_ports);
+        var usingArray  = await FB_OperatorFromCard(card, date_ports, STAGE);
         if (usingArray.length > 0) {
             console.log("usingArray: " + JSON.stringify(usingArray));            
         } 
@@ -629,7 +681,7 @@
             console.log("ENVIANDO CLARO");
             console.log();
 
-            var _url = _urls.url_base_remote + _urls.params_ussdsend;
+            var _url = _urls.url_base_cloud_remote + _urls.params_ussdsend;
 
             //console.log("_url: " + _url);
 
@@ -741,7 +793,10 @@
         
     }*/
 
-    var FB_OperatorFromCard = async function (card, date_ports) {
+    var FB_OperatorFromCard = async function (card, date_ports, STAGE) {
+
+        console.log("STAGE: " + STAGE);     
+        console.log("date_ports: " + date_ports); 
 
         var _card = card;
 
@@ -753,12 +808,12 @@
             var count = 0;
 
             var status = card + ".status";
-            var stage = card + ".stage";         
+            var _stage = card + ".stage";         
 
             await firestore
             .collectionGroup(date_ports)    
             //.where(status, "in", ["Using"])
-            .where(stage, "in", [STAGE_SENT_IDLE])                  
+            .where(_stage, "in", [STAGE]) //[STAGE_SENT_IDLE])                  
             .get().then(async (querySnapshot) => {
 
                 size = querySnapshot.docs.length;
@@ -768,9 +823,9 @@
                 
                     await querySnapshot.forEach(async (doc) => {
 
-                        let stage = parseInt(doc.data()[_card].stage); 
+                        let _stage_ = parseInt(doc.data()[_card].stage); 
 
-                        console.log("stage: " + stage);                        
+                        console.log("_stage_: " + _stage_);                        
 
                         let status = doc.data()[_card].status; 
                         
@@ -944,11 +999,11 @@
         }    
     }
 
-    var GW_QueueSims = async function(cards, automationId, date_ports, stage) {             
+    var GW_QueueSims = async function(cards, date_ports, STAGE) {             
         
         try  {
         
-            let stageArray = await FB_StageProcessReceive(cards, date_ports, stage);             
+            let stageArray = await FB_StageProcessReceive(cards, date_ports, STAGE);             
 
             console.log("-----------------------");
             console.log("stageArray: " + JSON.stringify(stageArray));
@@ -976,21 +1031,17 @@
                     
                     console.log("operator: " + operator);
                     
-                    if (operator === "Claro AR") {
-
-                        //claro_phones.push(port-1);                
-                        //claro_data_receive.push({ id:port, operator:operator, card:card, port:port-1 });                
-                        //claro_phones = claro_phones.slice(i, i+4);
-                        //claro_data_receive.slice(i, i+4);
+                    if (operator === "Claro AR") {                        
                         
                         let json = { card:card, port:port };
+                        //console.log("json: " + JSON.stringify(json));
                         let realPort = port+1;
                         var portName = "port" + realPort;
 
                         promises_queue.push(
                             firestore
                                 .collection("automation")
-                                .doc(automationId)
+                                .doc(date_ports)
                                 .collection("queue_sent")
                                 .doc(portName)
                                 .set(json, { merge: true })
@@ -1028,7 +1079,7 @@
         }        
     } 
 
-    var FB_SentQueuedLimit = async function (automationId) {        
+    var FB_SentQueuedLimit = async function (date_ports) {        
 
         var queueArray = await new Promise( async (resolve, reject) => {
 
@@ -1037,7 +1088,7 @@
            
             await firestore
                 .collection("automation")
-                .doc(automationId)
+                .doc(date_ports)
                 .collection("queue_sent")
                 .limit(3)                             
                 .get()
@@ -1086,160 +1137,156 @@
         }
     }
 
-    var ReadData = async function(automation_id, gateway_number, _date_ports) {    
+    var CountQueue = async function (date_ports) {
+        var promises_queue = await new Promise( async (resolve, reject) => { 
+            await firestore.collection("automation").doc(date_ports).collection("queue_sent").get().then(snap => {   
+                console.log("snap.size: " + snap.size);             
+                resolve(snap.size);
+            });
+        });
+        console.log("promises_queue: " + promises_queue);
+        return promises_queue;
+    }  
+
+    var ReadData = async function(gateway_number, date_ports) {    
 
         console.log();
         console.log("FB_SentQueuedLimit");
+        console.log();  
+
+        var count_queue = await CountQueue(date_ports);        
+
+        console.log();
+        console.log("count_queue: " + count_queue);
         console.log();
 
-        let docau = await firestore.collection("automation").doc("presets").get();
-        var count_read =  docau.data().count_read;    
-        
-        console.log();
-        console.log("count_read: " + count_read);
-        console.log();
+        while (count_queue > 0) {
 
-        let _urls = GetURLS();
-
-        try 
-        {
-                                        
-            var queue_limit = await FB_SentQueuedLimit(automation_id);
-
-            var phones = [];     
-
-            if ( queue_limit.length > 0 ) {        
+            /*let docau = await firestore.collection("automation").doc(date_ports).get();
+                var count_read =  docau.data().count_read;    
                 
-                for(var i=0; i<queue_limit.length; i++) {
-                    let port = queue_limit[i].port;
-                    phones.push(port);
-                }
+            console.log();
+            console.log("count_read: " + count_read);
+            console.log();*/               
 
-                var _url = _urls.url_base_remote + _urls.params_ussdread;
+            let _urls = GetURLS();
 
-                var option_ussdread = {
-                    method: "POST",
-                    uri: _url,
-                    body: {
-                        data: {
-                            "gateway": gateway_number,
-                            "url": _urls.url_ussd,
-                            "channels": phones,
-                            "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                        },
-                    },
-                    json: true,
-                };
+            try 
+            {
+                                            
+                var queue_limit = await FB_SentQueuedLimit(date_ports);
 
-                var promises_state_receive = [];
+                var phones = [];     
 
-                var results_ussdread =  await rp(option_ussdread);                   
-                                
-                var _gateway = "S" + gateway_number;
-                let _length = results_ussdread.length;                                  
+                console.log();
+                console.log("queue_limit: " + queue_limit.length);
+                console.log();  
 
-                for (var j=0; j<_length; j++) {   
-
-                    let data  = results_ussdread[j];
-                    let port  = data.channel;
-                    let phone = data.phone;   
-                    let path  = data.path;                                    
-
-                    let cardpath = searchByPort(port-1, queue_limit);                         
-
-                    let _json;
+                if ( queue_limit.length > 0 ) {        
                     
-                    if (phone) {
-
-                        _json = `{"${cardpath.card}":{"stage":${STAGE_RECEIVED},"phone":${parseInt(phone)}}}`;                                                                   
-
-                    } else  {
-
-                        _json = `{"${cardpath.card}":{"stage":${STAGE_NOT_RECEIVED}}}`;                                            
-
+                    for(var i=0; i<queue_limit.length; i++) {
+                        let port = queue_limit[i].port;
+                        phones.push(port);
                     }
 
-                    promises_state_receive.push(
-                        firestore.doc(cardpath.path).delete()
-                    );
+                    var _url = _urls.url_base_cloud_remote + _urls.params_ussdread;
 
-                    console.log("");
-                    console.log("*********************");                                    
-                    console.log("_json: " + _json);                                    
-                    console.log("*********************");
-                    console.log("");
+                    var option_ussdread = {
+                        method: "POST",
+                        uri: _url,
+                        body: {
+                            data: {
+                                "gateway": gateway_number,
+                                "url": _urls.url_ussd,
+                                "channels": phones,
+                                "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                            },
+                        },
+                        json: true,
+                    };
 
-                    var jsonCards = JSON.parse(_json);                                    
-                    let portname = "port" + port;                           
+                    var promises_state_receive = [];
 
-                    promises_state_receive.push(
-                        firestore
-                            .collection("gateways")
-                            .doc(_gateway)
-                            .collection(_date_ports)
-                            .doc(portname)
-                            .set(jsonCards, { merge: true })
-                    );                                        
+                    var results_ussdread =  await rp(option_ussdread);                   
+                                    
+                    var _gateway = "S" + gateway_number;
+                    let _length = results_ussdread.length;                                  
 
-                }                                                   
-                
-                if (promises_state_receive.length > 0) {
+                    for (var j=0; j<_length; j++) {   
 
-                    await Promise.all(promises_state_receive).catch((error) => {                                            
-                        console.log("error post: " + error);                                          
-                        return error;
-                    });
+                        let data  = results_ussdread[j];
+                        let port  = data.channel;
+                        let phone = data.phone;   
+                        let path  = data.path;                                    
 
-                    var countread = parseInt(count_read);
-                    countread++;
+                        let cardpath = searchByPort(port-1, queue_limit);                         
 
-                    await firestore
-                    .collection("automation")
-                    .doc(automation_id)
-                    .set({
-                        read_quenue: false,
-                        count_read: countread,
-                    }, { merge: true });
+                        let _json;
+                        
+                        if (phone) {
 
-                }   
-                
-                sleep(5000);
+                            _json = `{"${cardpath.card}":{"stage":${STAGE_RECEIVED},"phone":${parseInt(phone)}}}`;                                                                   
 
-            } else {
+                        } else  {
 
-                //FINISHED
+                            _json = `{"${cardpath.card}":{"stage":${STAGE_NOT_RECEIVED}}}`;                                            
 
-                // If there are pendings queue again else send phone.
-                //if ()
+                        }
 
-                await firestore
-                .collection("automation")
-                .doc(automation_id)
-                .set({
-                    read_quenue: false,
-                    read_data: false,
-                    count_read: 0,
-                    save_number_queue: true
-                }, { merge: true });
+                        promises_state_receive.push(
+                            firestore.doc(cardpath.path).delete()
+                        );
 
-            }  
-        
-        } catch (error) {
+                        console.log("");
+                        console.log("*********************");                                    
+                        console.log("_json: " + _json);                                    
+                        console.log("*********************");
+                        console.log("");
 
-            console.error(error);
+                        var jsonCards = JSON.parse(_json);                                    
+                        let portname = "port" + port;                           
 
-            await firestore
-            .collection("automation")
-            .doc(automation_id)
-            .set({
-                last_update: new Date()                                        
-            }, { merge: true });
+                        promises_state_receive.push(
+                            firestore
+                                .collection("gateways")
+                                .doc(_gateway)
+                                .collection(date_ports)
+                                .doc(portname)
+                                .set(jsonCards, { merge: true })
+                        );                                        
+
+                    }                                                   
+                    
+                    if (promises_state_receive.length > 0) {
+
+                        await Promise.all(promises_state_receive).catch((error) => {                                            
+                            console.log("error post: " + error);                                          
+                            return error;
+                        });
+
+                    }   
+                    
+                    sleep(1000);
+
+                } 
             
+            } catch (error) {
+
+                console.error(error);              
+                
+            }
+
+            count_queue = await CountQueue(date_ports);
+
+            console.log();
+            console.log("count_queue: " + count_queue);
+            console.log();
+
         }
 
     }
 
-    exports.actions =  functions.https.onRequest( async (req, res) =>  {    
+    exports.actions =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  {    
 
         res.set("Access-Control-Allow-Origin", "*");
         res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
@@ -1261,21 +1308,22 @@
                     var gateway_number = req.body.gateway_number;              
                     var _gateway_ = "S" + gateway_number;
 
-                    var _date_ports = "ports_" + _gateway_ + "_" + getDateLabel();
+                    var date_ports =  _gateway_ + "_Ports"; // + getDateLabel();
 
                     console.log("-----------------------");   
                     console.log("action: " + action);
                     console.log("_gateway_: " + _gateway_);
+
                     let card = "";
                     if (req.body.card!=undefined) {
                         card = req.body.card;
                         console.log("card: " + card);
                     }
-                    let automation_id = "";
-                    if (req.body.automation_id!=undefined) {
-                        automation_id = req.body.automation_id;
-                        console.log("automation_id: " + automation_id);
-                    }                   
+                    /*let date_ports = "";
+                    if (req.body.date_ports!=undefined) {
+                        date_ports = req.body.date_ports;
+                        console.log("date_ports: " + date_ports);
+                    }*/                   
                     console.log("-----------------------");
                     let lock_switch_value = 0;
                     if (req.body.value!=undefined) {
@@ -1283,32 +1331,39 @@
                         console.log("lock_switch_value: " + lock_switch_value);
                     }                   
                     console.log("-----------------------");
+                    let STAGE = 0;
+                    if (req.body.stage!=undefined) {
+                        var _stage = req.body.stage;
+                        console.log("_stage: " + _stage);
+                        STAGE = GetStage(_stage);
+                        console.log("STAGE: " + STAGE);
+                    }                   
+                    console.log("-----------------------");
 
                     let result;
 
                     switch (action) {                        
-                        case "collect_data":
-                            result = await GW_CollectData(gateway_number, _date_ports);  
+                        case COLLECT_DATA:
+                            result = await GW_CollectData(gateway_number, date_ports);  
                             break;
-                        case "switch_cards":
-                            result = await SwitchCard(gateway_number, _date_ports, card);
+                        case SWITCH_CARDS:
+                            result = await SwitchCard(gateway_number, date_ports, card);
                             break;
-                        case "lock_switch":
+                        case LOCK_SWITCH:
                             result = await GW_LockSwitch(gateway_number, lock_switch_value);  
                             break;
-                        case "send_data":
-                            result = await GW_SendPhones(gateway_number, _date_ports, card);
+                        case SEND_DATA:
+                            result = await GW_SendPhones(gateway_number, date_ports, card, STAGE);
                             break;
-                        case "read_quenue":
-                            result = await GW_QueueSims([card], automation_id, _date_ports, STAGE_SENT); 
+                        case READ_QUENUE:
+                            result = await GW_QueueSims([card], date_ports, STAGE); 
                             break;
-                        case "read_data":
-                            result = await ReadData(automation_id, gateway_number, _date_ports); 
+                        case READ_DATA:
+                            result = await ReadData(gateway_number, date_ports); 
                             break;
                     }
 
                     return res.status(200).send({"result":result}); 
-
                     
                 } catch (e) {
                     console.error(e);
@@ -1320,18 +1375,229 @@
 
     });
 
+    var PostProcess = async function(url, body) {
 
-    exports.presets = functions.firestore
-      .document('automation/presets')
-      .onUpdate( async (snap, context) => {
+        var _url = url;
 
-        console.log("entra");
-
-        var documentData = snap.after.data(); 
-
-        let automation_id = snap.after.id;
-
-        console.log("automation_id: " +automation_id);
+        console.log("_url:: " +  _url + " body: " + JSON.stringify(body));
 
 
+        var promises_process = await new Promise( async (resolve, reject) => { 
+
+            var options = {
+                'method': 'POST',
+                'url': _url + "/control-actions", 
+                'headers': {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + bearer_key
+                },
+                body: JSON.stringify(body)
+            };
+
+            console.log("options>> " +  JSON.stringify(options));
+
+            await rp(options)
+                     .then(async function (results) {                  
+
+                resolve(results);             
+    
+            }).catch((error) => {
+                console.log("process error: " + error);
+                reject(error);
+            });
+    
+        });
+        return promises_process;
+    }
+
+    var SwitchLock = async function(url, card, gateway_number) {
+
+        console.log("SwitchLock url: " + url);
+
+        let switch_body = {
+            "action": SWITCH_CARDS,
+            "gateway_number": gateway_number,
+            "card":card                     
+        }                   
+
+        let switch_data = await PostProcess(url, switch_body);
+
+        console.log("switch_data: " + switch_data);
+
+        sleep(1000);
+
+        let lock_switch_body = {
+            "action": LOCK_SWITCH,
+            "gateway_number": gateway_number,
+            "value": 0                                                                   
+        }                   
+
+        let lock_switch_data = await PostProcess(url, lock_switch_body);
+
+        console.log("lock_switch_data: " + lock_switch_data);
+
+        sleep(1000);
+
+    }
+
+    var CollectSwitchLock = async function(url, card, gateway_number) {
+
+        let collect_body = {
+            "action": COLLECT_DATA,
+            "gateway_number": gateway_number                        
+        }                   
+
+        let collect_data = await PostProcess(url, collect_body);
+
+        console.log("collect_data: " + collect_data);
+
+        sleep(1000);
+        
+        await SwitchLock(url, card, gateway_number);
+
+        let collect_again_body = {
+            "action": COLLECT_DATA,
+            "gateway_number": gateway_number                        
+        }                   
+
+        let collect_again_data = await PostProcess(url, collect_again_body);
+
+        console.log("collect_again_data: " + collect_again_data);
+
+        sleep(1000);       
+
+    }
+
+    var Send = async function(url, card, gateway_number, stage) {
+
+        let send_body = {
+            "action": SEND_DATA,
+            "gateway_number": gateway_number,
+            "stage": stage,//"STAGE_SENT_IDLE"
+            "card": card                                                                   
+        }                   
+
+        let send_data = await PostProcess(url, send_body);
+
+        console.log("send_data: " + send_data);
+
+        sleep(1000);     
+    
+    }  
+
+    var QueaueRead = async function(url, card, gateway_number, stage) {
+
+        let quenue_body = {
+            "action": READ_QUENUE,
+            "gateway_number": gateway_number,
+            "stage": stage,
+            "card": card                                                                    
+        }   
+        
+        console.log();
+        console.log("quenue_body: " + JSON.stringify(quenue_body));
+        console.log();
+
+        let quenue_data = await PostProcess(url, quenue_body);
+
+        console.log("quenue_data: " + quenue_data);
+
+        sleep(1000);
+
+        let read_body = {
+            "action": READ_DATA,
+            "gateway_number": gateway_number                                                                                           
+        }                   
+
+        let read_data = await PostProcess(url, read_body);
+
+        console.log("read_data: " + read_data);
+
+        sleep(1000);
+
+    }
+
+    exports.process =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
+
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', '*');         
+        
+        const key = req.headers.authorization.split('Bearer ')[1];
+        
+        if (key!=bearer_key) {
+            res.status(403).send('Unauthorized');
+        } else {       
+
+            if (req.method === 'OPTIONS') {
+                res.end();
+            } else {                              
+              
+                var gateway_number = req.body.gateway_number; 
+                let local = req.body.local; 
+
+                console.log("-----------------------");
+                console.error("gateway_number: " + gateway_number);
+                console.error("local: " + local);
+                
+
+                var _urls = GetURLS();
+
+                let url = "";                
+                if (local) {
+                    url = _urls.url_base_local;
+                } else {
+                    url = _urls.url_base_remote;
+                }
+
+                console.error("url: " + url);
+
+                console.log("-----------------------");
+
+                let card = "";
+                if (req.body.card!=undefined) {
+                    card = req.body.card;
+                    console.log("card: " + card);
+                }                      
+                
+                let action = 0;
+                if (req.body.action!=undefined) {
+                    action = req.body.action;
+                    console.log("action: " + action);
+                } 
+
+                let stage = "";
+                if (req.body.stage!=undefined) {
+                    stage = req.body.stage;
+                    console.log("stage: " + stage);
+                }
+
+                try {  
+
+                    switch (action) {
+                        case 0:
+                            await CollectSwitchLock(url, card, gateway_number);
+                            break;
+                        case 1:
+                            await Send(url, card, gateway_number, stage);                           
+                            break;
+                        case 2:
+                            await QueaueRead(url, card, gateway_number, stage);
+                            break;     
+                        case 3:
+                            await SwitchLock(url, card, gateway_number);
+                            break; 
+                    }           
+
+                    return res.status(200).send({"completed":true}); 
+
+
+                } catch (e) {
+                    console.error(e);
+                    return res.status(400).send(error);                
+                }
+
+            }
+        }
     });
