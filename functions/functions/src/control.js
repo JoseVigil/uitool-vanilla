@@ -14,6 +14,8 @@
     var SEND_DATA       = "send_data";
     var READ_QUENUE     = "read_quenue";
     var READ_DATA       = "read_data";
+    var SAVE_QUENUE     = "save_quenue";
+    var SAVE_DATA       = "save_data";
 
     var GetStage = function (stage) {
 
@@ -1137,9 +1139,9 @@
         }
     }
 
-    var CountQueue = async function (date_ports) {
+    var CountQueue = async function (date_ports, queue_type) {
         var promises_queue = await new Promise( async (resolve, reject) => { 
-            await firestore.collection("automation").doc(date_ports).collection("queue_sent").get().then(snap => {   
+            await firestore.collection("automation").doc(date_ports).collection(queue_type).get().then(snap => {   
                 console.log("snap.size: " + snap.size);             
                 resolve(snap.size);
             });
@@ -1154,7 +1156,7 @@
         console.log("FB_SentQueuedLimit");
         console.log();  
 
-        var count_queue = await CountQueue(date_ports);        
+        var count_queue = await CountQueue(date_ports, "queue_sent");        
 
         console.log();
         console.log("count_queue: " + count_queue);
@@ -1276,7 +1278,7 @@
                 
             }
 
-            count_queue = await CountQueue(date_ports);
+            count_queue = await CountQueue(date_ports, "queue_sent");
 
             console.log();
             console.log("count_queue: " + count_queue);
@@ -1285,6 +1287,369 @@
         }
 
     }
+
+    var QueaueRead = async function(url, card, gateway_number, stage) {
+
+        let quenue_body = {
+            "action": READ_QUENUE,
+            "gateway_number": gateway_number,
+            "stage": stage,
+            "card": card                                                                    
+        }   
+        
+        console.log();
+        console.log("quenue_body: " + JSON.stringify(quenue_body));
+        console.log();
+
+        let quenue_data = await PostProcess(url, quenue_body);
+
+        console.log("quenue_data: " + quenue_data);
+
+        sleep(1000);
+
+        let read_body = {
+            "action": READ_DATA,
+            "gateway_number": gateway_number                                                                                           
+        }                   
+
+        let read_data = await PostProcess(url, read_body);
+
+        console.log("read_data: " + read_data);
+
+        sleep(1000);
+
+    }
+
+    var FB_PhoneNumbersFromCard = async function (card, port_date) {
+
+        var usingArray = await new Promise( async (resolve, reject) => {
+
+            var stages = [];
+
+            var size = 0;
+            var count = 0;
+
+            var stage = card + ".stage";
+            var status = card + ".status";
+            var phone = card + '.phone';
+
+            await firestore
+                .collectionGroup(port_date)                                      
+                //.where(status, "in", ["phone"])
+                .where(phone, '>', 0)
+                .get().then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;
+                console.log("size: "+ size);
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let status = doc.data()[card].status; 
+
+                        //console.log("status: " + status);                       
+
+                        let operator = doc.data()[card].operator;                   
+                        let port = doc.id.match(/[0-9]+/g);                          
+                        let phone = doc.data()[card].phone; 
+                        let using = `{"card":"${card}","operator":"${operator}", "port":${port}, "phone":${phone}}`;
+                        stages.push(JSON.parse(using));
+
+                    if (count === (size-1)) {
+                        resolve(stages);
+                    }
+
+                    count++;
+                    
+                    });
+
+                } else {
+                    resolve(stages);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return usingArray;
+
+
+    }   
+
+    var FB_PhoneNumbers = async function (cards, date_ports) {
+
+        var usingAll = [];   
+        
+        var usingA = [];  
+        var usingB = [];  
+        var usingC = [];  
+        var usingD = [];  
+
+        for (var i=0; i<cards.length; i++) {
+
+            let card = cards[i];
+
+            switch (card) {
+                
+                case "A":    
+                    usingA  = await FB_PhoneNumbersFromCard("A", date_ports);
+                    if (usingA.length > 0) {
+                        console.log("usingA: " + JSON.stringify(usingA));            
+                    }            
+                break;
+
+                case "B":
+                    usingB = await FB_PhoneNumbersFromCard("B", date_ports);
+                    if (usingB.length > 0) {
+                        console.log("usingB: " + JSON.stringify(usingB));                
+                    }
+                break;
+
+                case "C":
+                    usingC = await FB_PhoneNumbersFromCard("C", date_ports);
+                    if (usingC.length > 0) {
+                        console.log("usingC: " + JSON.stringify(usingC));                
+                    }
+                break;
+
+                case "D":
+                    usingD = await FB_PhoneNumbersFromCard("D", date_ports);
+                    if (usingD.length > 0) {
+                        console.log("usingD: " + JSON.stringify(usingD));                
+                    }    
+                break;   
+                
+            }   
+            
+        }
+
+        usingAll.push(...usingA, ...usingB, ...usingC, ...usingD);
+
+        //usingAll.sort(GetSortOrder("gateway"));
+
+        //console.log("usingAll: " + JSON.stringify(usingAll));
+
+        return usingAll;
+        
+    }
+
+    var SaveQueaue = async function(date_ports, card) {        
+
+        var promises_save_number_queue = [];
+
+        var numbers_array = await FB_PhoneNumbers([card], date_ports);              
+        console.log("numbers_array: " + JSON.stringify(numbers_array));                               
+
+        var _json = {};
+
+        if (numbers_array.length>0) {
+
+            for (var i=0; i<numbers_array.length; i++) {
+
+                //let using = `{"card":"${card}","operator":"${operator}", "port":${port}, "phone":${phone}}`;
+                let card = numbers_array[i].card;
+                let port = numbers_array[i].port;
+                let phone = numbers_array[i].phone;
+                
+                let json = { card:card, port:port, phone:phone };
+                let realPort = port+1;
+                var portName = "port" + realPort;
+
+                promises_save_number_queue.push(
+                    firestore
+                        .collection("automation")
+                        .doc(date_ports)
+                        .collection("queue_save_number")
+                        .doc(portName)
+                        .set(json, { merge: true })
+                );
+                
+            }
+
+            await Promise.all(promises_save_number_queue);               
+            
+            return true;
+        }
+
+        return false;  
+        
+    }
+
+    
+    
+    var SaveData = async function(gateway_number, date_ports, card) {
+
+        //DO THE POST                      
+
+        console.log();
+        console.log("FB_SaveQueuedLimit");
+        console.log();
+
+        var _urls = GetURLS();
+
+        var count_queue_save_number = await CountQueue(date_ports, "queue_save_number");
+
+        while (count_queue_save_number > 0) {
+
+            try 
+            {
+                                            
+                var send_queue_limit = await FB_SaveQueuedLimit(date_ports);
+                
+                var promises_save = [];  
+
+                var count = 0;
+
+                var length_limit = send_queue_limit.length;
+
+                if ( length_limit > 0 ) {        
+                    
+                    for(var i=0; i<length_limit; i++) {
+                    
+                        let card = send_queue_limit[i].card;
+                        let port = send_queue_limit[i].port;
+                        let path = send_queue_limit[i].path;
+                        let phone = send_queue_limit[i].phone;
+                        var jsonCard = {card:card ,port:port, phone:phone, path:path};                                        
+
+                        let page = parseInt(port)-1;
+
+                        var _url = _urls.url_base_cloud_remote + _urls.params_save_phone;
+
+                        var option_sendphone = {
+                            method: "POST",
+                            uri: _url,
+                            body: {
+                                data: {
+                                    "gateway": gateway_number,
+                                    "url": _urls.url_save_phone + page,
+                                    "card": jsonCard,
+                                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                },
+                            },
+                            json: true,
+                        };                                         
+
+                        console.log();
+                        console.log("option_sendphone: " + JSON.stringify(option_sendphone));
+                        console.log();
+
+                        var results_sendphone =  await rp(option_sendphone);                                                                                                                                                                     
+
+                        let data            = results_sendphone;                                            
+                        let path_delete     = data.path;    
+                        let port_delete     = data.channel;  
+                        let phone_delete    = data.phone;  
+                        var port_name       = "port" + port_delete;                                            
+                        
+                        var _json = `{"${data.card}":{"stage":${STAGE_SAVED_NUMBER}}}`;
+                        var jsonCard = JSON.parse(_json);
+                        
+                        console.log("");
+                        console.log("*********************");                                    
+                        console.log("delete     : " + path_delete);                                    
+                        console.log("_gateway   : " + gateway_number);
+                        console.log("date_ports: " + date_ports);
+                        console.log("port_name  : " + port_name);
+                        console.log("jsonCard   : " + JSON.stringify(jsonCard)); 
+                        console.log("phone      : " + phone_delete);                                    
+                        console.log("*********************");
+                        console.log("");                        
+
+                        promises_save.push(
+                            firestore.doc(path_delete).delete()
+                        );  
+                        
+                        promises_save.push(
+                            firestore
+                                .collection("gateways")
+                                .doc("S" + gateway_number)
+                                .collection(date_ports)
+                                .doc(port_name)
+                                .set(jsonCard, { merge: true })
+                        ); 
+
+                        await Promise.all(promises_save).catch((error) => {                                            
+                            console.log("error post: " + error);                                          
+                            return error;
+                        });
+
+                        if (count == (length_limit-1)) {                           
+
+                            count_queue_save_number = await CountQueue(date_ports, "queue_save_number");
+
+                            console.log();
+                            console.log("count_queue_save_number: " + count_queue_save_number);
+                            console.log();                                   
+
+                        }
+
+                        count++;
+                        
+                        sleep(500);
+
+                    }
+
+                } 
+
+            } catch (error) {
+                console.error("Error:: " + error);
+                return false;        
+            }
+
+        }
+    }
+
+    var FB_SaveQueuedLimit = async function (date_ports) {        
+
+        var queueArray = await new Promise( async (resolve, reject) => {
+
+            var queued = [];
+            var count  = 0;
+           
+            await firestore
+                .collection("automation")
+                .doc(date_ports)
+                .collection("queue_save_number")
+                .limit(3)                             
+                .get()
+                .then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;                
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let port = doc.data().port; 
+                        let card = doc.data().card; 
+                        let phone = doc.data().phone; 
+                        let path = doc.ref.path;                                                 
+                        queued.push({port:port, card:card, phone:phone, path:path});
+
+                    if (count === (size-1)) {
+                        resolve(queued);
+                    }
+
+                    count++;
+                    
+                    });
+
+                } else {
+                    resolve(queued);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return queueArray;
+
+    }  
+
 
     exports.actions =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  {    
 
@@ -1360,6 +1725,12 @@
                             break;
                         case READ_DATA:
                             result = await ReadData(gateway_number, date_ports); 
+                            break;
+                        case SAVE_QUENUE:
+                            result = await SaveQueaue(date_ports, card); 
+                            break;
+                        case SAVE_DATA:
+                            result = await SaveData(gateway_number, date_ports, card); 
                             break;
                     }
 
@@ -1486,37 +1857,33 @@
     
     }  
 
-    var QueaueRead = async function(url, card, gateway_number, stage) {
+    var Save = async function(url, card, gateway_number, stage) {
 
-        let quenue_body = {
-            "action": READ_QUENUE,
+        let save_quenue_body = {
+            "action": SAVE_QUENUE,
             "gateway_number": gateway_number,
-            "stage": stage,
-            "card": card                                                                    
-        }   
-        
-        console.log();
-        console.log("quenue_body: " + JSON.stringify(quenue_body));
-        console.log();
-
-        let quenue_data = await PostProcess(url, quenue_body);
-
-        console.log("quenue_data: " + quenue_data);
-
-        sleep(1000);
-
-        let read_body = {
-            "action": READ_DATA,
-            "gateway_number": gateway_number                                                                                           
+            "card": card                                                                   
         }                   
 
-        let read_data = await PostProcess(url, read_body);
+        let save_quenue_data = await PostProcess(url, save_quenue_body);
 
-        console.log("read_data: " + read_data);
+        console.log("save_quenue_data: " + save_quenue_data);
 
-        sleep(1000);
+        sleep(1000);     
+    
+        let save_body = {
+            "action": SAVE_DATA,
+            "gateway_number": gateway_number,
+            "card": card                                                                   
+        }                   
 
-    }
+        let save_data = await PostProcess(url, save_body);
+
+        console.log("save_data: " + save_data);
+
+        sleep(1000);  
+    }     
+        
 
     exports.process =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
 
@@ -1588,6 +1955,9 @@
                         case 3:
                             await SwitchLock(url, card, gateway_number);
                             break; 
+                        case 4:
+                            await Save(url, card, gateway_number);
+                            break;
                     }           
 
                     return res.status(200).send({"completed":true}); 
