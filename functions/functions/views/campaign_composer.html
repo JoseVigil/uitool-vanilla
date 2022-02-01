@@ -786,14 +786,17 @@
 
         if (existing_name == campaign_name) {
 
-          campaign = await firestore.collection('accounts')
-            .doc(window.account)
-            .collection("campaigns")
-            .doc(existing_id).get();
+              await firestore.collection('accounts')
+                .doc(window.account)
+                .collection("campaigns")
+                .doc(existing_id).set(json,{ merge:true });
 
-            await campaign.set(json,{ merge:true });
+                  $('#msgModalTitle').text("Acutalizado con éxito");
+                  $('#msgModalContent').text('La campaña ' + campaign_name + ' ha sido actualizada con exito.');                    
+                  $('#msgModal').data('type', 1);
+                  $('#msgModal').modal('show');     
 
-            return;
+              return;           
 
         } else {
 

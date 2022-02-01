@@ -463,7 +463,7 @@
           
           var build_image_web = `{
             "method": "POST",
-            "uri": "https://us-central1-notims.cloudfunctions.net/backend/buildimage/${type}", 
+            "uri": "https://us-central1-notims.cloudfunctions.net/uitool/fromHTML/${type}", 
             "timeout": "10000",
             "body": {
               "data" : ${JSON.stringify(post_params)}                  
@@ -528,7 +528,7 @@
 
             var build_image_web = `{
                         "method": "POST",
-                        "uri": "https://us-central1-notims.cloudfunctions.net/backend/buildimage/${type}", 
+                        "uri": "https://us-central1-notims.cloudfunctions.net/uitool/fromHTML/${type}", 
                         "timeout": "10000",
                         "body": {
                         "data" : ${JSON.stringify(data)}                  
