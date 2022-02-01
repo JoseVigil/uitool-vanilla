@@ -90,10 +90,10 @@
             <div class="tabbable" id="tabs-381741">
               <ul class="nav nav-tabs">
                 <li class="nav-item">
-                  <a class="nav-link active" href="#tab1" data-toggle="tab">Section 1</a>
+                  <a class="nav-link active" href="#tab1" data-toggle="tab">Gateways</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#tab2" data-toggle="tab">Section 2</a>
+                  <a class="nav-link" href="#tab2" data-toggle="tab">Port Groups</a>
                 </li>
               </ul>
               <div class="tab-content">
@@ -181,7 +181,7 @@
         <div class="col-md-4">
           <div class="column-background">
             <div class="form-group draggable">
-              <div id="preview">            
+              <div id="phone-details">            
                 
               </div>
             </div>
@@ -302,6 +302,42 @@
           }    
       }
 
+      
+
+      window.reboot = function(_id) {
+
+      }
+
+      window.showPhonePanel = function(_id) {
+
+        $("#phone-details").empty();
+        let id = "#"+_id;
+        let _data = $(id).attr("data-phone").replace(/\'/g,'"');
+        let data = JSON.parse(_data);
+        console.log("data: " + JSON.stringify(data));
+        let phone = data.phone;
+        let operator = data.operator;
+       
+        let phone_details = `<div class="card">          
+          <div class="card-body">
+            <span style="font-size:25px; color=grey;">${data.phone}</span>                     
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">Puerto ${data.id}</li>
+            <li class="list-group-item">Card ${data.card}</li>
+            <li class="list-group-item">Operador ${data.operator}</li>
+            <li class="list-group-item">Consumo ${data.consumption}</li>            
+          </ul>
+          <div class="card-body">
+            <a href="#" class="card-link">Cambiar Numero</a>
+            <a href="#" class="card-link">Enviar Mensaje</a>
+          </div>
+        </div>`;
+        
+        $("#phone-details").append(phone_details);
+        
+      }
+
       const fieldsPort = document.getElementById('fields_port');
 
       $('#table_days tbody').on( 'click', 'tr', function (e) {
@@ -321,7 +357,9 @@
         }*/
 
         console.log("coll_name:" + coll_name);
-        console.log("gateway_selected:" + gateway_selected);        
+        console.log("gateway_selected:" + gateway_selected);  
+        
+        
 
         db.collection('gateways')
         .doc(gateway_selected)
@@ -390,11 +428,12 @@
           });    
           
           let cleanArray = JSON.stringify(portsArray);         
-          //console.log(cleanArray);
+          console.log(cleanArray);
 
           for (var j=0; j<portsArray.length; j++) {
 
             let port = portsArray[j];
+            var id = port.id;
             var datas = port.data;
             var dlength = datas.length;
             console.log("dlength: " + dlength);
@@ -402,6 +441,7 @@
 
             for (var i=0; i<dlength; i++) {
               let data = datas[i];
+              data.id = id;
               let dash = "";
               if (i==3) {
                 dash = `style="border-bottom: 3px solid black;"`;
@@ -412,16 +452,22 @@
               } else {
                 html += `<td ${dash}>${data.card}</td>`;
               }
+
               html += `<td ${dash}>${data.operator}</td>
                 <td ${dash}>${data.consumption}</td>
-                <td ${dash}>${data.phone}</td>                    
+                <td ${dash}><a id="${data.phone}" href="#" onclick="window.showPhonePanel(${data.phone});" data-phone="${JSON.stringify(data).replace(/\"/g,"'")}" class="nav-link active">${data.phone}</a></td>                    
               </tr>`;
-            }                
+
+              console.log(html);
+
+            } 
                 
             content += html;
-            fieldsPort.innerHTML = content;              
+            fieldsPort.innerHTML = content;    
+
           }
 
+          
         });
 
       });
@@ -439,10 +485,23 @@
           console.log(docData);   
           
           if (doc.id != "urls") {
+            
+            let html = `<tr><td><div class="col-md-12">
+              <div class="row">
+                <div class="col-md-4">
+                  <span style="font-size:25px; color=grey;">${doc.id}</span>
+                </div>
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-4">
+                  <a class="nav-link active" href="#" onclick="window.reboot(${data.phone});" data-phone="${JSON.stringify(data).replace(/\"/g,"'")}" class="nav-link active">Reboot</a>
+                </div>
+              </div>
+            </div></td></tr>`;
 
-            let html = `<tr>
-                    <td>${doc.id}</td>                      
-                    </tr>`;
+            ///let html = `<tr>
+            //        <td>${doc.id}</td>                      
+            //        </tr>`;
             content += html;
             fieldsGateway.innerHTML = content;
             

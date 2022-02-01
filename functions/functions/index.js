@@ -2,7 +2,8 @@
     functions = require('firebase-functions');
     firebase = require('firebase');
     admin = require('firebase-admin');
-    request = require('request');     
+    request = require('request');
+      
 
     var firestoreService = require('firestore-export-import');      
     var path = require('path');       
@@ -72,13 +73,13 @@
     bearer_key = "QZZ6WFDEfda9JMbLn0JT0NA3UvOoVmf0Texf2VHQEcW4T9Co0v";
 
     //api
-    exports.api = require("./src/api");  
-    
-    //automation
-    exports.automation = require("./src/automation");    
+    exports.api = require("./src/api");       
 
     //Control
-    exports.control = require("./src/control");   
+    //exports.control = require("./src/control");   
+
+    //cron
+    exports.cron = require("./src/cron");
     
     /**
      * SERVER ALL INCOMING
@@ -159,6 +160,7 @@
     var SERVER_ACTION           = 'action';
     var SERVER_GATEWAY          = 'gateway';
     var ACTION_EXPORT           = 'export'; 
+    var ACTION_REBOOT           = 'reboot'; 
 
     exports.server = functions.https.onRequest( async (req, res) => {
 
@@ -241,7 +243,51 @@
                 return res.status(400).send(error);                
             }
   
-          break;        
+          break;   
+          
+          case ACTION_REBOOT:    
+
+            try {
+
+              console.log();
+              console.log("REINICIANDO");
+              console.log();
+
+              let _urls = GetURLS();
+
+              var _url = _urls.url_base_cloud_remote + _urls.params_reboot;
+
+              var gateway = req.body.data.gateway; 
+
+              var option_reboot = {
+                  method: "POST",
+                  uri: _url,
+                  body: {
+                      data: {
+                          "gateway": gateway,
+                          "url": _urls.url_reboot,                        
+                          "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                      },
+                  },
+                  json: true,
+              };
+
+              console.log();
+              console.log("option_reboot: " + JSON.stringify(option_reboot));
+              console.log();
+
+              await rp(option_reboot)
+                  .then((results_reboot) =>  {
+                  return res.status(200).send(results_reboot); 
+              });
+              
+
+            } catch (e) {
+              console.error(e);
+              return res.status(400).send(error);                
+            }
+
+          break;   
                    
   
         default:  
@@ -250,6 +296,94 @@
       }   
       
     };   
+
+    
+
+
+    /*var setRunning = async function(gateway, cards, key, status) {            
+
+          cards[key] = status;
+
+          let _cards = {"cards":cards};
+
+          console.log('_cards : ' + JSON.stringify(_cards));
+
+          return await firestore
+          .collection("gateways")
+          .doc(gateway).set(_cards, {merge:true});
+
+      }
+
+    
+
+
+    exports.test =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
+
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+      res.set('Access-Control-Allow-Headers', '*');         
+      
+      const key = req.headers.authorization.split('Bearer ')[1];
+      
+      if (key!=bearer_key) {
+          res.status(403).send('Unauthorized');
+      } else {       
+
+          if (req.method === 'OPTIONS') {
+              res.end();
+          } else {                              
+            
+            var gateway_number = req.body.gateway_number;      
+            var gateway = "S" + gateway_number; 
+                                             
+              try {  
+
+                let promise_gateway = await new Promise( async (resolve, reject) => {
+
+                  await firestore
+                      .collection("gateways")
+                      .doc(gateway).get()
+                      .then(async (doc) => {
+          
+                          var cards = doc.data().cards;                         
+
+                          Object.keys(cards).forEach(async function(key) {
+                            
+                            console.log('Key : ' + key + ', Value : ' + cards[key]);
+
+                            let old_status = cards[key];
+
+                            console.log('old_status : ' + old_status);
+
+                            switch (old_status) {
+                              case "ready":
+                                setRunning(gateway, cards, key, "running_collect_send");
+                                break;
+                            }                
+
+                          })
+          
+                          resolve(cards);
+                          
+                      });
+                });
+
+                
+
+                 
+                  
+                  return res.status(200).send({"completed":promise_gateway}); 
+
+
+              } catch (e) {
+                  console.error(e);
+                  return res.status(400).send(error);                
+              }
+
+          }
+      }
+      
+  });*/
 
    
 

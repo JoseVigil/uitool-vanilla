@@ -359,6 +359,7 @@
                 try {                         
                     
                     var gateway = req.body.gateway; 
+                    var cards = req.body.cards;
 
                     console.log("-----------------------");   
                     console.log("gateway: " + gateway);
@@ -368,7 +369,8 @@
                     
                     let gw = {                    
                         "number": gateway,                        
-                        "gateway": name
+                        "gateway": name,
+                        "cards": cards
                     };
 
                     console.log("-----------------------");   

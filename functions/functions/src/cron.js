@@ -1,4 +1,3 @@
- 
     var rp = require('request-promise'); 
    
 
@@ -47,7 +46,7 @@
 
     }
 
-    var GetURLS = function () {
+    GetURLS = function () {
         let _json = {
             url_managment : "/en/10-6SMSManagement.php",
             url_send : "/en/5-3-2SMSsend.php",
@@ -1648,465 +1647,168 @@
 
     }  
 
+var GetCardsByGateway = async function(gateway) {
 
-    exports.actions =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  {    
+    let promise_gateway = await new Promise( async (resolve, reject) => {
 
-        res.set("Access-Control-Allow-Origin", "*");
-        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
-        res.set('Access-Control-Allow-Headers', '*');         
-        
-        const key = req.headers.authorization.split('Bearer ')[1];
-        
-        if (key!=bearer_key) {
-            res.status(403).send('Unauthorized');
-        } else {       
+        await firestore
+            .collection("gateways")
+            .doc(gateway).get()
+            .then(async (doc) => {
 
-            if (req.method === 'OPTIONS') {
-                res.end();
-            } else {    
+            let cards = doc.data().cards; 
 
-                try {                         
-                    
-                    var action = req.body.action; 
-                    var gateway_number = req.body.gateway_number;              
-                    var _gateway_ = "S" + gateway_number;
+            resolve(cards);
 
-                    var date_ports =  _gateway_ + "_Ports"; // + getDateLabel();
-
-                    console.log("-----------------------");   
-                    console.log("action: " + action);
-                    console.log("_gateway_: " + _gateway_);
-
-                    let card = "";
-                    if (req.body.card!=undefined) {
-                        card = req.body.card;
-                        console.log("card: " + card);
-                    }
-                    /*let date_ports = "";
-                    if (req.body.date_ports!=undefined) {
-                        date_ports = req.body.date_ports;
-                        console.log("date_ports: " + date_ports);
-                    }*/                   
-                    console.log("-----------------------");
-                    let lock_switch_value = 0;
-                    if (req.body.value!=undefined) {
-                        lock_switch_value = req.body.value;
-                        console.log("lock_switch_value: " + lock_switch_value);
-                    }                   
-                    console.log("-----------------------");
-                    let STAGE = 0;
-                    if (req.body.stage!=undefined) {
-                        var _stage = req.body.stage;
-                        console.log("_stage: " + _stage);
-                        STAGE = GetStage(_stage);
-                        console.log("STAGE: " + STAGE);
-                    }                   
-                    console.log("-----------------------");
-
-                    let result;
-
-                    switch (action) {                        
-                        case COLLECT_DATA:
-                            result = await GW_CollectData(gateway_number, date_ports);  
-                            break;
-                        case SWITCH_CARDS:
-                            result = await SwitchCard(gateway_number, date_ports, card);
-                            break;
-                        case LOCK_SWITCH:
-                            result = await GW_LockSwitch(gateway_number, lock_switch_value);  
-                            break;
-                        case SEND_DATA:
-                            result = await GW_SendPhones(gateway_number, date_ports, card, STAGE);
-                            break;
-                        case READ_QUENUE:
-                            result = await GW_QueueSims([card], date_ports, STAGE); 
-                            break;
-                        case READ_DATA:
-                            result = await ReadData(gateway_number, date_ports); 
-                            break;
-                        case SAVE_QUENUE:
-                            result = await SaveQueaue(date_ports, card); 
-                            break;
-                        case SAVE_DATA:
-                            result = await SaveData(gateway_number, date_ports, card); 
-                            break;
-                    }
-
-                    return res.status(200).send({"result":result}); 
-                    
-                } catch (e) {
-                    console.error(e);
-                    return res.status(400).send(error);                
-                }
-
-            }
-        }
-
-    });
-
-    var PostProcess = async function(url, body) {
-
-        var _url = url;
-
-        console.log("_url:: " +  _url + " body: " + JSON.stringify(body));
-
-
-        var promises_process = await new Promise( async (resolve, reject) => { 
-
-            var options = {
-                'method': 'POST',
-                'url': _url + "/control-actions", 
-                'headers': {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + bearer_key
-                },
-                body: JSON.stringify(body)
-            };
-
-            console.log("options>> " +  JSON.stringify(options));
-
-            await rp(options)
-                     .then(async function (results) {                  
-
-                resolve(results);             
-    
-            }).catch((error) => {
-                console.log("process error: " + error);
-                reject(error);
-            });
-    
         });
-        return promises_process;
-    }
+    });
+     
+     return promise_gateway;
+}
 
-    var SwitchLock = async function(url, card, gateway_number) {
 
-        console.log("SwitchLock url: " + url);
 
-        let switch_body = {
-            "action": SWITCH_CARDS,
+var PostCronCards = async function(gateway_number, cards, lock_switch_value) {
+
+    var _urls = GetURLS(); 
+    var date_ports = "S" + gateway_number + "_Ports"; 
+
+   for (var i=0; i<cards.length; i++) {
+
+        let card = cards[i];
+
+        let process = {
+            "local": false,
             "gateway_number": gateway_number,
-            "card":card                     
-        }                   
-
-        let switch_data = await PostProcess(url, switch_body);
-
-        console.log("switch_data: " + switch_data);
-
-        sleep(200);
-
-        let lock_switch_body = {
-            "action": LOCK_SWITCH,
-            "gateway_number": gateway_number,
-            "value": 0                                                                   
-        }                   
-
-        let lock_switch_data = await PostProcess(url, lock_switch_body);
-
-        console.log("lock_switch_data: " + lock_switch_data);
-
-        sleep(200);
-
-        return;
-
-    }
-
-    var CollectSwitchLock = async function(url, card, gateway_number) {
-
-        let collect_body = {
-            "action": COLLECT_DATA,
-            "gateway_number": gateway_number                        
-        }                   
-
-        let collect_data = await PostProcess(url, collect_body);
-
-        console.log("collect_data: " + collect_data);
-
-        sleep(200);
+            "card": card
+        }   
         
-        await SwitchLock(url, card, gateway_number);
+        console.log("process : " + JSON.stringify(process));
 
-        let collect_again_body = {
-            "action": COLLECT_DATA,
-            "gateway_number": gateway_number                        
-        }                   
-
-        let collect_again_data = await PostProcess(url, collect_again_body);
-
-        console.log("collect_again_data: " + collect_again_data);
-
-        sleep(200);      
         
-        return;
-
-    }
-
-    var Send = async function(url, card, gateway_number, stage) {
-
-        let send_body = {
-            "action": SEND_DATA,
-            "gateway_number": gateway_number,
-            "stage": stage,//"STAGE_SENT_IDLE"
-            "card": card                                                                   
-        }                   
-
-        let send_data = await PostProcess(url, send_body);
-
-        console.log("send_data: " + send_data);
-
-        sleep(200);   
-        
-        return;
     
-    }  
+   }  
 
-    var Save = async function(url, card, gateway_number, stage) {
+}
 
-        let save_quenue_body = {
-            "action": SAVE_QUENUE,
-            "gateway_number": gateway_number,
-            "card": card                                                                   
-        }                   
+var setStatus = async function(key, cards, status, gateway_number) {
 
-        let save_quenue_data = await PostProcess(url, save_quenue_body);
+    cards[key] = status;
 
-        console.log("save_quenue_data: " + save_quenue_data);
+    let _cards = {"cards":cards};
 
-        sleep(200);     
+    console.log('_cards : ' + JSON.stringify(_cards));
+
+    var gateway = "S" + gateway_number;
+
+    await firestore
+    .collection("gateways")
+    .doc(gateway).set(_cards, {merge:true});
+
+}
+
+var runCollectSend = async function(gateway_number, card, cards) {   
     
-        let save_body = {
-            "action": SAVE_DATA,
-            "gateway_number": gateway_number,
-            "card": card                                                                   
-        }                   
+    await setStatus(card, cards, "running_collect_send", gateway_number);
 
-        let save_data = await PostProcess(url, save_body);
+    var date_ports = "S" + gateway_number + "_Ports"; 
 
-        console.log("save_data: " + save_data);
+    await GW_CollectData(gateway_number, date_ports); 
 
-        sleep(200);  
+    await SwitchCard(gateway_number, date_ports, card);
 
-        return;
-    }     
-       
-    var COLLECT_SWITCH_LOCK = 0;
-    var SEND                = 1;
-    var QUEAUE_READ         = 2;
-    var SWITCH_LOCK         = 3;
-    var SAVE                = 4;
+    let lock_switch_value = 0;
 
-    exports.process =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
+    await GW_LockSwitch(gateway_number, lock_switch_value);
 
-        res.set("Access-Control-Allow-Origin", "*");
-        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
-        res.set('Access-Control-Allow-Headers', '*');         
+    await GW_SendPhones(gateway_number, date_ports, card, STAGE_SENT_IDLE);  
+
+    await setStatus(card, cards, "collected", gateway_number);
+
+    return;
+
+}
+
+var runQueueRead = async function(gateway_number, card, cards, partial_status, stage) {  
+
+    await setStatus(card, cards, partial_status, gateway_number);
+
+    var date_ports = "S" + gateway_number + "_Ports"; 
+    
+    let has_queue = await GW_QueueSims([card], date_ports, stage);
+
+    if (has_queue) {
+
+        await ReadData(gateway_number, date_ports);
         
-        const key = req.headers.authorization.split('Bearer ')[1];
-        
-        if (key!=bearer_key) {
-            res.status(403).send('Unauthorized');
-        } else {       
+        await setStatus(card, cards, "read", gateway_number);
+    
+    } else {
 
-            if (req.method === 'OPTIONS') {
-                res.end();
-            } else {                              
-              
-                var gateway_number = req.body.gateway_number; 
-                let local = req.body.local; 
+        let status = "emmpty_" + stage.toLowerCase();
 
-                console.log("-----------------------");
-                console.error("gateway_number: " + gateway_number);
-                console.error("local: " + local);
-                
+        await setStatus(card, cards, status, gateway_number);
 
-                var _urls = GetURLS();
+    }
 
-                let url = "";                
-                if (local) {
-                    url = _urls.url_base_local;
-                } else {
-                    url = _urls.url_base_remote;
-                }
+    return;
 
-                console.error("url: " + url);
+}
 
-                console.log("-----------------------");
+var runSend = async function(gateway_number, card, cards, partial_status, stage) { 
 
-                let card = "";
-                if (req.body.card!=undefined) {
-                    card = req.body.card;
-                    console.log("card: " + card);
-                }                      
-                
-                let action = 0;
-                if (req.body.action!=undefined) {
-                    action = req.body.action;
-                    console.log("action: " + action);
-                } 
+    await setStatus(card, cards, partial_status, gateway_number);
 
-                let stage = "";
-                if (req.body.stage!=undefined) {
-                    stage = req.body.stage;
-                    console.log("stage: " + stage);
-                }
+    var date_ports = "S" + gateway_number + "_Ports"; 
 
-                try {  
+    await GW_SendPhones(gateway_number, date_ports, card, stage);  
 
-                    switch (action) {
-                        case COLLECT_SWITCH_LOCK:
-                            await CollectSwitchLock(url, card, gateway_number);
-                            break;
-                        case SEND:
-                            await Send(url, card, gateway_number, stage);                           
-                            break;
-                        case QUEAUE_READ:
-                            await QueaueRead(url, card, gateway_number, stage);
-                            break;     
-                        case SWITCH_LOCK:
-                            await SwitchLock(url, card, gateway_number);
-                            break; 
-                        case SAVE:
-                            await Save(url, card, gateway_number);
-                            break;
-                    }           
+    await setStatus(card, cards, "sent", gateway_number);
 
-                    return res.status(200).send({"completed":true}); 
+    return;
+}
 
+var runGateway = function (gateway) { 
 
-                } catch (e) {
-                    console.error(e);
-                    return res.status(400).send(error);                
-                }
+    let gateway = "S" + gateway;
 
-            }
-        }
+    let cards = await GetCardsByGateway(gateway);
+
+    console.log("cards : " + JSON.stringify(cards));
+
+    Object.keys(cards).forEach(async function(key) {
+    
+        console.log('Key : ' + key + ', Value : ' + cards[key]);
+
+        let old_status = cards[key];
+
+        console.log('old_status : ' + old_status);
+
+        switch (old_status) {
+            case "ready":                
+                await runCollectSend(gateway, key, cards);                
+            break;
+            case "collected":                
+                await runQueueRead(gateway, key, cards, "running_queue_read", STAGE_SENT);
+            break;
+            case "read":      
+                await runSend(gateway, key, cards, "running_send", STAGE_NOT_RECEIVED);
+            break;    
+            case "sent":        
+                await runQueueRead(gateway, key, cards, "running_queue_not_received", STAGE_NOT_RECEIVED);
+            break;
+        }                
+
     });
 
-
-    exports.bond =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
-
-        res.set("Access-Control-Allow-Origin", "*");
-        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
-        res.set('Access-Control-Allow-Headers', '*');         
-        
-        const key = req.headers.authorization.split('Bearer ')[1];
-        
-        if (key!=bearer_key) {
-            res.status(403).send('Unauthorized');
-        } else {       
-
-            if (req.method === 'OPTIONS') {
-                res.end();
-            } else {                              
-              
-                var gateway_number = req.body.gateway_number;                 
-
-                console.log("-----------------------");
-                console.error("gateway_number: " + gateway_number);                
-
-                var _urls = GetURLS();
-
-                let local = false;
-                if (req.body.local!=undefined) {
-                    local = req.body.local;
-                    console.log("local: " + local);
-                } 
-
-                let url = "";                
-                if (local) {
-                    url = _urls.url_base_local;
-                } else {
-                    url = _urls.url_base_remote;
-                }
-
-                url = url + "/control-process";
-
-                console.error("url: " + url);
-
-                console.log("-----------------------");
-
-                let card = "";
-                if (req.body.card!=undefined) {
-                    card = req.body.card;
-                    console.log("card: " + card);
-                }     
-                                               
-                try {  
-
-                    var collect_switch_lock = async function () {
-                        let collect_switch_lock_body = {
-                            "local": local,
-                            "gateway_number": gateway_number,
-                            "card": card,
-                            "action": COLLECT_SWITCH_LOCK
-                        };          
-                        let collect_switch_lock_resutl = await PostProcess(url, collect_switch_lock_body);                
-                        console.log("collect_switch_lock_resutl: " + collect_switch_lock_resutl);                
-                        sleep(200);    
-                    }
-                    
-                    var send = async function (stage) {                    
-                        let send_body = {
-                            "local": local,
-                            "gateway_number": gateway_number,
-                            "card": card,
-                            "action": SEND,
-                            "stage": stage
-                        }                
-                        let send_resutl = await PostProcess(url, send_body);                
-                        console.log("send_resutl: " + send_resutl);                
-                        sleep(200);
-                    }
-
-                    var queaue_read = async function (stage) {
-                        let queaue_read_body = {
-                            "local": local,
-                            "gateway_number": gateway_number,
-                            "card": card,
-                            "action": QUEAUE_READ,
-                            "stage": stage
-                        }                
-                        let queaue_read_resutl = await PostProcess(url, queaue_read_body);                
-                        console.log("queaue_read_resutl: " + queaue_read_resutl);                
-                        sleep(200);
-                    }
-
-                    var save = async function (stage) {
-                        let save_body = {
-                            "local": local,
-                            "gateway_number": gateway_number,
-                            "card": card,
-                            "action": SAVE
-                        }   
-                        let save_resutl = await PostProcess(url, save_body);                
-                        console.log("save_resutl: " + save_resutl);                
-                        sleep(200);
-                    }                
-
-                    await collect_switch_lock();
-
-                    await send("STAGE_SENT_IDLE");
-                    
-                    await queaue_read("STAGE_SENT");
-
-                    await send("STAGE_NOT_RECEIVED");  
-                    
-                    await queaue_read("STAGE_SENT");         
-                    
-                    //save();
-                    
-                    return res.status(200).send({"completed":true}); 
+}
 
 
-                } catch (e) {
-                    console.error(e);
-                    return res.status(400).send(error);                
-                }
+exports.G2 =  functions.pubsub.schedule('0 1 * * *').onRun(async context => {
+    
+    runGateway(2);
 
-            }
-        }
-        
-    });
+  
+   //await PostCronCards(2, cards, 0);
 
-   
+});
