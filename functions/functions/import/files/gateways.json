@@ -1,41 +1,480 @@
 {
-    "gateways": {        
+    "gateways": {
         "S2": {
             "number": 2,
-            "position": 13,
+            "ports": 64,
+            "days": [
+                {
+                    "date": {
+                        "_seconds": 1643941660,
+                        "_nanoseconds": 545000000
+                    },
+                    "date_ports": "S2_Ports"
+                }
+            ],
+            "cards": {
+                "C": {
+                    "running": false,
+                    "status": "hold"
+                },
+                "A": {
+                    "running": true,
+                    "status": "collected"
+                }
+            },
             "gateway": "S2",
+            "channels": 16,
+            "subCollection": {
+                "gateways/S2/S2_Ports": {
+                    "port1": {
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "A": {
+                            "consumption": 5417,
+                            "operator": "Claro AR",
+                            "status": "Exist",
+                            "phone": 1126651374,
+                            "stage": 1001,
+                            "signal": "-95"
+                        },
+                        "C": {
+                            "status": "Using",
+                            "consumption": 5356,
+                            "stage": 1000,
+                            "operator": "Claro AR",
+                            "signal": "-113"
+                        },
+                        "subCollection": {}
+                    },
+                    "port10": {
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "C": {
+                            "signal": "-107",
+                            "consumption": 5475,
+                            "status": "Using",
+                            "stage": 1000,
+                            "operator": "Claro AR"
+                        },
+                        "A": {
+                            "consumption": 5328,
+                            "signal": "-105",
+                            "stage": 1001,
+                            "phone": 1126730491,
+                            "operator": "Claro AR",
+                            "status": "Exist"
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "subCollection": {}
+                    },
+                    "port11": {
+                        "D": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "C": {
+                            "consumption": 5544,
+                            "operator": "Claro AR",
+                            "status": "Using",
+                            "stage": 1000,
+                            "signal": "-97"
+                        },
+                        "A": {
+                            "operator": "Claro AR",
+                            "stage": 1001,
+                            "consumption": 5628,
+                            "status": "Exist",
+                            "signal": "-107"
+                        },
+                        "subCollection": {}
+                    },
+                    "port12": {
+                        "C": {
+                            "status": "Exist",
+                            "operator": "Claro AR",
+                            "signal": "-105",
+                            "consumption": 5337,
+                            "stage": 1000
+                        },
+                        "A": {
+                            "operator": "Claro AR",
+                            "signal": "-113",
+                            "stage": 1001,
+                            "status": "Using",
+                            "consumption": 5482,
+                            "phone": 1126632611
+                        },
+                        "B": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "D": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "subCollection": {}
+                    },
+                    "port13": {
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "A": {
+                            "status": "Using",
+                            "operator": "Claro AR",
+                            "signal": "-113",
+                            "phone": 1126748427,
+                            "consumption": 5573,
+                            "stage": 1001
+                        },
+                        "C": {
+                            "operator": "Claro AR",
+                            "status": "Exist",
+                            "stage": 1000,
+                            "consumption": 5499,
+                            "signal": "-105"
+                        },
+                        "B": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "subCollection": {}
+                    },
+                    "port14": {
+                        "A": {
+                            "phone": 1126685192,
+                            "operator": "Claro AR",
+                            "status": "Using",
+                            "signal": "-113",
+                            "stage": 1001,
+                            "consumption": 5296
+                        },
+                        "C": {
+                            "signal": "-93",
+                            "consumption": 5307,
+                            "stage": 1000,
+                            "status": "Exist",
+                            "operator": "Claro AR"
+                        },
+                        "B": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "subCollection": {}
+                    },
+                    "port15": {
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "D": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "C": {
+                            "operator": "Claro AR",
+                            "consumption": 5405,
+                            "status": "Exist",
+                            "signal": "-107",
+                            "stage": 1000
+                        },
+                        "A": {
+                            "stage": 1001,
+                            "status": "Using",
+                            "signal": "-113",
+                            "operator": "Claro AR",
+                            "phone": 1126665195,
+                            "consumption": 5439
+                        },
+                        "subCollection": {}
+                    },
+                    "port16": {
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "A": {
+                            "phone": 1126651591,
+                            "consumption": 5563,
+                            "operator": "Claro AR",
+                            "signal": "-113",
+                            "stage": 1001,
+                            "status": "Using"
+                        },
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "C": {
+                            "consumption": 5371,
+                            "status": "Exist"
+                        },
+                        "subCollection": {}
+                    },
+                    "port2": {
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "A": {
+                            "signal": "-113",
+                            "status": "Using",
+                            "phone": 1126717366,
+                            "operator": "Claro AR",
+                            "consumption": 4987,
+                            "stage": 1001
+                        },
+                        "C": {
+                            "consumption": 4936,
+                            "operator": "Claro AR",
+                            "signal": "-95",
+                            "status": "Exist",
+                            "stage": 1000
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "subCollection": {}
+                    },
+                    "port3": {
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "B": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "C": {
+                            "status": "Using",
+                            "consumption": 4977,
+                            "signal": "-113",
+                            "operator": "Claro AR",
+                            "stage": 1000
+                        },
+                        "A": {
+                            "signal": "-101",
+                            "consumption": 5142,
+                            "stage": 1001,
+                            "operator": "Claro AR",
+                            "phone": 1126669261,
+                            "status": "Exist"
+                        },
+                        "subCollection": {}
+                    },
+                    "port4": {
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "C": {
+                            "signal": "-113",
+                            "status": "Using",
+                            "stage": 1000,
+                            "operator": "Claro AR",
+                            "consumption": 5449
+                        },
+                        "A": {
+                            "stage": 1004,
+                            "phone": 1164303201,
+                            "signal": "-101",
+                            "status": "Exist",
+                            "consumption": 5542,
+                            "operator": "Claro AR"
+                        },
+                        "subCollection": {}
+                    },
+                    "port5": {
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "A": {
+                            "consumption": 4946,
+                            "stage": 1001,
+                            "operator": "Claro AR",
+                            "phone": 1126621186,
+                            "signal": "-103",
+                            "status": "Using"
+                        },
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "C": {
+                            "consumption": 4901,
+                            "signal": "-103",
+                            "status": "Exist",
+                            "stage": 1000,
+                            "operator": "Claro AR"
+                        },
+                        "subCollection": {}
+                    },
+                    "port6": {
+                        "C": {
+                            "operator": "Claro AR",
+                            "consumption": 5411,
+                            "status": "Exist",
+                            "signal": "-109",
+                            "stage": 1000
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "A": {
+                            "operator": "Claro AR",
+                            "signal": "-105",
+                            "phone": 1126651532,
+                            "consumption": 5472,
+                            "status": "Using",
+                            "stage": 1001
+                        },
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "subCollection": {}
+                    },
+                    "port7": {
+                        "A": {
+                            "operator": "Claro AR",
+                            "status": "Using",
+                            "phone": 1126663681,
+                            "signal": "-113",
+                            "consumption": 5023,
+                            "stage": 1001
+                        },
+                        "C": {
+                            "operator": "Claro AR",
+                            "signal": "-105",
+                            "stage": 1000,
+                            "status": "Exist",
+                            "consumption": 5045
+                        },
+                        "B": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "subCollection": {}
+                    },
+                    "port8": {
+                        "C": {
+                            "operator": "Claro AR",
+                            "stage": 1000,
+                            "status": "Using",
+                            "consumption": 5463,
+                            "signal": "-105"
+                        },
+                        "D": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "B": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "A": {
+                            "consumption": 5427,
+                            "phone": 1126386288,
+                            "stage": 1001,
+                            "status": "Exist",
+                            "operator": "Claro AR",
+                            "signal": "-103"
+                        },
+                        "subCollection": {}
+                    },
+                    "port9": {
+                        "A": {
+                            "phone": 1126715103,
+                            "operator": "Claro AR",
+                            "stage": 1004,
+                            "consumption": 5344,
+                            "status": "Exist",
+                            "signal": "-97"
+                        },
+                        "D": {
+                            "status": "Empty",
+                            "consumption": 0
+                        },
+                        "B": {
+                            "consumption": 0,
+                            "status": "Empty"
+                        },
+                        "C": {
+                            "signal": "-99",
+                            "status": "Using",
+                            "stage": 1000,
+                            "consumption": 5352,
+                            "operator": "Claro AR"
+                        },
+                        "subCollection": {}
+                    }
+                }
+            }
+        },
+        "S3": {
+            "number": 3,
+            "gateway": "S3",
             "subCollection": {}
         },
-        "S11": {
-            "number": 11,
-            "position": 13,
-            "gateway": "S11",
+        "S8": {
+            "gateway": "S8",
+            "number": 8,
             "subCollection": {}
         },
         "urls": {
-            "url_managment": "/en/10-6SMSManagement.php",
-            "url_send": "/en/5-3-2SMSsend.php",
-            "url_base_local": "http://localhost:5001/notims/us-central1",
-            "url_using": "/en/5-9SIM.php",
-            "url_ussd": "/en/5-5USSD.php",
-            "params_send": "/backend/gateway/send",
-            "params_send_only": "/backend/gateway/sendonly",
-            "url_domain": ".notimation.com",
-            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
-            "params_lock_switch": "/backend/gateway/lockswitch",
-            "url_lock_switch": "/en/5-9-1SIMSet.php",
-            "params_status": "/backend/gateway/status",
-            "params_ussdsend": "/backend/gateway/ussdsend",
-            "params_ussdread": "/backend/gateway/ussdread",
-            "url_base": "http://s",
             "parmas_using": "/backend/gateway/using",
-            "parmas_managment": "/backend/gateway/managment",
-            "url_status": "/en/1-2chstatus.php",
-            "params_received": "/backend/gateway/smsreceived",
-            "url_received": "/en/5-3-1SMSinfo.php?ch=",
-            "url_sendweb": "/backend/gateway/sendweb",
-            "url_save_phone": "/en/5-2-1mobilemodify.php?id=",
+            "url_base": "http://s",
             "params_save_phone": "/backend/gateway/savephone",
+            "params_ussdsend": "/backend/gateway/ussdsend",
+            "url_status": "/en/1-2chstatus.php",
+            "url_send": "/en/5-3-2SMSsend.php",
+            "url_using": "/en/5-9SIM.php",
+            "params_lock_switch": "/backend/gateway/lockswitch",
+            "params_send_only": "/backend/gateway/sendonly",
+            "url_save_phone": "/en/5-2-1mobilemodify.php?id=",
+            "url_domain": ".notimation.com",
+            "params_received": "/backend/gateway/smsreceived",
+            "url_ussd": "/en/5-5USSD.php",
+            "url_base_local": "http://localhost:5001/notims/us-central1",
+            "params_ussdread": "/backend/gateway/ussdread",
+            "parmas_managment": "/backend/gateway/managment",
+            "url_sendweb": "/backend/gateway/sendweb",
+            "params_send": "/backend/gateway/send",
+            "url_lock_switch": "/en/5-9-1SIMSet.php",
+            "url_base_remote": "https://us-central1-notims.cloudfunctions.net",
+            "url_received": "/en/5-3-1SMSinfo.php?ch=",
+            "url_managment": "/en/10-6SMSManagement.php",
+            "params_status": "/backend/gateway/status",
             "subCollection": {}
         }
     }

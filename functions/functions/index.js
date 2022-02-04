@@ -164,15 +164,21 @@
 
     exports.server = functions.https.onRequest( async (req, res) => {
 
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', '*');  
+
         console.log("<<<<<<<<<<<<<<<<<<<<======================");
 
-        console.log("req.path:", req.path); 
+        console.log("req.path: ", req.path); 
         
         var path = req.path.split('/')[1];
 
+        console.log("path: ", path); 
+
         var user, pass;
 
-        if ( path === SERVER_GATEWAY || path === SERVER_ACTION ) {          
+        if ( path === SERVER_GATEWAY || path === SERVER_ACTION || path === ACTION_REBOOT ) {          
 
             var autorization = req.body.data.autorization;      
       
@@ -223,8 +229,7 @@
         case ACTION_EXPORT:          
            
             //http://localhost:5000/export/cobranzas
-            //https://noti.ms/export/cobranzas                 
-
+            //https://noti.ms/export/cobranzas 
             //.backup(collection)
   
             try {
@@ -296,6 +301,9 @@
       }   
       
     };   
+
+
+   
 
     
 

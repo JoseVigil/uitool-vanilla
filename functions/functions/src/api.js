@@ -498,6 +498,90 @@
 
         
     });
+
+    exports.RebootAllGateways =  functions.https.onRequest( async (req, res) =>  {  
+
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', '*');         
+        
+        const key = req.headers.authorization.split('Bearer ')[1];
+        
+        if (key!=bearer_key) {
+            res.status(403).send('Unauthorized');
+        } else {       
+
+            if (req.method === 'OPTIONS') {
+                res.end();
+            } else {                
+
+                try {
+
+                    var promise_reboot = [];
+                    var count = 0;
+                    var size = 0;
+
+                    let resutl_promise_reboot = await new Promise( async (resolve, reject) => {
+  
+                        const gatewaysRef = firestore.collection('gateways');  
+                        gatewaysRef.get().then( async snapshot => {
+                            
+                            console.log("size: " + snapshot.size);
+
+                            size = snapshot.size;
+
+                            let _urls = GetURLS();
+                            var _url = _urls.url_base_cloud_remote + _urls.params_reboot;
+            
+                            snapshot.docs.forEach( async doc => {            
+                                
+                                var id = doc.id;
+                                let gateway = doc.data().number;
+                                
+                                let option_reboot = {
+                                    method: "POST",
+                                    uri: _url,
+                                    body: {
+                                        data: {
+                                            "gateway": gateway,
+                                            "url": _urls.url_reboot,                        
+                                            "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                        },
+                                    },
+                                    json: true,
+                                };
+
+                                promise_reboot.push(rp(option_reboot));
+
+                                if (count == (size-1)) {
+                                    resolve(promise_reboot);
+                                }
+        
+                                count++;
+                            });
+
+                        });          
+                    
+                    });
+                    
+                    return Promise.all(resutl_promise_reboot).catch((error) => {                                            
+                        console.log("error post: " + error);                                          
+                        return error;
+                    });
+
+
+                } catch (e) {
+                    console.error(e);
+                    return res.status(400).send(error);                
+                }
+
+            }
+        }
+
+        
+    });
+
+
     
 
 

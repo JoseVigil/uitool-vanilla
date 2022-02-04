@@ -11,8 +11,12 @@
      <link rel="stylesheet" href="/vendor/colorPicker/css/bootstrap-colorpicker.css">
      <link rel='icon' href='https://vigil.com.ar/favicons/notimation.ico' type='image/x-icon' />
 
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
      <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="//cdn.rawgit.com/rainabba/jquery-table2excel/1.1.0/dist/jquery.table2excel.min.js"></script>
+
+    
      
      <title>Noti.ms</title>
   
@@ -191,6 +195,24 @@
      
     </div>
 
+    <div id="modal-confirm-reboot" class="modal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reiniciar Gatwway</h5>
+            <span id="reboot_spinner" style="display: none;" class="fa fa-spinner fa-spin fa-3x"></span>
+          </div>
+          <div class="modal-body">
+            <p id="reboot-modal-message"></p>
+          </div>
+          <div class="modal-footer">
+            <button id="reboot-cancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button id="reboot-confirm" type="button" class="btn btn-primary">Reiniciar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
 
 
@@ -235,6 +257,13 @@
       
       const fieldsDay = document.getElementById('fields_day');
 
+      var API_ROOT = "";
+      if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+        API_ROOT = "http://localhost:5001/noti-gateways/us-central1";
+      }else{
+        API_ROOT = "https://us-central1-noti-gateways.cloudfunctions.net";
+      }
+
       function formatDate(date) {
           var d = new Date(date),
               month = '' + (d.getMonth() + 1),
@@ -253,41 +282,45 @@
             
       $('#table_gateways tbody').on( 'click', 'td', function (e) {
 
-        var id = $(e.target).html();     
-        
-        gateway_selected = id;
+        var id = $(e.target).html();
 
-        const gatewaysDocRef = db.collection("gateways")
-        .doc(id);       
-        gatewaysDocRef
-          .get().then(document => {
+        if ( reboot_click == false ) {
 
-          var contentDay = '';
-          var days = document.data().days;
+          gateway_selected = id;
 
-          console.log("days: " + JSON.stringify(days));
+          const gatewaysDocRef = db.collection("gateways")
+          .doc(id);       
+          gatewaysDocRef
+            .get().then(document => {
 
-          let dlength = days.length;
+            var contentDay = '';
+            var days = document.data().days;
 
-          console.log("dlength: " + dlength);
+            console.log("days: " + JSON.stringify(days));
 
-          for (var i=0; i<dlength;i++) {
-            
-            let date = formatDate(days[i].date.toDate());
-            let coll = days[i].date_ports; 
+            let dlength = days.length;
 
-            console.log("date:" + date + " coll: " + coll);
+            console.log("dlength: " + dlength);
 
-            let html = `<tr data-row="${coll}">
-                    <td>${coll}</td>
-                    <td>${date}</td>                      
-                    </tr>`;
-            contentDay += html;
-            fieldsDay.innerHTML = contentDay;
+            for (var i=0; i<dlength;i++) {
+              
+              let date = formatDate(days[i].date.toDate());
+              let coll = days[i].date_ports; 
 
-          }
+              console.log("date:" + date + " coll: " + coll);
 
-        });
+              let html = `<tr data-row="${coll}">
+                      <td>${coll}</td>
+                      <td>${date}</td>                      
+                      </tr>`;
+              contentDay += html;
+              fieldsDay.innerHTML = contentDay;
+
+            }
+
+          });
+        }
+       
 
       });
 
@@ -302,12 +335,7 @@
           }    
       }
 
-      
-
-      window.reboot = function(_id) {
-
-      }
-
+     
       window.showPhonePanel = function(_id) {
 
         $("#phone-details").empty();
@@ -472,6 +500,70 @@
 
       });
 
+      var reboot_click = false;
+
+      window.reboot = function(gateway) {
+
+        console.log(gateway);     
+        
+        reboot_click = true;
+
+        $("#reboot-modal-message").text("Estas seguro que queres reiniciar el gateway " + gateway);
+
+        $("#reboot-cancel").click(function() { 
+          reboot_click = false;
+          $("#modal-confirm-reboot").modal('hide');
+        });
+
+         // Modal hidden event fired
+        $('#modal-confirm-reboot').on('hidden.bs.modal', function () {
+          reboot_click = false;
+        });
+
+        $( "#modal-confirm-reboot" ).on('shown', function(){
+          $("#reboot_spinner").hide();
+        });
+
+
+        $("#reboot-confirm").click(function() {
+
+          $("#reboot_spinner").show();
+
+          reboot_click = false;          
+
+          var id_number = parseInt(gateway.replace(/[^0-9.]/g, ""));
+
+          var json = {
+            "data" : {
+              "gateway" : id_number,
+              "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
+            }
+          };
+          
+          $.ajax({
+                url: API_ROOT + "/server/action/reboot",
+                dataType: "json",
+                type: 'POST',
+                data: json,
+                success: function (data) {
+                    console.log("Got data", data);
+                    $("#reboot_spinner").show();
+                    $("#modal-confirm-reboot").modal('hide');
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error: ' + JSON.stringify(error));
+                    console.log('status: ' + JSON.stringify(status));
+                },
+            });  
+          
+          
+        });
+
+        $("#modal-confirm-reboot").modal('show');
+
+
+      } 
+
       const fieldsGateway = document.getElementById('fields_gateway');      
 
       const gatewaysRef = db.collection('gateways');  
@@ -485,16 +577,18 @@
           console.log(docData);   
           
           if (doc.id != "urls") {
+
+            //console.log("doc> " +JSON.stringify(doc));
             
             let html = `<tr><td><div class="col-md-12">
               <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-10">
                   <span style="font-size:25px; color=grey;">${doc.id}</span>
                 </div>
-                <div class="col-md-4">
-                </div>
-                <div class="col-md-4">
-                  <a class="nav-link active" href="#" onclick="window.reboot(${data.phone});" data-phone="${JSON.stringify(data).replace(/\"/g,"'")}" class="nav-link active">Reboot</a>
+                <div class="col-md-2">
+                  <a id="${doc.id}_reboot" class="nav-link active" href="#" onclick="window.reboot('${doc.id}');" data-phone="${doc.id}" class="nav-link active">
+                    <i class="fa fa-refresh" style="font-size:25px;color:red"></i>    
+                  </a>         
                 </div>
               </div>
             </div></td></tr>`;
@@ -503,7 +597,7 @@
             //        <td>${doc.id}</td>                      
             //        </tr>`;
             content += html;
-            fieldsGateway.innerHTML = content;
+            fieldsGateway.innerHTML = content;          
             
           }
 

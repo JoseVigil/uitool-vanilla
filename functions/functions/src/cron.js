@@ -70,7 +70,9 @@
             url_received : "/en/5-3-1SMSinfo.php?ch=",
             url_sendweb : "/backend/gateway/sendweb",
             url_save_phone : "/en/5-2-1mobilemodify.php?id=",
-            params_save_phone : "/backend/gateway/savephone"
+            params_save_phone : "/backend/gateway/savephone",
+            url_reboot: "/en/9-7reboot.php",
+            params_reboot: "/backend/gateway/reboot"
         };
         return _json;  
     };
@@ -1847,7 +1849,6 @@
         return promise_gateway;
     }
 
-    var COUNT_IDLE          = 0;
     var PROCESS_IDLE        = 1000;
     var PROCESS_START       = 1002;
     var PROCESS_CONTINUE    = 1003;
@@ -1869,67 +1870,72 @@
 
         var cards_array = [];
         var process     = PROCESS_IDLE;
-        //var count       = COUNT_IDLE;
         var id          = -1;
+        var selected_id = -1;
+
+        function consoleSelected(status, key) {
+            console.log();
+            console.log("******* SELECTED ********");   
+            console.log(status + ":  " + key);     
+            console.log("*************************");
+            console.log();
+        }
 
         Object.keys(cards).forEach(async function(key) {
 
+            id++;
+
             console.log();
-            console.log('Key : ' + key + ', Value : ' + cards[key]);        
+            console.log('Key : ' + key + ', Value : ' + JSON.stringify(cards[key]));        
 
             let running = cards[key].running;
             let status = cards[key].status;
 
             let json_card = {
+                id:id,
                 gateway_number:gateway_number,
                 key:key,
-                card:cards[key]
+                card:cards[key]                
             };
 
             cards_array.push(json_card);
 
             console.log();
             console.log('running : ' + running);  
-            console.log('status  : ' + status);                         
+            console.log('status  : ' + status);     
+            console.log();                    
                 
             if ( (running == false) && (status == STATUS_READY) ) {
 
                 //First start
-                console.log();
-                console.log("START: " + key);     
-                
+                consoleSelected("START STATUS_READY: '" + status + "'", key);
                 process = PROCESS_START;
-                
+                selected_id = id;                
 
             } else if ( (running == false) && (status == STATUS_STOPPED ) ) {
 
                 //Stopped
                 console.log();
-                console.log("STOPPED : " + key);
-
+                consoleSelected("STOPPED: '" + status + "'", key);
                 process = PROCESS_STOPPED;
-                               
+                selected_id = id;                                 
             
             } else if (running == true) {
 
-                //Continue
-                console.log();
-                console.log("CONTINUE : " + key);
+                //Continue               
+                consoleSelected("CONTINUE: '" + status + "'", key);
+                process = PROCESS_CONTINUE; 
+                selected_id = id;                              
 
-                process = PROCESS_CONTINUE;
-                              
-
-            }  
-            
-            count++;
-            id = count;
+            }                  
 
         });
 
         console.log();
-        console.log("selected id: " + id);     
-        console.log("cards_array[id] : " + JSON.stringify(cards_array[id]));  
-        console.log();
+        console.log("selected id: " + selected_id);     
+        console.log("selected Card: " + cards_array[selected_id].key); 
+        console.log("cards_array[selected_id] : " + JSON.stringify(cards_array[selected_id]));  
+        console.log("--------------------------------------------------------------------");
                 
         function getObject(id, cards_array) {
 
@@ -1946,45 +1952,43 @@
         }
         
         var json_card = {};
-        var _object = {};
+        var next_object = {};
 
         if  ( (process==PROCESS_START) || (process==PROCESS_CONTINUE) ) {
 
             //Populate Run
+            json_card = cards_array[selected_id];
 
-            json_card = cards_array[id];        
+        } else if (process==PROCESS_STOPPED) {            
+            
+            console.log();
+            console.log("PROCESS_STOPPED");
+            console.log();
+            console.log("selected_id: " + selected_id + " cards_array.length: " + cards_array.length );
+            console.log();
 
+            let current_object = getObject(selected_id, cards_array);
+            await SetStatus(current_object, STATUS_HOLD, false);
 
-        } else if (process==PROCESS_STOPPED) {
-
-            console.log("(process==PROCESS_STOPPED)");
-
-            //let card_length = cards.size;
-
-            console.log("cards_array.length: " + cards_array.length );
-
-            if (id >= (cards_array.length-1)) { //initial
+            if (selected_id >= (cards_array.length-1)) { //initial
 
                 console.log("id--;");
-
-                id--;
+                selected_id--;
                 
-                _object = getObject(id, cards_array);              
-
-            } else { //next
+                
+            } else { //next                
 
                 console.log("id++;");
-
-                id++;
-
-                _object = getObject(id, cards_array);     
-                               
+                selected_id++;
+                                          
             }
 
-            console.log("_object: " + JSON.stringify(_object));
+            next_object = getObject(selected_id, cards_array); 
+            await SetStatus(next_object, STATUS_READY, false);     
 
-            //modify ready
-            await SetStatus(_object, STATUS_HOLD, false);
+            console.log();
+            console.log("next_object: " + JSON.stringify(next_object));
+            console.log();
 
             return false;            
 
@@ -2003,7 +2007,6 @@
 
     }
 
-
     exports.G2 =  functions.pubsub.schedule('0 1 * * *').onRun(async context => {
 
         let object = await TaskQueaue(2);
@@ -2018,91 +2021,87 @@
         
     });
 
-    exports.test =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
+    /*exports.test =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
 
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
-    res.set('Access-Control-Allow-Headers', '*');         
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', '*');         
 
-    const key = req.headers.authorization.split('Bearer ')[1];
+        const key = req.headers.authorization.split('Bearer ')[1];
 
-    if (key!=bearer_key) {
-        res.status(403).send('Unauthorized');
-    } else {       
+        if (key!=bearer_key) {
+            res.status(403).send('Unauthorized');
+        } else {       
 
-        if (req.method === 'OPTIONS') {
-            res.end();
-        } else {                              
-        
-        var gateway_number = req.body.gateway_number;      
-        var gateway = "S" + gateway_number; 
-                                        
-            try {  
+            if (req.method === 'OPTIONS') {
+                res.end();
+            } else {                              
+            
+            var gateway_number = req.body.gateway_number;      
+            var gateway = "S" + gateway_number; 
+                                            
+                try {                           
 
+                    let object = await TaskQueaue(2);
+            
+                    console.log();
+                    console.log("object: " + JSON.stringify(object));
+                    console.log();
 
-                        
+                    //if (object!=false) {         
 
-                let object = await TaskQueaue(2);
-        
-                console.log();
-                console.log("object: " + JSON.stringify(object));
-                console.log();
+                        //await runGateway(object);
 
-                
-                //if (object!=false) {         
-
+                    //}
+                    
                     //await runGateway(object);
 
-                //}
-                
-                //await runGateway(object);
+                /*let promise_gateway = await new Promise( async (resolve, reject) => {
 
-            /*let promise_gateway = await new Promise( async (resolve, reject) => {
-
-                await firestore
-                    .collection("gateways")
-                    .doc(gateway).get()
-                    .then(async (doc) => {
-        
-                        var cards = doc.data().cards;                         
-
-                        Object.keys(cards).forEach(async function(key) {
-                        
-                        console.log('Key : ' + key + ', Value : ' + cards[key]);
-
-                        let old_status = cards[key];
-
-                        console.log('old_status : ' + old_status);
-
-                        switch (old_status) {
-                            case "ready":
-                            setRunning(gateway, cards, key, "running_collect_send");
-                            break;
-                        }                
-
-                        })
-        
-                        resolve(cards);
-                        
-                    });
-            });*/
-
+                    await firestore
+                        .collection("gateways")
+                        .doc(gateway).get()
+                        .then(async (doc) => {
             
+                            var cards = doc.data().cards;                         
 
+                            Object.keys(cards).forEach(async function(key) {
+                            
+                            console.log('Key : ' + key + ', Value : ' + cards[key]);
+
+                            let old_status = cards[key];
+
+                            console.log('old_status : ' + old_status);
+
+                            switch (old_status) {
+                                case "ready":
+                                setRunning(gateway, cards, key, "running_collect_send");
+                                break;
+                            }                
+
+                            })
             
+                            resolve(cards);
+                            
+                        });
+                });*/
+
                 
-                return res.status(200).send({"completed":true}); 
+
+                
+                    
+                   /* return res.status(200).send({"completed":true}); 
 
 
-            } catch (e) {
-                console.error(e);
-                return res.status(400).send(error);                
+                } catch (e) {
+                    console.error(e);
+                    return res.status(400).send(error);                
+                }
+
             }
-
         }
-    }
 
-    });
+    });*/
 
 
     /*var runGateway = function (gateway) { 
