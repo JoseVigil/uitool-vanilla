@@ -73,13 +73,13 @@
     bearer_key = "QZZ6WFDEfda9JMbLn0JT0NA3UvOoVmf0Texf2VHQEcW4T9Co0v";
 
     //api
-    exports.api = require("./src/api");       
-
-    //Control
-    //exports.control = require("./src/control");   
+    exports.api = require("./src/api");        
 
     //cron
     exports.cron = require("./src/cron");
+
+    //Control
+    //exports.control = require("./src/control");   
     
     /**
      * SERVER ALL INCOMING
@@ -161,6 +161,7 @@
     var SERVER_GATEWAY          = 'gateway';
     var ACTION_EXPORT           = 'export'; 
     var ACTION_REBOOT           = 'reboot'; 
+    var ACTION_REBOOT_ALL       = 'rebootall'; 
 
     exports.server = functions.https.onRequest( async (req, res) => {
 
@@ -292,7 +293,83 @@
               return res.status(400).send(error);                
             }
 
-          break;   
+          break; 
+          
+          case ACTION_REBOOT_ALL:    
+
+            try {
+
+              var _urls = GetURLS();
+                    
+              var promise_reboot = [];
+              var count = 0;
+              var size = 0;
+
+              let resutl_promise_reboot = await new Promise( async (resolve, reject) => {
+
+                  const gatewaysRef = firestore.collection('gateways');  
+                  gatewaysRef.get().then( async snapshot => {
+                      
+                      console.log("size: " + snapshot.size);
+
+                      size = snapshot.size;
+
+                      var _url = _urls.url_base_cloud_remote + _urls.params_reboot;
+
+                      console.log("_url: " + _url);
+      
+                      snapshot.docs.forEach( async doc => {            
+                          
+                          var id = doc.id;
+                          let gateway = doc.data().number;
+                          
+                          let option_reboot = {
+                              method: "POST",
+                              uri: _url,
+                              body: {
+                                  data: {
+                                      "gateway": gateway,
+                                      "url": _urls.url_reboot,                        
+                                      "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                                  },
+                              },
+                              json: true,
+                          };
+
+                          console.log();
+                          console.log("option_reboot: " + JSON.stringify(option_reboot));
+                          console.log();
+
+                          promise_reboot.push(rp(option_reboot));
+
+                          if (count == (size-1)) {
+                              resolve(promise_reboot);
+                          }
+  
+                          count++;
+                      });
+
+                  });          
+              
+              });
+
+              console.log();
+              console.log("resutl_promise_reboot: " + JSON.stringify(resutl_promise_reboot));
+              console.log();
+
+              await Promise.all(resutl_promise_reboot).catch((error) => {                                            
+                  console.log("error post: " + error);                                          
+                  return error;
+              });
+
+              return res.status(400).send(true);
+
+            } catch (e) {
+              console.error(e);
+              return res.status(400).send(error);                
+            }
+
+          break;
                    
   
         default:  

@@ -117,9 +117,11 @@
                           </thead>
                           <tbody id="fields_gateway">
                           </tbody>
-                        </table>
+                        </table>                      
                       </div>
                     </div>
+
+                      
                     
                     <div id="daysTable" class="form-group">
                       <div class="table-responsive">
@@ -135,6 +137,19 @@
                         </table>
                       </div>
                     </div>
+
+                    <div class="row border">
+                      <div class="col-md-1"></div>
+                      <div class="col-md-5">
+                        <span style="font-size:20px;">Reboot All</span>
+                      </div>
+                      <div class="col-md-2">
+                        <a id="reboot_all" class="nav-link active" href="#" onclick="window.rebootAll();" class="nav-link active">
+                          <i class="fa fa-refresh" style="font-size:25px;color:red"></i>    
+                        </a>         
+                      </div> 
+                      <div class="col-md-2"></div>
+                    </div> 
                   
                   </form>
 
@@ -199,7 +214,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Reiniciar Gatwway</h5>
+            <h5 class="modal-title">Reiniciar Gateways</h5>
             <span id="reboot_spinner" style="display: none;" class="fa fa-spinner fa-spin fa-3x"></span>
           </div>
           <div class="modal-body">
@@ -499,6 +514,56 @@
         });
 
       });
+
+
+      
+
+      window.rebootAll = function() {
+
+        $("#reboot-modal-message").text("¿Estas seguro que queres reiniciar todos los gateways?");
+
+        $("#reboot-cancel").click(function() { 
+          $("#modal-confirm-reboot").modal('hide');
+        });
+
+        $( "#modal-confirm-reboot" ).on('shown', function(){
+          $("#reboot_spinner").hide();
+        });
+
+
+        $("#reboot-confirm").click(function() {
+
+          $("#reboot_spinner").show();
+          
+          var json = {
+            "data" : {
+              "autorization" : "YWRtaW46Tm90aW1hdGlvbjIwMjA="
+            }
+          };
+                    
+          $.ajax({
+                url: API_ROOT + "/server/action/rebootall",
+                dataType: "json",
+                type: 'POST',
+                data: json,
+                success: function (data) {
+                    console.log("Got data", data);
+                    $("#reboot_spinner").show();
+                    $("#modal-confirm-reboot").modal('hide');
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error: ' + JSON.stringify(error));
+                    console.log('status: ' + JSON.stringify(status));
+                },
+            });  
+          
+          
+        });
+
+        $("#modal-confirm-reboot").modal('show');
+
+
+        } 
 
       var reboot_click = false;
 

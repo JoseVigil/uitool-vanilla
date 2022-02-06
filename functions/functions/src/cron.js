@@ -43,69 +43,7 @@
 
         return _stage;
 
-    }
-
-    GetURLS = function () {
-        let _json = {
-            url_managment : "/en/10-6SMSManagement.php",
-            url_send : "/en/5-3-2SMSsend.php",
-            url_base_local : "http://localhost:5001/noti-gateways/us-central1",
-            url_using : "/en/5-9SIM.php",
-            url_ussd : "/en/5-5USSD.php",
-            params_send : "/backend/gateway/send",
-            params_send_only : "/backend/gateway/sendonly",
-            url_domain : ".notimation.com",
-            url_base_remote : "https://us-central1-noti-gateways.cloudfunctions.net",
-            url_base_cloud_remote : "https://us-central1-notims.cloudfunctions.net",
-            params_lock_switch: "/backend/gateway/lockswitch",
-            url_lock_switch : "/en/5-9-1SIMSet.php",
-            params_status : "/backend/gateway/status",
-            params_ussdsend : "/backend/gateway/ussdsend",
-            params_ussdread : "/backend/gateway/ussdread",
-            url_base : "http://s",
-            parmas_using : "/backend/gateway/using",
-            parmas_managment : "/backend/gateway/managment",
-            url_status : "/en/1-2chstatus.php",
-            params_received : "/backend/gateway/smsreceived",
-            url_received : "/en/5-3-1SMSinfo.php?ch=",
-            url_sendweb : "/backend/gateway/sendweb",
-            url_save_phone : "/en/5-2-1mobilemodify.php?id=",
-            params_save_phone : "/backend/gateway/savephone",
-            url_reboot: "/en/9-7reboot.php",
-            params_reboot: "/backend/gateway/reboot"
-        };
-        return _json;  
-    };
-
-    function sleep(milliseconds) {
-        console.log();        
-        console.log("SLEEP: " + milliseconds);                                                                      
-        console.log();
-        var start = new Date().getTime();
-        for (var i = 0; i < 1e30; i++) {
-            if ((new Date().getTime() - start) > milliseconds) {
-                break;
-            }
-        }
-    }
-
-    var getDateLabel = function() {
-        
-        var day     = new Date().getDate();
-        var month   = new Date().getMonth() + 1;
-        var year    = new Date().getFullYear();
-
-        let d = parseInt(day);
-        if (d<10) {
-            day = "0" + d;
-        }
-        let m = parseInt(month);
-        if (m<10) {
-            month = "0" + m;
-        }
-        var _date = day + "_" + month + "_" + year;        
-        return _date;
-    } 
+    }    
 
     var GW_CollectPorts = async function (cards, date_ports) {       
 
