@@ -18,6 +18,18 @@
     var SAVE_QUENUE     = "save_quenue";
     var SAVE_DATA       = "save_data";
 
+    var Sleep  = function (milliseconds) {
+        console.log();        
+        console.log("Sleep: " + milliseconds);                                                                      
+        console.log();
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e30; i++) {
+            if ((new Date().getTime() - start) > milliseconds) {
+                break;
+            }
+        }
+    }
+
     var GetStage = function (stage) {
 
         var _stage = 0;
@@ -77,18 +89,7 @@
         return _json;  
     };
 
-    function sleep(milliseconds) {
-        console.log();        
-        console.log("SLEEP: " + milliseconds);                                                                      
-        console.log();
-        var start = new Date().getTime();
-        for (var i = 0; i < 1e30; i++) {
-            if ((new Date().getTime() - start) > milliseconds) {
-                break;
-            }
-        }
-    }
-
+    
     var getDateLabel = function() {
         
         var day     = new Date().getDate();
@@ -1266,7 +1267,7 @@
 
                     }   
                     
-                    sleep(200);
+                    Sleep(200);
 
                 } 
             
@@ -1303,7 +1304,7 @@
 
         console.log("quenue_data: " + quenue_data);
 
-        sleep(200);
+        Sleep(200);
 
         let read_body = {
             "action": READ_DATA,
@@ -1314,7 +1315,7 @@
 
         console.log("read_data: " + read_data);
 
-        sleep(200);
+        Sleep(200);
 
     }
 
@@ -1586,7 +1587,7 @@
 
                         count++;
                         
-                        sleep(200);
+                        Sleep(200);
 
                     }
 
@@ -1794,7 +1795,7 @@
 
         console.log("switch_data: " + switch_data);
 
-        sleep(200);
+        Sleep(200);
 
         let lock_switch_body = {
             "action": LOCK_SWITCH,
@@ -1806,7 +1807,7 @@
 
         console.log("lock_switch_data: " + lock_switch_data);
 
-        sleep(200);
+        Sleep(200);
 
         return;
 
@@ -1823,7 +1824,7 @@
 
         console.log("collect_data: " + collect_data);
 
-        sleep(200);
+        Sleep(200);
         
         await SwitchLock(url, card, gateway_number);
 
@@ -1836,7 +1837,7 @@
 
         console.log("collect_again_data: " + collect_again_data);
 
-        sleep(200);      
+        Sleep(200);      
         
         return;
 
@@ -1855,7 +1856,7 @@
 
         console.log("send_data: " + send_data);
 
-        sleep(200);   
+        Sleep(200);   
         
         return;
     
@@ -1873,7 +1874,7 @@
 
         console.log("save_quenue_data: " + save_quenue_data);
 
-        sleep(200);     
+        Sleep(200);     
     
         let save_body = {
             "action": SAVE_DATA,
@@ -1885,7 +1886,7 @@
 
         console.log("save_data: " + save_data);
 
-        sleep(200);  
+        Sleep(200);  
 
         return;
     }     
@@ -2043,7 +2044,7 @@
                         };          
                         let collect_switch_lock_resutl = await PostProcess(url, collect_switch_lock_body);                
                         console.log("collect_switch_lock_resutl: " + collect_switch_lock_resutl);                
-                        sleep(200);    
+                        Sleep(200);    
                     }
                     
                     var send = async function (stage) {                    
@@ -2056,7 +2057,7 @@
                         }                
                         let send_resutl = await PostProcess(url, send_body);                
                         console.log("send_resutl: " + send_resutl);                
-                        sleep(200);
+                        Sleep(200);
                     }
 
                     var queaue_read = async function (stage) {
@@ -2069,7 +2070,7 @@
                         }                
                         let queaue_read_resutl = await PostProcess(url, queaue_read_body);                
                         console.log("queaue_read_resutl: " + queaue_read_resutl);                
-                        sleep(200);
+                        Sleep(200);
                     }
 
                     var save = async function (stage) {
@@ -2081,7 +2082,7 @@
                         }   
                         let save_resutl = await PostProcess(url, save_body);                
                         console.log("save_resutl: " + save_resutl);                
-                        sleep(200);
+                        Sleep(200);
                     }                
 
                     await collect_switch_lock();

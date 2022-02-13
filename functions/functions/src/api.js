@@ -31,22 +31,11 @@
             url_save_phone : "/en/5-2-1mobilemodify.php?id=",
             params_save_phone : "/backend/gateway/savephone",
             url_reboot: "/en/9-7reboot.php",
-            params_reboot: "/backend/gateway/reboot"
+            params_reboot: "/backend/gateway/reboot",
+            params_ussdclear : "/backend/gateway/ussdclear",
         };
         return _json;  
-    };
-
-    function sleep(milliseconds) {
-        console.log();        
-        console.log("SLEEP: " + milliseconds);                                                                      
-        console.log();
-        var start = new Date().getTime();
-        for (var i = 0; i < 1e30; i++) {
-            if ((new Date().getTime() - start) > milliseconds) {
-                break;
-            }
-        }
-    }
+    };    
 
     var getDateLabel = function() {
         
@@ -424,6 +413,8 @@
                     
                     var gateway = req.body.gateway; 
                     var cards = req.body.cards;
+                    var init = req.body.init;
+                    
 
                     console.log("-----------------------");   
                     console.log("gateway: " + gateway);
@@ -434,7 +425,8 @@
                     let gw = {                    
                         "number": gateway,                        
                         "gateway": name,
-                        "cards": cards
+                        "cards": cards,
+                        "init":init
                     };
 
                     console.log("-----------------------");   

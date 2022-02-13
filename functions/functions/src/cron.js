@@ -1,20 +1,52 @@
     var rp = require('request-promise'); 
-    
-    var STAGE_SENT_IDLE         = 1000;
-    var STAGE_SENT              = 1001;
-    var STAGE_NOT_RECEIVED      = 1002;
-    var STAGE_SENT_FAILED       = 1003;    
-    var STAGE_RECEIVED          = 1004;   
-    var STAGE_SAVED_NUMBER      = 1010;    
 
-    var COLLECT_DATA    = "collect_data";
-    var SWITCH_CARDS    = "switch_cards";
-    var LOCK_SWITCH     = "lock_switch";
-    var SEND_DATA       = "send_data";
-    var READ_QUENUE     = "read_quenue";
-    var READ_DATA       = "read_data";
-    var SAVE_QUENUE     = "save_quenue";
-    var SAVE_DATA       = "save_data";
+    let LOCK_SWITCH_VALUE   = 0;
+    let UNLOCK_SWITCH_VALUE = 1;
+
+    var STATUS_READY                = "ready";
+    var STATUS_COLLECTED            = "collected";
+    var STATUS_SWITCHED_LOCKED      = "switch_locked";
+    var STATUS_READ                 = "read";
+    var STATUS_SENT                 = "sent";
+    var STATUS_SENT_AGAIN           = "sent_again";
+    var STATUS_STOPPED              = "stopped";
+    var STATUS_HOLD                 = "hold";
+    var STATUS_SAVE_QUENUE          = "save_quenue";
+    var STATUS_SAVE_DATA            = "save_data";
+    
+    var STATUS_CHECK_FINISH         = "check_finish";
+    var STATUS_FINISH_INCOMPLETE    = "check_finish_incomplete";
+    var STATUS_FINISH_COMPLETE      = "status_finish_complete";
+
+    var RUNNING_COLLECT_SEND        = "running_collect_send";
+    var RUNNING_SWITCH_LOCK         = "running_switch_lock";
+    var RUNNING_QUEUE_READ          = "running_queue_read";
+    var RUNNING_SEND                = "running_send";
+    var RUNNING_QUEUE_AGAIN         = "running_queue_again";
+    var RUNNING_SAVE_QUENUE         = "running_save_quenue";
+    var RUNNING_SAVE_DATA           = "running_save_data";
+
+    var RUNNING_CHECK_FINISH        = "running_check_finish";
+
+    var STAGE_SENT_COLLECTED    = 1000;
+    var STAGE_SENT_IDLE         = 1001;
+    var STAGE_SENT              = 1002;
+    var STAGE_NOT_RECEIVED      = 1003;
+    var STAGE_RECEIVED          = 1004;   
+    var STAGE_SAVED_NUMBER      = 1015;  
+    var STAGE_DISTINCT_TO       = 1006;        
+
+    var Sleep  = function (milliseconds) {
+        console.log();        
+        console.log("Sleep: " + milliseconds);                                                                      
+        console.log();
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e30; i++) {
+            if ((new Date().getTime() - start) > milliseconds) {
+                break;
+            }
+        }
+    }
 
     var GetStage = function (stage) {
 
@@ -43,20 +75,99 @@
 
         return _stage;
 
-    }    
+    }   
 
-    var GW_CollectPorts = async function (cards, date_ports) {       
+    var GetReceivedPorts = async function(object) { //card, gateway_number) {   
+        
+        let gateway_number = object.gateway_number;
+
+        var date_ports = "S" + gateway_number + "_Ports";         
+        var card = object.card; 
+
+        var init =  object.init;
+
+        console.log("init :>>>>>>>>>>>>> " + init);
+
+        let promise_received_array = await new Promise( async (resolve, reject) => {
+
+            var _stage = card + ".stage";            
+
+            await firestore
+            .collectionGroup(date_ports)            
+            .where(_stage, "in", [STAGE_RECEIVED])          
+            .get().then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;
+                console.log("size: "+ size);
+
+                if (size==0) {
+
+                    resolve({
+                        "card" : card,
+                        "received_array" : [],
+                        "init":init
+                    });
+
+                } else {
+ 
+                    var count = 0;
+                    var received_array = [];
+
+                    if (size>0) {                   
+                    
+                        await querySnapshot.forEach(async (doc) => {
+
+                            let port = doc.id.match(/[0-9]+/g);
+
+                            let p = parseInt(port);
+
+                            received_array.push(p);
+
+                            if (count==(size-1)) {
+
+                                resolve({
+                                    "card" : card,
+                                    "received_array" : received_array,
+                                    "init":init
+                                });
+                            }                       
+
+                            count++;
+
+                        });
+                    }
+
+                }
+
+            });
+        
+        });
+        
+        
+        return promise_received_array;
+    }
+
+    var GW_CollectPorts = async function (object) { //cards, date_ports) {  
+        
+        let gateway_number = object.gateway_number;
+
+        var date_ports = "S" + gateway_number + "_Ports";         
+        
+        var card = object.card;
 
         var ps = [];
 
         let _urls = GetURLS();
 
-        var uri_remote = _urls.url_base_cloud_remote + _urls.parmas_using;
-        var url_gateway = _urls.url_using;
+        var uri_remote = _urls.url_base_cloud_remote + _urls.parmas_using;        
 
-        if (Array.isArray(cards)) {
+        console.log();
+        console.log("uri_remote> "+ uri_remote);
+        console.log();
 
-        await cards.forEach(async (card) => {               
+        /*if (Array.isArray(cards)) {
+
+            await cards.forEach(async (card) => {               
 
                 let options = {
                     method: "POST",
@@ -74,24 +185,17 @@
 
             });
         
-        } else {
+        } else {*/
 
-            var gateway = cards;
-
-            console.log("");
-            console.log("NOT ARRAY");
-            console.log("gateway: " + gateway);
-            console.log("uri_remote: " + uri_remote);
-            console.log("url_gateway: " + url_gateway);
-            console.log("");           
+            //var gateway = cards;                   
 
             let options = {
                 method: "POST",
                 uri: uri_remote,
                 body: {
                     data: {
-                        gateway: gateway,
-                        url: url_gateway,
+                        gateway: gateway_number,
+                        url: _urls.url_using,
                         autorization: "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
                     },
                 },
@@ -99,16 +203,26 @@
             };
             ps.push(rp(options));
 
-        }   
+        //}   
 
         var promises_sims = [];
 
-        //console.log("GW_CollectPorts ps: " + JSON.stringify(ps));
+        console.log();
+        console.log("ps: " + JSON.stringify(ps));
+        console.log();
+
+        //Ports that already have number.
+        var received_ports = {};
+        
+        if (object.init==false) {
+            received_ports = await GetReceivedPorts(object);    
+        }            
         
         var _date_ = new Date();            
 
         await Promise.all(ps)
             .then((results) => {
+            
             var promises_gateway = [];
 
             console.log();
@@ -131,33 +245,92 @@
 
                 response.sims.forEach(async (obj) => {
 
-                    var portName = "port" + obj.port;
+                    var port = parseInt(obj.port);
+                    var portName = "port" + port;
                     var jsonCards = `{`;
                     var countAdded = 0;
-                    obj.channel.forEach(async (channel) => {
 
-                        if (channel.status === "Using") {
-                            jsonCards += `"${channel.card}":{"status":"${channel.status}","stage":${STAGE_SENT_IDLE}}`;
-                        } else {
-                            jsonCards += `"${channel.card}":{"status":"${channel.status}"}`;
-                        }                   
+                    obj.channel.forEach(async (channel) => { 
 
-                        if (countAdded === 3) {
-                            jsonCards += `}`;
-                            let jsonPorts = JSON.parse(jsonCards);
-                            countAdded = 0;
-                            promises_sims.push(
-                                firestore
-                                .collection("gateways")
-                                .doc(gateway)
-                                .collection(date_ports)
-                                .doc(portName)
-                                .set(jsonPorts, { merge: true })
-                            );
+                        var  _status_ = STAGE_SENT_IDLE; 
+                        
+                        //var init = received_ports.init; 
+                        var init = object.init; 
+                        let include = false;
+
+                        if (init) {
+                            
+                            include=true;                            
+                            
                         } else {
-                            jsonCards += `,`;
-                            countAdded++;
+
+                            if  (card==channel) {
+                                include=true;
+
+                                var received_array = received_ports.received_array;    
+                            
+                                if (received_array.length>0) {
+                                
+                                    var received_card = received_ports.card;                        
+                                    if (channel == received_card) {
+                                        if (received_array.contains(port)) {
+                                            _status_ = STAGE_RECEIVED;
+                                        }
+                                    } 
+
+                                } 
+                            }              
+
                         }
+
+                        console.log();
+                        console.log("######################################");
+                        console.log("init: " + init);
+                        console.log("_status_: " + _status_);
+                        console.log("include: " + include);
+                        console.log("port: " + port);
+                        console.log("card: " + card);                        
+                        console.log();
+
+                        if (include) {                                    
+
+                            if (channel.status === "Using") {
+                                jsonCards += `"${channel.card}":{"status":"${channel.status}","stage":${_status_}}`;
+                            } else {
+                                jsonCards += `"${channel.card}":{"status":"${channel.status}","stage":${STAGE_SENT_COLLECTED}}`;
+                            }                   
+
+                            if (countAdded === 3) {
+
+                                jsonCards += `}`;
+                                let jsonPorts = JSON.parse(jsonCards);
+                                countAdded = 0;
+
+                                promises_sims.push(
+                                    firestore
+                                    .collection("gateways")
+                                    .doc(gateway)
+                                    .collection(date_ports)
+                                    .doc(portName)
+                                    .set(jsonPorts, { merge: true })
+                                ); 
+                                
+                                if (init) {
+
+                                    promises_sims.push(
+                                        firestore
+                                        .collection("gateways")
+                                        .doc(gateway)
+                                        .set({"init":false}, { merge: true }));
+                                        
+                                }
+
+                            } else {
+                                jsonCards += `,`;
+                                countAdded++;
+                            }
+                        }
+
                     });
 
                 });
@@ -313,7 +486,7 @@
 
         let url = _urls.url_base_cloud_remote + _urls.params_status;
 
-        console.log("url STATUS: " + url);
+        //console.log("url STATUS: " + url);
 
         var port = 8000 + parseInt(gateway_number);            
 
@@ -330,16 +503,16 @@
             json: true,
         };
 
-        console.log("option_status STATUS: " + JSON.stringify(option_status));
+        //console.log("option_status STATUS: " + JSON.stringify(option_status));
 
         console.log(JSON.stringify(option_status));
 
         await rp(option_status)
             .then(async function (results_status) {
                 
-            console.log(
-                " ------ results_status ------- " + JSON.stringify(results_status)
-            );
+            //console.log(
+            //    " ------ results_status ------- " + JSON.stringify(results_status)
+            //);
 
             var length = results_status.managment.length;
             var count = 0;
@@ -419,22 +592,22 @@
 
         var date_ports = "S" + gateway_number + "_Ports";         
                 
-        console.log("date_ports: " + date_ports);       
+        //console.log("date_ports: " + date_ports);       
 
         try {     
 
-            console.log();
+            //console.log();
             console.log("GW_CollectPorts");            
-            await GW_CollectPorts(gateway_number, date_ports);                                               
+            await GW_CollectPorts(object);                                               
 
-            console.log();
+            //console.log();
             console.log("GW_CollectStatus");            
             await GW_CollectStatus(gateway_number, date_ports);           
 
-            console.log();
+            //console.log();
             console.log("GW_GetConsumptions");
             await GW_GetConsumptions(gateway_number, date_ports);                                 
-            console.log();
+            //console.log();
             
             return true;
 
@@ -467,9 +640,9 @@
             json: true,
         };
 
-        console.log();
-        console.log("option_lock_switch: " + JSON.stringify(option_lock_switch));
-        console.log();
+        //console.log();
+        //console.log("option_lock_switch: " + JSON.stringify(option_lock_switch));
+        //console.log();
 
         await rp(option_lock_switch)
             .then(async function (results_lock_switch) {
@@ -484,6 +657,8 @@
     };
 
     var SwitchCard = async function (object) { 
+
+        console.log("object SwitchCard: " + JSON.stringify(object)); 
 
         let gateway_number = object.gateway_number;
 
@@ -513,15 +688,15 @@
                     
                     let parent = doc.ref.parent.parent;
 
-                    console.log("parent: " + parent.id);
-                    console.log("gateway: " + gateway);
-                    console.log("------------------");
+                    //console.log("parent: " + parent.id);
+                    //console.log("gateway: " + gateway);
+                    //console.log("------------------");
         
                     if (parent.id === gateway) {
                         //var gateway_number = parent.id.replace( /^\D+/g, '');
                         var port_number = doc.id.replace(/^\D+/g, "");
 
-                        console.log("port_number: " + port_number);
+                        //console.log("port_number: " + port_number);
             
                         var num;
                         switch (card) {
@@ -557,8 +732,8 @@
                             },
                         };
             
-                        console.log("options: " + JSON.stringify(options));
-                        console.log("-------");
+                        //console.log("options: " + JSON.stringify(options));
+                        //console.log("-------");
             
                         promises.push(rp(options));
 
@@ -593,8 +768,8 @@
         var date_ports = "S" + gateway_number + "_Ports";         
         let card = object.card;
         
-        console.log("date_ports: " + date_ports);      
-    
+        //console.log("date_ports: " + date_ports);      
+
         var usingArray  = await FB_OperatorFromCard(card, date_ports, STAGE);
         if (usingArray.length > 0) {
             console.log("usingArray: " + JSON.stringify(usingArray));            
@@ -635,6 +810,7 @@
 
             console.log();
             console.log("ENVIANDO CLARO");
+            console.log("claro_phones: " + JSON.stringify(claro_phones));
             console.log();
 
             var _url = _urls.url_base_cloud_remote + _urls.params_ussdsend;
@@ -655,9 +831,9 @@
                 json: true,
             };
 
-            console.log();
-            console.log("option_ussdsend: " + JSON.stringify(option_ussdsend));
-            console.log();
+            //console.log();
+            //console.log("option_ussdsend: " + JSON.stringify(option_ussdsend));
+            //console.log();
 
             await rp(option_ussdsend)
                 .then(async function (results_ussdsend) {
@@ -751,8 +927,7 @@
 
     var FB_OperatorFromCard = async function (card, date_ports, STAGE) {
 
-        console.log("STAGE: " + STAGE);     
-        console.log("date_ports: " + date_ports); 
+        
 
         var _card = card;
 
@@ -764,16 +939,38 @@
             var count = 0;
 
             var status = card + ".status";
-            var _stage = card + ".stage";         
+            var port = card + ".stage";  
+            
+            var query = {};
 
-            await firestore
-            .collectionGroup(date_ports)    
-            //.where(status, "in", ["Using"])
-            .where(_stage, "in", [STAGE]) //[STAGE_SENT_IDLE])                  
-            .get().then(async (querySnapshot) => {
+            if (STAGE==STAGE_DISTINCT_TO) {
+              
+                console.log("(STAGE==STAGE_DISTINCT_TO)");
+                console.log();
+                
+                query = await firestore
+                .collectionGroup(date_ports)     
+                .where(port, "not-in",  [STAGE_RECEIVED])   
+
+            } else {
+
+                query = await firestore
+                .collectionGroup(date_ports)             
+                .where(port, "in",  [STAGE]) 
+
+            }
+
+            console.log("____________________________");  
+            console.log("_card: " + _card);     
+            console.log("STAGE: " + JSON.stringify(STAGE));             
+            console.log();
+
+                    
+            query.get().then(async (querySnapshot) => {
 
                 size = querySnapshot.docs.length;
                 console.log("size: "+ size);
+                console.log();
 
                 if (size>0) {                   
                 
@@ -791,7 +988,10 @@
                         
                         console.log("operator: " + operator);
 
-                        let port = doc.id.match(/[0-9]+/g);                          
+                        let port = doc.id.match(/[0-9]+/g);   
+                        
+                        console.log("port: " + port);
+
                         let using = `{"card":"${_card}","operator":"${operator}", "port":${port}}`;
                         usings.push(JSON.parse(using));
 
@@ -1234,7 +1434,7 @@
 
                     }   
                     
-                    sleep(200);
+                    Sleep(200);
 
                 } 
             
@@ -1271,7 +1471,7 @@
 
         console.log("quenue_data: " + quenue_data);
 
-        sleep(200);
+        Sleep(200);
 
         let read_body = {
             "action": READ_DATA,
@@ -1282,11 +1482,16 @@
 
         console.log("read_data: " + read_data);
 
-        sleep(200);
+        Sleep(200);
 
     }
 
     var FB_PhoneNumbersFromCard = async function (card, port_date) {
+
+        console.log("-----------------------");
+        console.log("card: " + card);
+        console.log("port_date: " + port_date);
+
 
         var usingArray = await new Promise( async (resolve, reject) => {
 
@@ -1301,7 +1506,6 @@
 
             await firestore
                 .collectionGroup(port_date)                                      
-                //.where(status, "in", ["phone"])
                 .where(phone, '>', 0)
                 .get().then(async (querySnapshot) => {
 
@@ -1353,6 +1557,10 @@
         var usingC = [];  
         var usingD = [];  
 
+        console.log("///////////////////////////////////");
+        console.log("cards: " + JSON.stringify(cards));
+        console.log("date_ports: " + date_ports);
+
         for (var i=0; i<cards.length; i++) {
 
             let card = cards[i];
@@ -1401,7 +1609,18 @@
         
     }
 
-    var SaveQueaue = async function(date_ports, card) {        
+    var SaveQueaue = async function(object, status_running, status) {   
+        
+        
+        await SetStatus(object, status_running, true); 
+        
+        let gateway_number  = object.gateway_number;
+        var date_ports      = "S" + gateway_number + "_Ports";         
+        let card            = object.card;
+
+        //console.log();
+        //console.log("card...............: " + card);
+        //console.log("date_ports...............: " + date_ports);
 
         var promises_save_number_queue = [];
 
@@ -1423,6 +1642,8 @@
                 let realPort = port+1;
                 var portName = "port" + realPort;
 
+                console.log("json> " + JSON.stringify(json));
+
                 promises_save_number_queue.push(
                     firestore
                         .collection("automation")
@@ -1434,18 +1655,24 @@
                 
             }
 
-            await Promise.all(promises_save_number_queue);               
+            await Promise.all(promises_save_number_queue);     
+            
+            await SetStatus(object, status, true);
             
             return true;
-        }
+        }        
 
         return false;  
         
     }
 
 
+    var SaveData = async function(object, status_running, status) {
 
-    var SaveData = async function(gateway_number, date_ports, card) {
+        await SetStatus(object, status_running, true); 
+
+        let gateway_number = object.gateway_number;
+        var date_ports = "S" + gateway_number + "_Ports";        
 
         //DO THE POST                      
 
@@ -1554,7 +1781,7 @@
 
                         count++;
                         
-                        sleep(200);
+                        Sleep(200);
 
                     }
 
@@ -1566,6 +1793,8 @@
             }
 
         }
+
+        await SetStatus(object, status, true); 
     }
 
     var FB_SaveQueuedLimit = async function (date_ports) {        
@@ -1621,10 +1850,14 @@
         let gateway_number = object.gateway_number;
         let card = object.card;
 
-        let cards = object.cards;
+        let cards = object.cards;        
 
         cards[card].status = new_status;
         cards[card].running = new_running;
+
+        if (object.finish) {
+            cards[card].finish = object.finish;
+        }
 
         let _cards = {"cards":cards};
 
@@ -1636,21 +1869,42 @@
         .collection("gateways")
         .doc(gateway).set(_cards, {merge:true});
 
-    }
+    }    
 
-    var RunCollectSend = async function(object) {   
-
+    var RunSwitchLock = async function(object) {  
+        
         try { 
 
-            await SetStatus(object, RUNNING_COLLECT_SEND, true);      
+            await SetStatus(object, RUNNING_SWITCH_LOCK, true);        
 
-            await GW_CollectData(object); 
-
-            await SwitchCard(object);        
+            await SwitchCard(object);  
+                
+            console.log('SwitchCard(object);');
 
             await GW_LockSwitch(object, LOCK_SWITCH_VALUE);
 
-            await GW_SendPhones(object, STAGE_SENT_IDLE);
+            console.log('GW_LockSwitch(object, LOCK_SWITCH_VALUE);');
+
+            await SetStatus(object, STATUS_SWITCHED_LOCKED, true);       
+            
+            return true;
+
+        } catch (error) {
+            console.error(e);
+            return error;                
+        }       
+
+    }
+
+    var RunCollect = async function(object) {   
+
+        try { 
+
+            await SetStatus(object, RUNNING_COLLECT_SEND, true); 
+            
+            await GW_CollectData(object); 
+
+            console.log('GW_CollectData(object);');
 
             await SetStatus(object, STATUS_COLLECTED, true);
 
@@ -1663,25 +1917,29 @@
 
     }
 
-    var RunQueueRead = async function(object, status, stage) {
+    var RunQueueRead = async function(object, status_running, status, stage) {
 
         try {
 
-            await SetStatus(object, status, true);        
+            await SetStatus(object, status_running, true);        
             
             let has_queue = await GW_QueueSims(object, stage); 
 
-            if (has_queue) {
+            console.log('GW_QueueSims(object, stage);');
 
-                await ReadData(object);
-                
-                await SetStatus(object, STATUS_READ, true);
+            //if (has_queue) {
+
+            await ReadData(object);
+
+            console.log('ReadData(object);');
             
-            } else {
+            await SetStatus(object, status, true);
+            
+            //} else {
 
-                await SetStatus(object, STATUS_STOPPED, false);
+                //await SetStatus(object, STATUS_STOPPED, false);
 
-            }
+            //}
 
             return true;
 
@@ -1692,15 +1950,17 @@
 
     }
 
-    var RunSend = async function(object, status, stage) { //gateway_number, card, cards, partial_status, stage) { 
+    var RunSend = async function(object, status_running, status, stage) { 
 
         try {
 
-            await SetStatus(object, status, true);   
+            await SetStatus(object, status_running, true);   
 
             await GW_SendPhones(object, stage);  
 
-            await SetStatus(object, STATUS_SENT, true);
+            console.log('GW_SendPhones(object, stage);');
+
+            await SetStatus(object, status, true);
 
             return true;
 
@@ -1708,55 +1968,174 @@
             console.error(e);
             return error;                
         } 
-        }
+    }
 
-        let LOCK_SWITCH_VALUE   = 0;
-        let UNLOCK_SWITCH_VALUE = 1;
+    var ClearUSSD = async function (gateway_number, channels) {
 
-        var STATUS_READY        = "ready";
-        var STATUS_COLLECTED    = "collected";
-        var STATUS_READ         = "read";
-        var STATUS_SENT         = "sent";
-        var STATUS_STOPPED      = "stopped";
-        var STATUS_HOLD         = "hold";
+        let _urls = GetURLS();
 
-        var RUNNING_COLLECT_SEND        = "running_collect_send";
-        var RUNNING_QUEUE_READ          = "running_queue_read";
-        var RUNNING_SEND                = "running_send";
-        var RUNNING_QUEUE_NOT_RECEIVED  = "running_queue_not_received";
+        let url = _urls.url_base_cloud_remote + _urls.params_ussdclear;
 
-        var runGateway = async function (object) { 
+        console.log("url: " + url);
+    
+        var option_clear = {
+            method: "POST",
+            uri: url,
+            body: {
+                data: {
+                    gateway: gateway_number,
+                    channels : channels,
+                    url : _urls.url_ussd,
+                    autorization : "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                },
+            },
+            json: true,
+        };
 
-        let gateway_number = object.gateway_number;
-        let status = object.status;
-        let card = object.card;
+        console.log(JSON.stringify(option_clear));
 
-        let gateway = "S" + gateway_number;
+        await rp(option_clear)
+            .then(async function (results_clear) {
 
-        console.log();
-        console.log('gateway : ' + gateway);  
-        console.log('status  : ' + status);  
-        console.log('card  : ' + card);
-        console.log();
-
-        let resutl = {};
-
-        switch (status) {
-            case STATUS_READY:                
-                resutl = await RunCollectSend(object);                
-            break;
-            case STATUS_COLLECTED:                
-                resutl = await RunQueueRead(object, RUNNING_QUEUE_READ, STAGE_SENT);
-            break;
-            case STATUS_READ:      
-                resutl = await RunSend(object, RUNNING_SEND, STAGE_NOT_RECEIVED);
-            break;    
-            case STATUS_SENT:        
-                resutl = await RunQueueRead(object, RUNNING_QUEUE_NOT_RECEIVED, STAGE_NOT_RECEIVED);
-            break;                
-        }
+                return results_clear;
+            
+        }).catch((error) => {                                            
+            console.log("error post: " + error);                                          
+            return {"error":error};
+        }); 
 
     }
+
+    var CheckFinishAndClear = async function(object) { 
+
+        try {
+
+            await SetStatus(object, RUNNING_CHECK_FINISH, true);  
+            
+            var card = object.card;    
+            var gateway_number = object.gateway_number;   
+            var date_ports = "S" + gateway_number + "_Ports";      
+
+            var finish_array_promise = await new Promise( async (resolve, reject) => {       
+
+                var size = 0;
+                var stage = card + ".stage";       
+                
+                await firestore
+                    .collectionGroup(date_ports)
+                    .where(port, "not-in",  [STAGE_RECEIVED])   
+                    .get().then(async (querySnapshot) => {   
+                    
+                    size = querySnapshot.docs.length;
+                    var count = 0;
+
+                    var ports_array = [];
+
+                    if (size>0) {                   
+                
+                        await querySnapshot.forEach(async (doc) => {
+                                                                
+                            let port = doc.id.match(/[0-9]+/g);                             
+
+                            let p = parseInt(port);
+
+                            console.log("p: " + p);
+
+                            ports_array.push(p);
+
+                            if (count==(size-1)) {
+                                resolve(ports_array);
+                            }
+
+                            count++;
+                            
+                        });
+
+                    }  else {
+                        resolve(ports_array);
+                    }           
+                
+                }).catch((error) => {
+                    console.log("error carajo: " + error);
+                    return error;
+                });
+                
+            });  
+
+            let finish_array = finish_array_promise;     
+            
+            console.log();
+            console.log("finish_array: " + JSON.stringify(finish_array));
+
+            //NOT FINISHED
+            if (finish_array.length > 0) {
+                
+                await ClearUSSD(gateway_number, finish_array);
+
+                object.finish = STATUS_FINISH_INCOMPLETE;               
+                         
+            }  else {
+
+                object.finish =  STATUS_FINISH_COMPLETE;
+            } 
+
+            await SetStatus(object, STATUS_STOPPED, false);
+
+            return true;
+
+        } catch (error) {
+            console.error(error);
+            return error;                
+        } 
+    }
+
+    var FB_SaveQueuedLimit = async function (date_ports) {        
+
+        var queueArray = await new Promise( async (resolve, reject) => {
+
+            var queued = [];
+            var count  = 0;
+           
+            await firestore
+                .collection("automation")
+                .doc(date_ports)
+                .collection("queue_save_number")
+                .limit(3)                             
+                .get()
+                .then(async (querySnapshot) => {
+
+                size = querySnapshot.docs.length;                
+
+                if (size>0) {                   
+                
+                    await querySnapshot.forEach(async (doc) => {
+
+                        let port = doc.data().port; 
+                        let card = doc.data().card; 
+                        let phone = doc.data().phone; 
+                        let path = doc.ref.path;                                                 
+                        queued.push({port:port, card:card, phone:phone, path:path});
+
+                    if (count === (size-1)) {
+                        resolve(queued);
+                    }
+
+                    count++;
+                    
+                    });
+
+                } else {
+                    resolve(queued);
+                }
+
+                return {};
+            });                
+            
+        });  
+
+        return queueArray;
+
+    }  
 
     var GetCardsByGateway = async function(gateway) {
 
@@ -1767,8 +2146,9 @@
                 .doc(gateway).get()                
                 .then(async (doc) => {
 
-                let cards = doc.data().cards; 
-
+                let cards = doc.data().cards;
+                let init = doc.data().init;  
+                
                 const ordered = Object.keys(cards).sort().reduce(
                     (obj, key) => { 
                     obj[key] = cards[key]; 
@@ -1777,11 +2157,15 @@
                     {}
                 );
 
-                resolve(ordered);
+                let _response_ = {
+                    "init" : init,
+                    "cards" : ordered
+                }
 
+                resolve(_response_);
             });
 
-          
+        
         });
         
         return promise_gateway;
@@ -1796,7 +2180,10 @@
 
         let gateway = "S" + gateway_number;
 
-        let cards = await GetCardsByGateway(gateway);
+        let cards_by_gateway = await GetCardsByGateway(gateway);
+
+        var cards = cards_by_gateway.cards;
+        var init = cards_by_gateway.init;
 
         console.log();
         console.log('cards : ' + JSON.stringify(cards));      
@@ -1882,7 +2269,7 @@
             let _object = {
                 gateway_number : ready_json_card.gateway_number,
                 card : ready_json_card.key,
-                cards : cards
+                cards : cards               
             };    
             
             return _object;
@@ -1918,7 +2305,7 @@
 
                 console.log("id++;");
                 selected_id++;
-                                          
+                                        
             }
 
             next_object = getObject(selected_id, cards_array); 
@@ -1937,29 +2324,95 @@
         let status = card.status;
 
         object.card = key;
-        object.status = status;  
-
+        object.status = status; 
         object.cards = cards; 
-
+        object.init = init;
+        
         return object;
 
     }
 
-    exports.G2 =  functions.pubsub.schedule('0 1 * * *').onRun(async context => {
+    var ExecuteGateway = async function(gateway) {
 
-        let object = await TaskQueaue(2);
+        let object = await TaskQueaue(gateway);
 
         console.log("object: " + object);
 
         if (object!=false) {         
 
-            await runGateway(object);
+        let result_gateway = await RunGateway(object);
+
+        console.log("result_gateway:" + result_gateway);
 
         }
+    }
+
+    var RunGateway = async function (object) { 
+
+        let gateway_number = object.gateway_number;
+        let status = object.status;
+        let card = object.card;
+
+        let gateway = "S" + gateway_number;
+
+        console.log();
+        console.log("+++++++++++++RunGateway+++++++++++");
+        console.log('       gateway : ' + gateway);  
+        console.log('       status  : ' + status);  
+        console.log('       card    : ' + card);
+        console.log("++++++++++++++++++++++++++++++++++");
+        console.log();
+
+        let result = {};
+
+        switch (status) {
+            case STATUS_READY:                
+                result = await RunCollect(object);                
+            break;
+            case STATUS_COLLECTED: 
+                result = await RunSwitchLock(object);
+            break;
+            case STATUS_SWITCHED_LOCKED: 
+                result = await RunSend(object, RUNNING_SEND, STATUS_SENT,  STAGE_SENT_IDLE);                
+            break;
+            case STATUS_SENT:      
+                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_READ, STAGE_SENT);
+            break;
+            case STATUS_READ:      
+                result = await RunSend(object, RUNNING_SEND, STATUS_SENT_AGAIN, STAGE_DISTINCT_TO);    
+            break;       
+            case STATUS_SENT_AGAIN:        
+                result = await RunQueueRead(object, RUNNING_QUEUE_AGAIN, STATUS_SAVE_QUENUE, STAGE_SENT);
+            break;
+            case STATUS_SAVE_QUENUE:
+                result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA); 
+                break;
+            case STATUS_SAVE_DATA:
+                result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK_FINISH, STAGE_SENT); 
+                break;
+            case STATUS_CHECK_FINISH:
+                result = await CheckFinishAndClear(object);
+            break;       
+        }
+
+        return result;
+    }
+
+    exports.G2 =  functions.pubsub.schedule('0 1 * * *').onRun(async context => {
+
+        await ExecuteGateway(2);
         
     });
 
-    /*exports.test =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
+    exports.G3 =  functions.pubsub.schedule('0 1 * * *').onRun(async context => {
+
+        await ExecuteGateway(3);
+        
+    });
+
+
+
+    exports.test =  functions.runWith({timeoutSeconds: 500}).https.onRequest( async (req, res) =>  { 
 
         res.set("Access-Control-Allow-Origin", "*");
         res.set('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
@@ -1980,19 +2433,58 @@
                                             
                 try {                           
 
+                    /*let object = await TaskQueaue(2);
+
+                    let object = {
+                        card:"C",
+                        gateway_number:2
+                    };*/
+
+                    console.log();
+                    console.log();
+                    console.log("*********************");
+                    console.log("********START********");
+                    console.log("*********************");
+                    console.log();
+                   
                     let object = await TaskQueaue(2);
+
+                    console.log();
+                    console.log("OBJECT:::: " + JSON.stringify(object));
+
+                    if (object!=false) {         
+
+                        let result_gateway = await RunGateway(object);
+
+                        console.log("result_gateway:" + result_gateway);
+
+                    }
             
+                    /*let finish = await CheckFinishAndClear(object, 1);
+
                     console.log();
-                    console.log("object: " + JSON.stringify(object));
-                    console.log();
+                    console.log("finish: " + finish);
+                    console.log();*/
+
+                    //let received = await GetReceivedPorts("A", 2);
+
+                    //console.log();
+                    //console.log("received: " + JSON.stringify(received));
+                    //console.log();
+
+                    //let clear = await ClearUSSD(2);
+
+                    //console.log();
+                    //console.log("clear: " + clear);
+                    //console.log();
 
                     //if (object!=false) {         
 
-                        //await runGateway(object);
+                        //await RunGateway(object);
 
                     //}
                     
-                    //await runGateway(object);
+                    //await RunGateway(object);
 
                 /*let promise_gateway = await new Promise( async (resolve, reject) => {
 
@@ -2023,12 +2515,9 @@
                             
                         });
                 });*/
-
-                
-
                 
                     
-                   /* return res.status(200).send({"completed":true}); 
+                return res.status(200).send({"completed":true}); 
 
 
                 } catch (e) {
@@ -2039,46 +2528,5 @@
             }
         }
 
-    });*/
-
-
-    /*var runGateway = function (gateway) { 
-
-    let promise_run_gateway = await new Promise( async (resolve, reject) => {
-
-        let gateway = "S" + gateway;
-
-        let cards = await GetCardsByGateway(gateway);
-
-        console.log("cards : " + JSON.stringify(cards));
-
-        Object.keys(cards).forEach(async function(key) {
-        
-            console.log('Key : ' + key + ', Value : ' + cards[key]);
-
-            let old_status = cards[key];
-
-            console.log('old_status : ' + old_status);
-
-            let resutl = {};
-
-            switch (old_status) {
-                case STATUS_READY:                
-                    resutl = await RunCollectSend(gateway, key, cards);                
-                break;
-                case STATUS_COLLECTED:                
-                    resutl = await RunQueueRead(gateway, key, cards, "running_queue_read", STAGE_SENT);
-                break;
-                case STATUS_READ:      
-                    resutl = await RunSend(gateway, key, cards, "running_send", STAGE_NOT_RECEIVED);
-                break;    
-                case STATUS_SENT:        
-                    await RunQueueRead(gateway, key, cards, "running_queue_not_received", STAGE_NOT_RECEIVED);
-                break;                
-            }                
-
-        });
-
     });
 
-    }*/

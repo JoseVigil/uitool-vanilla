@@ -216,6 +216,7 @@ var OPTION_REBOOT		  = 'reboot';
 var OPTION_BUILD_IMAGE	  = 'buildimage';	
 var OPTION_USSD_SEND   	  = 'ussdsend';
 var OPTION_USSD_READ   	  = 'ussdread';
+var OPTION_USSD_CLEAR     = 'ussdclear';
 var OPTION_SAVE_PHONE	  = 'savephone';
 
 const gateway = async function(req, res) {
@@ -270,8 +271,9 @@ const gateway = async function(req, res) {
 			return buildimage(req, res);
 			break;
 
-		case OPTION_USSD_SEND:
-		case OPTION_USSD_READ: 					 
+		case OPTION_USSD_SEND:		
+		case OPTION_USSD_READ:
+		case OPTION_USSD_CLEAR:						 
 			let ussurl = "http://synway.notimation.com:" + port + req.body.data.url;
 			let uchannels = req.body.data.channels;
 			let ussparams = { 
@@ -281,7 +283,7 @@ const gateway = async function(req, res) {
 				"channels" : uchannels 
 			};
 			return browse(req, res, ussparams);
-			break;
+			break;	
 
 		case OPTION_SAVE_PHONE:	
 			let spsurl = "http://synway.notimation.com:" + port + req.body.data.url;
@@ -961,7 +963,48 @@ const browse = async function(req, res, params) {
 						return res.status(500).send(e);							
 					}
 
-				break;		
+				break;	
+				
+				case OPTION_USSD_CLEAR:
+
+					try { 
+
+						await page.select('#USDDDefaultEncoding', 'UCS2');
+
+						var channels = params.channels;
+						let clength = channels.length;
+
+						console.log("channels: " + JSON.stringify(channels));							
+
+						console.log("clength: " + clength);
+
+						for (var i=0; i<clength; i++) {
+							let id = channels[i];
+							let clas = "Checkbox" + id;	
+							console.log("clas: " + clas);					
+							await page.click('#' + clas);
+							await page.waitFor(1000);
+							const checkElement = await page.$('#'+clas);
+							const isCheckBoxChecked = await (await checkElement.getProperty("checked")).jsonValue();
+   							console.log(isCheckBoxChecked);
+						}
+
+						await page.evaluate(() => {
+							document.querySelector('input[type=submit]').click();
+						});
+
+						await page.on('dialog', async dialog => { 
+							console.log("dialog accepted");                              
+						    await dialog.accept();	                  
+						});					
+
+						return res.status(200).send(true);						
+
+					} catch (e) {							
+						return res.status(500).send(e);							
+					}
+
+				break;
 
 				case OPTION_USSD_READ:
 
