@@ -4,7 +4,8 @@
     let UNLOCK_SWITCH_VALUE = 1;
 
     var STATUS_READY                = "ready";
-    var STATUS_COLLECTED            = "collected";
+    var STATUS_INIT_COLLECTED       = "init_collected";
+    var STATUS_CARD_COLLECTED       = "card_collected";
     var STATUS_SWITCHED_LOCKED      = "switch_locked";
     var STATUS_READ                 = "read";
     var STATUS_SENT                 = "sent";
@@ -18,6 +19,8 @@
     var STATUS_FINISH_INCOMPLETE    = "check_finish_incomplete";
     var STATUS_FINISH_COMPLETE      = "status_finish_complete";
 
+    var RUNNING_COLLECT_INIT        = "running_collect_init";
+    var RUNNING_COLLECT_SWITCH      = "running_collect_switch";
     var RUNNING_COLLECT_SEND        = "running_collect_send";
     var RUNNING_SWITCH_LOCK         = "running_switch_lock";
     var RUNNING_QUEUE_READ          = "running_queue_read";
@@ -315,7 +318,8 @@
                                     .set(jsonPorts, { merge: true })
                                 ); 
                                 
-                                if (init) {
+                                let stop_init = object.stop_init;
+                                if (stop_init) {
 
                                     promises_sims.push(
                                         firestore
@@ -663,7 +667,7 @@
         let gateway_number = object.gateway_number;
 
         var date_ports = "S" + gateway_number + "_Ports";         
-        let card = object.card;
+        var card = object.card;
         
         var channelstatus = card + ".status";              
         var gateway = "S" + gateway_number;
@@ -732,8 +736,8 @@
                             },
                         };
             
-                        //console.log("options: " + JSON.stringify(options));
-                        //console.log("-------");
+                        console.log("options: " + JSON.stringify(options));
+                        console.log("-------");
             
                         promises.push(rp(options));
 
@@ -1879,7 +1883,7 @@
 
             await SwitchCard(object);  
                 
-            console.log('SwitchCard(object);');
+            //console.log('SwitchCard(object);');
 
             await GW_LockSwitch(object, LOCK_SWITCH_VALUE);
 
@@ -1896,17 +1900,21 @@
 
     }
 
-    var RunCollect = async function(object) {   
+    var RunCollect = async function(object, status_running, status) {   
 
         try { 
 
-            await SetStatus(object, RUNNING_COLLECT_SEND, true); 
+            await SetStatus(object, status_running, true); //RUNNING_COLLECT_SEND, true); 
+
+            if (status_running == RUNNING_COLLECT_SEND) {
+                object.stop_init = true;
+            }
             
             await GW_CollectData(object); 
 
             console.log('GW_CollectData(object);');
 
-            await SetStatus(object, STATUS_COLLECTED, true);
+            await SetStatus(object, status, true); // STATUS_INIT_COLLECTED, true);
 
             return true;
 
@@ -2367,12 +2375,18 @@
 
         switch (status) {
             case STATUS_READY:                
-                result = await RunCollect(object);                
+                result = await RunCollect(object, RUNNING_COLLECT_INIT,  STATUS_INIT_COLLECTED);                
             break;
-            case STATUS_COLLECTED: 
+            case STATUS_INIT_COLLECTED: 
                 result = await RunSwitchLock(object);
             break;
-            case STATUS_SWITCHED_LOCKED: 
+            case STATUS_SWITCHED_LOCKED:                
+                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CARD_COLLECTED);                
+            break;
+
+            //Loop here until collected
+
+            case STATUS_CARD_COLLECTED: 
                 result = await RunSend(object, RUNNING_SEND, STATUS_SENT,  STAGE_SENT_IDLE);                
             break;
             case STATUS_SENT:      
@@ -2384,6 +2398,8 @@
             case STATUS_SENT_AGAIN:        
                 result = await RunQueueRead(object, RUNNING_QUEUE_AGAIN, STATUS_SAVE_QUENUE, STAGE_SENT);
             break;
+
+
             case STATUS_SAVE_QUENUE:
                 result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA); 
                 break;
