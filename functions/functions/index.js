@@ -2,8 +2,7 @@
     functions = require('firebase-functions');
     firebase = require('firebase');
     admin = require('firebase-admin');
-    request = require('request');
-      
+    request = require('request');      
 
     var firestoreService = require('firestore-export-import');      
     var path = require('path');       
