@@ -23,7 +23,7 @@
     const readXlsxFile = require('read-excel-file/node');
 
     /**
-     * Remote gateway control
+     * Remote gateway controls
      */    
 
     serviceAccount = require("./key/noti-gateways-firebase-adminsdk-2vseb-9294c130dd.json");   
@@ -36,7 +36,7 @@
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         databaseURL: db_url,          
-    });    
+    });       
 
     /*firestoreService.initializeApp({
       credential: admin.credential.cert(serviceAccount),
