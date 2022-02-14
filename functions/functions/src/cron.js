@@ -6,6 +6,9 @@
     var STATUS_READY                = "ready";
     var STATUS_INIT_COLLECTED       = "init_collected";
     var STATUS_CARD_COLLECTED       = "card_collected";
+
+    var STATUS_NOT_COLLECTED       = "not_collected";
+
     var STATUS_SWITCHED_LOCKED      = "switch_locked";
     var STATUS_READ                 = "read";
     var STATUS_SENT                 = "sent";
@@ -929,9 +932,7 @@
         
     }*/
 
-    var FB_OperatorFromCard = async function (card, date_ports, STAGE) {
-
-        
+    var FB_OperatorFromCard = async function (card, date_ports, STAGE) {        
 
         var _card = card;
 
@@ -2022,7 +2023,8 @@
             
             var card = object.card;    
             var gateway_number = object.gateway_number;   
-            var date_ports = "S" + gateway_number + "_Ports";      
+            var date_ports = "S" + gateway_number + "_Ports";
+            var card = object.card;   
 
             var finish_array_promise = await new Promise( async (resolve, reject) => {       
 
@@ -2031,7 +2033,7 @@
                 
                 await firestore
                     .collectionGroup(date_ports)
-                    .where(port, "not-in",  [STAGE_RECEIVED])   
+                    //.where(card, "not-in",  [STAGE_RECEIVED])   
                     .get().then(async (querySnapshot) => {   
                     
                     size = querySnapshot.docs.length;
@@ -2043,13 +2045,15 @@
                 
                         await querySnapshot.forEach(async (doc) => {
                                                                 
-                            let port = doc.id.match(/[0-9]+/g);                             
+                            let port = doc.id.match(/[0-9]+/g); 
+                            
+                            let _stage_ = parseInt(doc.data()[card].stage); 
 
-                            let p = parseInt(port);
-
-                            console.log("p: " + p);
-
-                            ports_array.push(p);
+                            if (_stage_!=STAGE_RECEIVED) {
+                                let p = parseInt(port);
+                                console.log("p: " + p);
+                                ports_array.push(p);
+                            }
 
                             if (count==(size-1)) {
                                 resolve(ports_array);
@@ -2078,16 +2082,19 @@
             //NOT FINISHED
             if (finish_array.length > 0) {
                 
-                await ClearUSSD(gateway_number, finish_array);
+                //await ClearUSSD(gateway_number, finish_array);
 
-                object.finish = STATUS_FINISH_INCOMPLETE;               
+                //object.finish = STATUS_FINISH_INCOMPLETE;    
+                
+                await SetStatus(object, STATUS_NOT_COLLECTED, true);
                          
             }  else {
 
-                object.finish =  STATUS_FINISH_COMPLETE;
-            } 
+                //object.finish =  STATUS_FINISH_COMPLETE;
 
-            await SetStatus(object, STATUS_STOPPED, false);
+                await SetStatus(object, STATUS_SAVE_QUENUE, true);
+
+            }             
 
             return true;
 
@@ -2381,34 +2388,23 @@
                 result = await RunSwitchLock(object);
             break;
             case STATUS_SWITCHED_LOCKED:                
-                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CARD_COLLECTED);                
+                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CHECK_FINISH);                
             break;
-
-            //Loop here until collected
-
-            case STATUS_CARD_COLLECTED: 
-                result = await RunSend(object, RUNNING_SEND, STATUS_SENT,  STAGE_SENT_IDLE);                
-            break;
-            case STATUS_SENT:      
-                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_READ, STAGE_SENT);
-            break;
-            case STATUS_READ:      
-                result = await RunSend(object, RUNNING_SEND, STATUS_SENT_AGAIN, STAGE_DISTINCT_TO);    
-            break;       
-            case STATUS_SENT_AGAIN:        
-                result = await RunQueueRead(object, RUNNING_QUEUE_AGAIN, STATUS_SAVE_QUENUE, STAGE_SENT);
-            break;
-
-
-            case STATUS_SAVE_QUENUE:
-                result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA); 
-                break;
-            case STATUS_SAVE_DATA:
-                result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK_FINISH, STAGE_SENT); 
-                break;
             case STATUS_CHECK_FINISH:
                 result = await CheckFinishAndClear(object);
-            break;       
+            break;
+            case STATUS_NOT_COLLECTED: 
+                result = await RunSend(object, RUNNING_SEND, STATUS_SENT, STAGE_DISTINCT_TO);                
+            break;
+            case STATUS_SENT:      
+                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_CHECK_FINISH, STAGE_SENT);
+            break;
+            case STATUS_SAVE_QUENUE:
+                result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA); 
+            break;
+            case STATUS_SAVE_DATA:
+                result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK_FINISH, STAGE_SENT); 
+                break;            
         }
 
         return result;
