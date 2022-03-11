@@ -1614,10 +1614,11 @@
         
     }
 
-    var SaveQueaue = async function(object, status_running, status) {   
+    var SaveQueaue = async function(object, status_running, status, cycle) {   
         
-        
-        await SetStatus(object, status_running, true); 
+        object.cycle = cycle;
+
+        await SetStatus(object, status_running, cycle, true); 
         
         let gateway_number  = object.gateway_number;
         var date_ports      = "S" + gateway_number + "_Ports";         
@@ -1662,7 +1663,7 @@
 
             await Promise.all(promises_save_number_queue);     
             
-            await SetStatus(object, status, true);
+            await SetStatus(object, status, cycle, true);
             
             return true;
         }        
@@ -1672,9 +1673,9 @@
     }
 
 
-    var SaveData = async function(object, status_running, status) {
+    var SaveData = async function(object, status_running, status, cycle) {
 
-        await SetStatus(object, status_running, true); 
+        await SetStatus(object, status_running, cycle, true); 
 
         let gateway_number = object.gateway_number;
         var date_ports = "S" + gateway_number + "_Ports";        
@@ -1799,7 +1800,7 @@
 
         }
 
-        await SetStatus(object, status, true); 
+        await SetStatus(object, status, cycle, true);
     }
 
     var FB_SaveQueuedLimit = async function (date_ports) {        
@@ -1850,23 +1851,25 @@
 
     }   
 
-    var SetStatus = async function(object, new_status, new_running) {
+    var SetStatus = async function(object, new_status, cycle, new_running) {
 
         let gateway_number = object.gateway_number;
         let card = object.card;
 
-        let cards = object.cards;        
+        let cards = object.cards;
 
         cards[card].status = new_status;
         cards[card].running = new_running;
+        cards[card].cycle = cycle;
 
         if (object.finish) {
             cards[card].finish = object.finish;
-        }
+        }      
 
         let _cards = {"cards":cards};
 
         console.log('_cards : ' + JSON.stringify(_cards));
+        console.log();
 
         var gateway = "S" + gateway_number;
 
@@ -1876,15 +1879,13 @@
 
     }    
 
-    var RunSwitchLock = async function(object) {  
+    var RunSwitchLock = async function(object, cycle) {  
         
         try { 
 
-            await SetStatus(object, RUNNING_SWITCH_LOCK, true);        
+            await SetStatus(object, RUNNING_SWITCH_LOCK, cycle, true);          
 
-            await SwitchCard(object);  
-                
-            //console.log('SwitchCard(object);');
+            await SwitchCard(object);         
 
             await GW_LockSwitch(object, LOCK_SWITCH_VALUE);
 
@@ -1901,11 +1902,11 @@
 
     }
 
-    var RunCollect = async function(object, status_running, status) {   
+    var RunCollect = async function(object, status_running, status, cycle) {   
 
         try { 
 
-            await SetStatus(object, status_running, true); //RUNNING_COLLECT_SEND, true); 
+            await SetStatus(object, status_running, cycle, true);
 
             if (status_running == RUNNING_COLLECT_SEND) {
                 object.stop_init = true;
@@ -1915,7 +1916,7 @@
 
             console.log('GW_CollectData(object);');
 
-            await SetStatus(object, status, true); // STATUS_INIT_COLLECTED, true);
+            await SetStatus(object, status, cycle, true); 
 
             return true;
 
@@ -1926,30 +1927,18 @@
 
     }
 
-    var RunQueueRead = async function(object, status_running, status, stage) {
+    var RunQueueRead = async function(object, status_running, status, stage, cycle) {
 
         try {
 
-            await SetStatus(object, status_running, true);        
+            await SetStatus(object, status_running, cycle, true);       
             
-            let has_queue = await GW_QueueSims(object, stage); 
-
-            console.log('GW_QueueSims(object, stage);');
-
-            //if (has_queue) {
+            await GW_QueueSims(object, stage); 
 
             await ReadData(object);
-
-            console.log('ReadData(object);');
             
-            await SetStatus(object, status, true);
-            
-            //} else {
-
-                //await SetStatus(object, STATUS_STOPPED, false);
-
-            //}
-
+            await SetStatus(object, status, cycle, true);            
+         
             return true;
 
         } catch (error) {
@@ -1959,17 +1948,19 @@
 
     }
 
-    var RunSend = async function(object, status_running, status, stage) { 
+    var RunSend = async function(object, status_running, status, stage, cycle) { 
 
         try {
 
-            await SetStatus(object, status_running, true);   
+            object.cycle = cycle;
+
+            await SetStatus(object, status_running, cycle, true);  
 
             await GW_SendPhones(object, stage);  
 
             console.log('GW_SendPhones(object, stage);');
 
-            await SetStatus(object, status, true);
+            await SetStatus(object, status, cycle, true);
 
             return true;
 
@@ -2049,13 +2040,13 @@
                             
                             let _stage_ = parseInt(doc.data()[card].stage); 
 
-                            if (_stage_!=STAGE_RECEIVED) {
+                            /*if (_stage_!=STAGE_RECEIVED) {
                                 let p = parseInt(port);
                                 console.log("p: " + p);
                                 ports_array.push(p);
-                            }
+                            }*/
 
-                            /*console.log();
+                            console.log();
                             console.log("******* OTHER THAN ********");   
                             console.log("cycle :"  + cycle);     
                             console.log("_stage_ :"  + _stage_);  
@@ -2096,7 +2087,7 @@
                                 console.log("p: " + p);
                                 ports_array.push(p);
 
-                            }*/
+                            }
 
                             if (count==(size-1)) {
                                 resolve(ports_array);
@@ -2405,6 +2396,11 @@
         }
     }
 
+    var CYCLE_IDLE               = "cycle_idle";
+    var CYCLE_COLLECT            = "cycle_collect";
+    var CYCLE_READ               = "cycle_read";
+    var CYCLE_SAVE               = "cycle_save";
+
     var RunGateway = async function (object) { 
 
         let gateway_number = object.gateway_number;
@@ -2425,25 +2421,25 @@
 
         switch (status) {
             case STATUS_READY:                
-                result = await RunCollect(object, RUNNING_COLLECT_INIT,  STATUS_INIT_COLLECTED);                
+                result = await RunCollect(object, RUNNING_COLLECT_INIT,  STATUS_INIT_COLLECTED, CYCLE_COLLECT);                
             break;
             case STATUS_INIT_COLLECTED: 
-                result = await RunSwitchLock(object);
+                result = await RunSwitchLock(object, CYCLE_COLLECT);
             break;
             case STATUS_SWITCHED_LOCKED:                
-                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CHECK_FINISH);                
+                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CHECK_FINISH, CYCLE_COLLECT);                 
             break;
             case STATUS_CHECK_FINISH:
                 result = await CheckFinishAndClear(object);
             break;
             case STATUS_NOT_COLLECTED: 
-                result = await RunSend(object, RUNNING_SEND, STATUS_SENT, STAGE_DISTINCT_TO);                
+                result = await RunSend(object, RUNNING_SEND, STATUS_SENT, STAGE_DISTINCT_TO, CYCLE_READ);                
             break;
             case STATUS_SENT:      
-                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_CHECK_FINISH, STAGE_SENT);
+                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_CHECK_FINISH, STAGE_SENT, CYCLE_READ);
             break;
             case STATUS_SAVE_QUENUE:
-                result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA); 
+                result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA, CYCLE_SAVE); 
             break;
             case STATUS_SAVE_DATA:
                 result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK_FINISH, STAGE_SENT); 
