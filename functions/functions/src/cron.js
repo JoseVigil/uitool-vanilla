@@ -2055,6 +2055,49 @@
                                 ports_array.push(p);
                             }
 
+                            /*console.log();
+                            console.log("******* OTHER THAN ********");   
+                            console.log("cycle :"  + cycle);     
+                            console.log("_stage_ :"  + _stage_);  
+                            console.log("*************************");
+                            console.log(); 
+
+                            if (( cycle == CYCLE_COLLECT ) && ( _stage_ != STAGE_SENT_IDLE )) {
+
+                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE = true;
+                                CYCLE_READ_NOT_STAGE_RECEIVED     = false;
+                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = false;
+
+                            } else if (( cycle == CYCLE_READ )    && ( _stage_ != STAGE_RECEIVED  )) {
+
+                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE = false;
+                                CYCLE_READ_NOT_STAGE_RECEIVED     = true;
+                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = false;
+
+                            } else if (( cycle == CYCLE_SAVE )    && ( _stage_ != STAGE_SAVED_NUMBER )) {
+                                
+                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE = false;
+                                CYCLE_READ_NOT_STAGE_RECEIVED     = false;
+                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = true;
+
+                            }
+
+                            if (
+                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE   ||
+                                CYCLE_READ_NOT_STAGE_RECEIVED       ||
+                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER
+                                ) {
+
+                                console.log();
+                                console.log("****** ENTERED!! *********"); 
+                                console.log();
+
+                                let p = parseInt(port);
+                                console.log("p: " + p);
+                                ports_array.push(p);
+
+                            }*/
+
                             if (count==(size-1)) {
                                 resolve(ports_array);
                             }
