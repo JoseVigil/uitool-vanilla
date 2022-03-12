@@ -107,6 +107,9 @@ To run Visual Studio Code with root access command. Notice when it runs disable 
 
 Install into functions and functions/functions
 ```sh
+cd functions
+npm install
+cd functions/functions
 npm install
 ```
 
