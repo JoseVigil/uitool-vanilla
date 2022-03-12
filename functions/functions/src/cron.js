@@ -5,9 +5,10 @@
 
     var STATUS_READY                = "ready";
     var STATUS_INIT_COLLECTED       = "init_collected";
-    var STATUS_CARD_COLLECTED       = "card_collected";
 
-    var STATUS_NOT_COLLECTED       = "not_collected";
+    var STATUS_NOT_COLLECTED        = "not_collected";
+    //var STATUS_NOT_READ             = "not_read";
+    var STATUS_NOT_SAVED            = "not_saved";
 
     var STATUS_SWITCHED_LOCKED      = "switch_locked";
     var STATUS_READ                 = "read";
@@ -15,12 +16,13 @@
     var STATUS_SENT_AGAIN           = "sent_again";
     var STATUS_STOPPED              = "stopped";
     var STATUS_HOLD                 = "hold";
-    var STATUS_SAVE_QUENUE          = "save_quenue";
+    //var STATUS_SAVE_QUENUE          = "save_quenue";
     var STATUS_SAVE_DATA            = "save_data";
     
-    var STATUS_CHECK_FINISH         = "check_finish";
-    var STATUS_FINISH_INCOMPLETE    = "check_finish_incomplete";
-    var STATUS_FINISH_COMPLETE      = "status_finish_complete";
+    var STATUS_CHECK                = "check";
+
+    var COLLECT_FINISH_INCOMPLETE    = "collect_finish_incomplete";
+    var COLLECT_FINISH_COMPLETE      = "collect_finish_complete";
 
     var RUNNING_COLLECT_INIT        = "running_collect_init";
     var RUNNING_COLLECT_SWITCH      = "running_collect_switch";
@@ -34,13 +36,13 @@
 
     var RUNNING_CHECK_FINISH        = "running_check_finish";
 
-    var STAGE_SENT_COLLECTED    = 1000;
-    var STAGE_SENT_IDLE         = 1001;
-    var STAGE_SENT              = 1002;
-    var STAGE_NOT_RECEIVED      = 1003;
-    var STAGE_RECEIVED          = 1004;   
-    var STAGE_SAVED_NUMBER      = 1015;  
-    var STAGE_DISTINCT_TO       = 1006;        
+    var STAGE_COLLECTED_NOT_USING   = 1000;
+    var STAGE_COLLECTED             = 1001;
+    var STAGE_SENT                  = 1002;
+    var STAGE_NOT_RECEIVED          = 1003;
+    var STAGE_RECEIVED              = 1004;   
+    var STAGE_SAVED_NUMBER          = 1015;  
+    var STAGE_DISTINCT_TO           = 1006;        
 
     var Sleep  = function (milliseconds) {
         console.log();        
@@ -52,36 +54,7 @@
                 break;
             }
         }
-    }
-
-    var GetStage = function (stage) {
-
-        var _stage = 0;
-
-        switch (stage) {
-            case "STAGE_SENT_IDLE":
-                _stage = 1000;
-                break;   
-            case "STAGE_SENT":
-                _stage = 1001;
-                break;        
-            case "STAGE_NOT_RECEIVED":
-                _stage = 1002;
-                break;
-            case "STAGE_SENT_FAILED":
-                _stage = 1003;
-                break;
-            case "STAGE_RECEIVED":
-                _stage = 1004;
-                break;
-            case "STAGE_SAVED_NUMBER":
-                _stage = 1010;
-                break;
-        }
-
-        return _stage;
-
-    }   
+    }     
 
     var GetReceivedPorts = async function(object) { //card, gateway_number) {   
         
@@ -258,7 +231,7 @@
 
                     obj.channel.forEach(async (channel) => { 
 
-                        var  _status_ = STAGE_SENT_IDLE; 
+                        var _status_ = STAGE_COLLECTED; 
                         
                         //var init = received_ports.init; 
                         var init = object.init; 
@@ -271,6 +244,7 @@
                         } else {
 
                             if  (card==channel) {
+
                                 include=true;
 
                                 var received_array = received_ports.received_array;    
@@ -303,7 +277,7 @@
                             if (channel.status === "Using") {
                                 jsonCards += `"${channel.card}":{"status":"${channel.status}","stage":${_status_}}`;
                             } else {
-                                jsonCards += `"${channel.card}":{"status":"${channel.status}","stage":${STAGE_SENT_COLLECTED}}`;
+                                jsonCards += `"${channel.card}":{"status":"${channel.status}","stage":${STAGE_COLLECTED_NOT_USING}}`;
                             }                   
 
                             if (countAdded === 3) {
@@ -1879,24 +1853,22 @@
 
     }    
 
-    var RunSwitchLock = async function(object, cycle) {  
+    var RunSwitchLock = async function(object, status_running, status, cycle) {  
         
         try { 
 
-            await SetStatus(object, RUNNING_SWITCH_LOCK, cycle, true);          
+            await SetStatus(object, status_running, cycle, true);          
 
             await SwitchCard(object);         
 
             await GW_LockSwitch(object, LOCK_SWITCH_VALUE);
 
-            console.log('GW_LockSwitch(object, LOCK_SWITCH_VALUE);');
-
-            await SetStatus(object, STATUS_SWITCHED_LOCKED, true);       
+            await SetStatus(object, status, cycle, true);     
             
             return true;
 
         } catch (error) {
-            console.error(e);
+            console.error(error);
             return error;                
         }       
 
@@ -2006,11 +1978,17 @@
 
     }
 
-    var CheckFinishAndClear = async function(object) { 
+    var CYCLE_COLLECT_NOT_STAGE_COLLECTED = false;
+    var CYCLE_READ_NOT_STAGE_RECEIVED     = false;
+    var CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = false;
+
+    var Check = async function(object) { 
 
         try {
 
-            await SetStatus(object, RUNNING_CHECK_FINISH, true);  
+            var cycle = object.cycle;
+
+            await SetStatus(object, RUNNING_CHECK_FINISH, cycle, true);  
             
             var card = object.card;    
             var gateway_number = object.gateway_number;   
@@ -2051,42 +2029,16 @@
                             console.log("cycle :"  + cycle);     
                             console.log("_stage_ :"  + _stage_);  
                             console.log("*************************");
-                            console.log(); 
+                            console.log();                             
 
-                            if (( cycle == CYCLE_COLLECT ) && ( _stage_ != STAGE_SENT_IDLE )) {
+                            if ( (( cycle == CYCLE_COLLECT ) && ( _stage_ != STAGE_COLLECTED ))     || 
+                                 (( cycle == CYCLE_READ )    && ( _stage_ != STAGE_RECEIVED ))      || 
+                                 (( cycle == CYCLE_SAVE )    && ( _stage_ != STAGE_SAVED_NUMBER )) 
+                                 ) {    
 
-                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE = true;
-                                CYCLE_READ_NOT_STAGE_RECEIVED     = false;
-                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = false;
-
-                            } else if (( cycle == CYCLE_READ )    && ( _stage_ != STAGE_RECEIVED  )) {
-
-                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE = false;
-                                CYCLE_READ_NOT_STAGE_RECEIVED     = true;
-                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = false;
-
-                            } else if (( cycle == CYCLE_SAVE )    && ( _stage_ != STAGE_SAVED_NUMBER )) {
-                                
-                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE = false;
-                                CYCLE_READ_NOT_STAGE_RECEIVED     = false;
-                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER = true;
-
-                            }
-
-                            if (
-                                CYCLE_COLLECT_NOT_STAGE_SENT_IDLE   ||
-                                CYCLE_READ_NOT_STAGE_RECEIVED       ||
-                                CYCLE_SAVE_NOT_STAGE_SAVED_NUMBER
-                                ) {
-
-                                console.log();
-                                console.log("****** ENTERED!! *********"); 
-                                console.log();
-
-                                let p = parseInt(port);
-                                console.log("p: " + p);
-                                ports_array.push(p);
-
+                                    let p = parseInt(port);
+                                    console.log("p: " + p);
+                                    ports_array.push(p);                                    
                             }
 
                             if (count==(size-1)) {
@@ -2113,20 +2065,54 @@
             console.log();
             console.log("finish_array: " + JSON.stringify(finish_array));
 
+            var _status_ = "";
+            var _cycle_  = "";
+
             //NOT FINISHED
             if (finish_array.length > 0) {
                 
                 //await ClearUSSD(gateway_number, finish_array);
+                 
+                if (cycle == CYCLE_COLLECT) {
 
-                //object.finish = STATUS_FINISH_INCOMPLETE;    
-                
-                await SetStatus(object, STATUS_NOT_COLLECTED, true);
+                    _status_ = STATUS_READY; 
+                    
+                } else if (cycle == CYCLE_READ) {                    
+
+                    _status_ = STATUS_NOT_COLLECTED;                     
+
+                } else if (cycle == CYCLE_SAVE) {
+
+                    _status_ = STATUS_NOT_SAVED;                    
+
+                }
+
+                object.finish = COLLECT_FINISH_INCOMPLETE;   
+
+                await SetStatus(object, _status_, cycle, true);
                          
-            }  else {
+            }  else {               
 
-                //object.finish =  STATUS_FINISH_COMPLETE;
+                if (cycle == CYCLE_COLLECT) {  
+                    
+                    _status_ = STATUS_NOT_COLLECTED; 
+                    _cycle_  = CYCLE_READ;
 
-                await SetStatus(object, STATUS_SAVE_QUENUE, true);
+                } else if (cycle == CYCLE_READ) {
+
+                    _status_ = STATUS_NOT_SAVED;
+                    _cycle_  = CYCLE_SAVE;
+
+                } else if (cycle == CYCLE_SAVE) {
+                    
+                    _status_ = STATUS_READY;
+                    _cycle_  = CYCLE_IDLE;
+
+                }
+
+                object.finish =  COLLECT_FINISH_COMPLETE;
+
+                await SetStatus(object, _status_, _cycle_, true);
 
             }             
 
@@ -2196,8 +2182,8 @@
                 .then(async (doc) => {
 
                 let cards = doc.data().cards;
-                let init = doc.data().init;  
-                
+                let init = doc.data().init; 
+                                
                 const ordered = Object.keys(cards).sort().reduce(
                     (obj, key) => { 
                     obj[key] = cards[key]; 
@@ -2207,7 +2193,7 @@
                 );
 
                 let _response_ = {
-                    "init" : init,
+                    "init" : init,                   
                     "cards" : ordered
                 }
 
@@ -2263,12 +2249,14 @@
             console.log('Key : ' + key + ', Value : ' + JSON.stringify(cards[key]));        
 
             let running = cards[key].running;
-            let status = cards[key].status;
+            let status  = cards[key].status;
+            let cycle   = cards[key].cycle;
 
             let json_card = {
                 id:id,
                 gateway_number:gateway_number,
                 key:key,
+                cycle:cycle,
                 card:cards[key]                
             };
 
@@ -2365,17 +2353,18 @@
             console.log();
 
             return false;            
-
         }
         
-        let key = json_card.key;
-        let card = json_card.card;
-        let status = card.status;
+        let key         = json_card.key;
+        let card        = json_card.card;
+        let status      = card.status;  
+        let cycle       = card.cycle; 
 
-        object.card = key;
-        object.status = status; 
-        object.cards = cards; 
-        object.init = init;
+        object.card     = key;
+        object.status   = status; 
+        object.cards    = cards; 
+        object.init     = init;
+        object.cycle    = cycle;
         
         return object;
 
@@ -2391,7 +2380,7 @@
 
         let result_gateway = await RunGateway(object);
 
-        console.log("result_gateway:" + result_gateway);
+        console.log("result_gateway:" + JSON.stringify(result_gateway));
 
         }
     }
@@ -2420,30 +2409,35 @@
         let result = {};
 
         switch (status) {
+
             case STATUS_READY:                
                 result = await RunCollect(object, RUNNING_COLLECT_INIT,  STATUS_INIT_COLLECTED, CYCLE_COLLECT);                
             break;
             case STATUS_INIT_COLLECTED: 
-                result = await RunSwitchLock(object, CYCLE_COLLECT);
+                result = await RunSwitchLock(object, RUNNING_SWITCH_LOCK, STATUS_SWITCHED_LOCKED,  CYCLE_COLLECT);
             break;
             case STATUS_SWITCHED_LOCKED:                
-                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CHECK_FINISH, CYCLE_COLLECT);                 
-            break;
-            case STATUS_CHECK_FINISH:
-                result = await CheckFinishAndClear(object);
-            break;
+                result = await RunCollect(object, RUNNING_COLLECT_SEND, STATUS_CHECK, CYCLE_COLLECT);                 
+            break;  
+
             case STATUS_NOT_COLLECTED: 
                 result = await RunSend(object, RUNNING_SEND, STATUS_SENT, STAGE_DISTINCT_TO, CYCLE_READ);                
-            break;
+            break;            
             case STATUS_SENT:      
-                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_CHECK_FINISH, STAGE_SENT, CYCLE_READ);
+                result = await RunQueueRead(object, RUNNING_QUEUE_READ, STATUS_CHECK, STAGE_SENT, CYCLE_READ);
             break;
-            case STATUS_SAVE_QUENUE:
+
+            case STATUS_NOT_SAVED:
                 result = await SaveQueaue(object, RUNNING_SAVE_QUENUE, STATUS_SAVE_DATA, CYCLE_SAVE); 
             break;
             case STATUS_SAVE_DATA:
-                result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK_FINISH, STAGE_SENT); 
-                break;            
+                result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK, CYCLE_SAVE); 
+            break; 
+
+            /* Check */
+            case STATUS_CHECK:
+                result = await Check(object);
+            break;        
         }
 
         return result;
@@ -2511,7 +2505,7 @@
 
                     }
             
-                    /*let finish = await CheckFinishAndClear(object, 1);
+                    /*let finish = await Check(object, 1);
 
                     console.log();
                     console.log("finish: " + finish);
