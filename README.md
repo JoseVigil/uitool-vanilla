@@ -105,14 +105,17 @@ Follow the wizard and aswer accordingly.
 
 To run Visual Studio Code with root access command. Notice when it runs disable git not to ask any more about it otherwise you can reach the point of having to compare each time there is a modification. Remove git activity from VS.
 
+Install into functions and functions/functions
+```sh
+npm install
+```
+
+Lilux
 ```sh
 sudo code --user-data-dir="~/.vscode-root"
 ```
 
-In case skipped installing repos run install into functions and functions/functions
-```sh
-npm install
-```
+
 
 Emulators
 ---------
