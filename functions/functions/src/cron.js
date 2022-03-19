@@ -1290,7 +1290,7 @@
         return promises_queue;
     }  
 
-    var ReadData = async function(object) {    
+    var ReadSentData = async function(object) {    
 
         let gateway_number = object.gateway_number;
 
@@ -1413,27 +1413,30 @@
 
                     }   
                     
-                    Sleep(200);
+                    //Sleep(200);
 
                 } 
+
+                count_queue = await CountQueue(date_ports, "queue_sent");
+
+                console.log();
+                console.log("count_queue: " + count_queue);
+                console.log();
+
             
             } catch (error) {
 
-                console.error(error);              
+                console.error(error);     
                 
+                await SetStatus(object, STATUS_NOT_COLLECTED, CYCLE_READ, true);            
             }
 
-            count_queue = await CountQueue(date_ports, "queue_sent");
-
-            console.log();
-            console.log("count_queue: " + count_queue);
-            console.log();
-
+            
         }
 
     }
 
-    var QueaueRead = async function(url, card, gateway_number, stage) {
+    /*var QueaueRead = async function(url, card, gateway_number, stage) {
 
         let quenue_body = {
             "action": READ_QUENUE,
@@ -1450,7 +1453,7 @@
 
         console.log("quenue_data: " + quenue_data);
 
-        Sleep(200);
+        //Sleep(200);
 
         let read_body = {
             "action": READ_DATA,
@@ -1463,7 +1466,7 @@
 
         Sleep(200);
 
-    }
+    }*/
 
     var FB_PhoneNumbersFromCard = async function (card, port_date) {
 
@@ -1761,7 +1764,7 @@
 
                         count++;
                         
-                        Sleep(200);
+                        //Sleep(200);
 
                     }
 
@@ -1777,6 +1780,8 @@
         await SetStatus(object, status, cycle, true);
     }
 
+    
+
     var FB_SaveQueuedLimit = async function (date_ports) {        
 
         var queueArray = await new Promise( async (resolve, reject) => {
@@ -1788,7 +1793,7 @@
                 .collection("automation")
                 .doc(date_ports)
                 .collection("queue_save_number")
-                .limit(3)                             
+                .limit(4)                             
                 .get()
                 .then(async (querySnapshot) => {
 
@@ -1839,6 +1844,10 @@
         if (object.finish) {
             cards[card].finish = object.finish;
         }      
+
+        if (object.count_not_collected) {
+            cards[card].count_not_collected = object.count_not_collected;
+        }
 
         let _cards = {"cards":cards};
 
@@ -1907,7 +1916,7 @@
             
             await GW_QueueSims(object, stage); 
 
-            await ReadData(object);
+            await ReadSentData(object);
             
             await SetStatus(object, status, cycle, true);            
          
@@ -2065,8 +2074,19 @@
             console.log();
             console.log("finish_array: " + JSON.stringify(finish_array));
 
+            function countNotCollected(object) {
+                var count_not_collected = 0;
+                if (object.count_not_collected) {
+                    count_not_collected = parseInt(object.count_not_collected);                 
+                }
+                count_not_collected++;
+                object.count_not_collected = count_not_collected;
+                return object;
+            }
+
             var _status_ = "";
             var _cycle_  = "";
+            var _running_  = true;
 
             //NOT FINISHED
             if (finish_array.length > 0) {
@@ -2079,9 +2099,10 @@
                     
                 } else if (cycle == CYCLE_READ) {                    
 
-                    _status_ = STATUS_NOT_COLLECTED;                     
+                    _status_    = STATUS_NOT_COLLECTED;                     
+                    object      = countNotCollected(object);
 
-                } else if (cycle == CYCLE_SAVE) {
+                } else if (cycle == CYCLE_SAVE) {   
 
                     _status_ = STATUS_NOT_SAVED;                    
 
@@ -2089,14 +2110,15 @@
 
                 object.finish = COLLECT_FINISH_INCOMPLETE;   
 
-                await SetStatus(object, _status_, cycle, true);
+                await SetStatus(object, _status_, cycle, _running_);
                          
             }  else {               
 
                 if (cycle == CYCLE_COLLECT) {  
                     
-                    _status_ = STATUS_NOT_COLLECTED; 
-                    _cycle_  = CYCLE_READ;
+                    _status_    = STATUS_NOT_COLLECTED; 
+                    object      = countNotCollected(object);
+                    _cycle_     = CYCLE_READ;
 
                 } else if (cycle == CYCLE_READ) {
 
@@ -2105,14 +2127,17 @@
 
                 } else if (cycle == CYCLE_SAVE) {
                     
-                    _status_ = STATUS_READY;
-                    _cycle_  = CYCLE_IDLE;
+                    _status_                    = STATUS_STOPPED;
+                    _cycle_                     = CYCLE_IDLE;
+                    _running_                   = false;
+                    object.count_not_collected  = 0;
+                    object.finish               =  COLLECT_FINISH_COMPLETE;
 
-                }
+                }             
 
-                object.finish =  COLLECT_FINISH_COMPLETE;
+                await SetStatus(object, _status_, _cycle_, _running_);
 
-                await SetStatus(object, _status_, _cycle_, true);
+                //object, new_status, cycle, new_running
 
             }             
 
@@ -2122,55 +2147,7 @@
             console.error(error);
             return error;                
         } 
-    }
-
-    var FB_SaveQueuedLimit = async function (date_ports) {        
-
-        var queueArray = await new Promise( async (resolve, reject) => {
-
-            var queued = [];
-            var count  = 0;
-           
-            await firestore
-                .collection("automation")
-                .doc(date_ports)
-                .collection("queue_save_number")
-                .limit(3)                             
-                .get()
-                .then(async (querySnapshot) => {
-
-                size = querySnapshot.docs.length;                
-
-                if (size>0) {                   
-                
-                    await querySnapshot.forEach(async (doc) => {
-
-                        let port = doc.data().port; 
-                        let card = doc.data().card; 
-                        let phone = doc.data().phone; 
-                        let path = doc.ref.path;                                                 
-                        queued.push({port:port, card:card, phone:phone, path:path});
-
-                    if (count === (size-1)) {
-                        resolve(queued);
-                    }
-
-                    count++;
-                    
-                    });
-
-                } else {
-                    resolve(queued);
-                }
-
-                return {};
-            });                
-            
-        });  
-
-        return queueArray;
-
-    }  
+    }     
 
     var GetCardsByGateway = async function(gateway) {
 
@@ -2330,7 +2307,9 @@
             console.log();
 
             let current_object = getObject(selected_id, cards_array);
-            await SetStatus(current_object, STATUS_HOLD, false);
+
+
+            await SetStatus(current_object, STATUS_HOLD, CYCLE_IDLE, false);
 
             if (selected_id >= (cards_array.length-1)) { //initial
 
@@ -2346,7 +2325,10 @@
             }
 
             next_object = getObject(selected_id, cards_array); 
-            await SetStatus(next_object, STATUS_READY, false);     
+
+            //object, new_status, cycle, new_running
+
+            await SetStatus(next_object, STATUS_READY, CYCLE_IDLE, false);     
 
             console.log();
             console.log("next_object: " + JSON.stringify(next_object));
