@@ -213,7 +213,52 @@
           res.status(401).send("Invalid authorization");  
         }    
 
-    });    
+    });  
+    
+    RebootGateway = async function (gateway_number) {
+
+      try {
+
+        console.log();
+        console.log("REINICIANDO");
+        console.log();
+
+        let _urls = GetURLS();
+
+        var _url = _urls.url_base_cloud_remote + _urls.params_reboot;
+
+        var option_reboot = {
+            method: "POST",
+            uri: _url,
+            body: {
+                data: {
+                    "gateway": gateway_number,
+                    "url": _urls.url_reboot,                        
+                    "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
+                },
+            },
+            json: true,
+        };
+
+        console.log();
+        console.log("option_reboot: " + JSON.stringify(option_reboot));
+        console.log();
+
+       let return_result = await rp(option_reboot)
+            .then((results_reboot) =>  {
+            let response = { error:false, result:results_reboot };
+            console.log("response: " + JSON.stringify(response));
+            return response;         
+        });
+
+        return return_result;
+
+      } catch (e) {
+        console.error(e);
+        return {error:true, resutl:e};                
+      }
+
+    }
 
     
     const Action = async function(req, res) { 
@@ -252,40 +297,19 @@
           
           case ACTION_REBOOT:    
 
-            try {
+            try {             
 
-              console.log();
-              console.log("REINICIANDO");
-              console.log();
-
-              let _urls = GetURLS();
-
-              var _url = _urls.url_base_cloud_remote + _urls.params_reboot;
-
-              var gateway = req.body.data.gateway; 
-
-              var option_reboot = {
-                  method: "POST",
-                  uri: _url,
-                  body: {
-                      data: {
-                          "gateway": gateway,
-                          "url": _urls.url_reboot,                        
-                          "autorization": "YWRtaW46Tm90aW1hdGlvbjIwMjA=",
-                      },
-                  },
-                  json: true,
-              };
-
-              console.log();
-              console.log("option_reboot: " + JSON.stringify(option_reboot));
-              console.log();
-
-              await rp(option_reboot)
-                  .then((results_reboot) =>  {
-                  return res.status(200).send(results_reboot); 
-              });
+              var gateway = req.body.data.gateway;     
               
+              await RebootGateway(gateway).then(async (results_reboot) => {
+
+                if (results_reboot.error==false) {
+                    return res.status(200).send(results_reboot.result); 
+                } else {
+                  return res.status(400).send(results_reboot.error);  
+                }
+                                
+              });           
 
             } catch (e) {
               console.error(e);

@@ -21,9 +21,6 @@
     
     var STATUS_CHECK                = "check";
 
-    var COLLECT_FINISH_INCOMPLETE    = "collect_finish_incomplete";
-    var COLLECT_FINISH_COMPLETE      = "collect_finish_complete";
-
     var RUNNING_COLLECT_INIT        = "running_collect_init";
     var RUNNING_COLLECT_SWITCH      = "running_collect_switch";
     var RUNNING_COLLECT_SEND        = "running_collect_send";
@@ -1771,7 +1768,11 @@
                 } 
 
             } catch (error) {
+
                 console.error("Error:: " + error);
+
+                await SetStatus(object, STATUS_NOT_SAVED, CYCLE_SAVE, true);
+
                 return false;        
             }
 
@@ -1845,8 +1846,8 @@
             cards[card].finish = object.finish;
         }      
 
-        if (object.count_not_collected) {
-            cards[card].count_not_collected = object.count_not_collected;
+        if (object.count_collect) {
+            cards[card].count_collect = object.count_collect;
         }
 
         let _cards = {"cards":cards};
@@ -1951,6 +1952,7 @@
         } 
     }
 
+   
     var ClearUSSD = async function (gateway_number, channels) {
 
         let _urls = GetURLS();
@@ -2075,12 +2077,11 @@
             console.log("finish_array: " + JSON.stringify(finish_array));
 
             function countNotCollected(object) {
-                var count_not_collected = 0;
-                if (object.count_not_collected) {
-                    count_not_collected = parseInt(object.count_not_collected);                 
+                var count_collect = 0;
+                if (object.count_collect) {
+                    count_collect = parseInt(object.count_collect);                 
                 }
-                count_not_collected++;
-                object.count_not_collected = count_not_collected;
+                object.count_collect++;
                 return object;
             }
 
@@ -2104,11 +2105,10 @@
 
                 } else if (cycle == CYCLE_SAVE) {   
 
-                    _status_ = STATUS_NOT_SAVED;                    
+                    _status_                = STATUS_NOT_SAVED;  
+                    object.count_collect    = 0;               
 
                 }
-
-                object.finish = COLLECT_FINISH_INCOMPLETE;   
 
                 await SetStatus(object, _status_, cycle, _running_);
                          
@@ -2130,8 +2130,7 @@
                     _status_                    = STATUS_STOPPED;
                     _cycle_                     = CYCLE_IDLE;
                     _running_                   = false;
-                    object.count_not_collected  = 0;
-                    object.finish               =  COLLECT_FINISH_COMPLETE;
+                    object.count_collect        = 0;
 
                 }             
 
@@ -2194,6 +2193,10 @@
 
         let cards_by_gateway = await GetCardsByGateway(gateway);
 
+        console.log();
+        console.log('cards_by_gateway : ' + JSON.stringify(cards_by_gateway));      
+        console.log();
+
         var cards = cards_by_gateway.cards;
         var init = cards_by_gateway.init;
 
@@ -2228,12 +2231,14 @@
             let running = cards[key].running;
             let status  = cards[key].status;
             let cycle   = cards[key].cycle;
+            let count_collect  = cards[key].count_collect;
 
             let json_card = {
                 id:id,
                 gateway_number:gateway_number,
                 key:key,
                 cycle:cycle,
+                count_collect:count_collect,
                 card:cards[key]                
             };
 
@@ -2287,7 +2292,6 @@
             };    
             
             return _object;
-
         }
         
         var json_card = {};
@@ -2337,17 +2341,19 @@
             return false;            
         }
         
-        let key         = json_card.key;
-        let card        = json_card.card;
-        let status      = card.status;  
-        let cycle       = card.cycle; 
+        let key             = json_card.key;
+        let card            = json_card.card;
+        let status          = card.status;  
+        let cycle           = card.cycle; 
+        let count_collect   = card.count_collect; 
 
-        object.card     = key;
-        object.status   = status; 
-        object.cards    = cards; 
-        object.init     = init;
-        object.cycle    = cycle;
-        
+        object.card             = key;
+        object.status           = status; 
+        object.cards            = cards; 
+        object.init             = init;
+        object.cycle            = cycle; 
+        object.count_collect    = count_collect;
+
         return object;
 
     }
@@ -2360,9 +2366,9 @@
 
         if (object!=false) {         
 
-        let result_gateway = await RunGateway(object);
+            let result_gateway = await RunGateway(object);
 
-        console.log("result_gateway:" + JSON.stringify(result_gateway));
+            console.log("result_gateway:" + JSON.stringify(result_gateway));
 
         }
     }
@@ -2416,7 +2422,6 @@
                 result = await SaveData(object, RUNNING_SAVE_DATA, STATUS_CHECK, CYCLE_SAVE); 
             break; 
 
-            /* Check */
             case STATUS_CHECK:
                 result = await Check(object);
             break;        
@@ -2473,17 +2478,49 @@
                     console.log("********START********");
                     console.log("*********************");
                     console.log();
+
+                    var gateway_number = 2;
                    
-                    let object = await TaskQueaue(2);
+                    let object = await TaskQueaue(gateway_number);
 
                     console.log();
                     console.log("OBJECT:::: " + JSON.stringify(object));
+                    console.log("object.count_collect->> " + object.count_collect);
+                    console.log();
 
-                    if (object!=false) {         
+                    if (object!=false) {      
+                        
+                        if (object.count_collect > 5) {
 
-                        let result_gateway = await RunGateway(object);
+                            console.log();
+                            console.log("object.count_collect->> " + object.count_collect);
+                            console.log();                            
 
-                        console.log("result_gateway:" + result_gateway);
+                            await RebootGateway(gateway_number)  
+                            .then(async (results_reboot) => {
+
+                                console.log("results_reboot> " + JSON.stringify(results_reboot));
+
+                                let result = results_reboot.result;
+
+                                console.log("result> " + JSON.stringify(result));
+
+                                if (result.status=="rebooted") {   
+                                    object.count_collect = 0;    
+                                    let card = object.card;                                    
+                                    object.cards[card].count_collect = 0;                
+                                    await SetStatus(object, object.status, object.cycle, true);
+                                } 
+
+                            });
+            
+                        } else {
+
+                            let result_gateway = await RunGateway(object);
+
+                            console.log("result_gateway:" + result_gateway);
+
+                        }                        
 
                     }
             
