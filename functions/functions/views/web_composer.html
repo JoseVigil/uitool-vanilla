@@ -56,15 +56,13 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>        
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" defer></script>
     <script src="https://cdn.tiny.cloud/1/lr9wasio09vwo6la4k91gs8hybva1vp7oxw5k9cfpm2g5pm6/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.11.0/beautifier.js"></script>-->
 
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-storage.js"></script>        
-    <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>            
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-functions.js"></script>   
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>     
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script> 
 
     
     <script src="/vendor/grapick/grapick.min.js"></script>
@@ -481,7 +479,23 @@
       };
       var fireApp   = firebase.initializeApp(firebaseConfig);
       var fireAuth  = fireApp.auth();   
-      var firestore = firebase.firestore();   
+      var firestore = firebase.firestore();    
+
+      var API_ROOT = "";
+      var SITE_ROOT = "";
+      if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+          API_ROOT = "http://localhost:5001/notims/us-central1/";
+          SITE_ROOT = "http://localhost:5000/";
+      } else{
+          API_ROOT = "https://us-central1-notims.cloudfunctions.net";
+          SITE_ROOT = "https://noti.ms/";
+      }
+
+      if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
+        fireAuth.useEmulator("http://localhost:9099");   
+        firestore.useEmulator("localhost", 8080);    
+        //storage.useEmulator("localhost", 9199);                    
+      } 
 
       var getUrlParameter = function getUrlParameter(sParam) {
           var sPageURL = window.location.search.substring(1),
@@ -563,7 +577,7 @@
 
       });        
     
-      firebase.auth().onAuthStateChanged(async function (user) {
+      fireAuth.onAuthStateChanged(async function (user) {
 
         if (user) { 
 

@@ -294,10 +294,13 @@
         var firestore = firebase.firestore();     
         
         var API_ROOT = "";
+        var SITE_ROOT = "";
         if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
             API_ROOT = "http://localhost:5001/notims/us-central1/";
+            SITE_ROOT = "http://localhost:5000/";
         } else{
             API_ROOT = "https://us-central1-notims.cloudfunctions.net";
+            SITE_ROOT = "https://noti.ms/";
         }
 
         if (location.hostname == "127.0.0.1" || location.hostname == "localhost") {
@@ -498,20 +501,23 @@
                                   
                                       let name = cardSnapshot.data().name;
 
-                                      let piw = cardSnapshot.data().public_image_web;
-                                      let pip = cardSnapshot.data().public_image_preview;
+                                      let piw = cardSnapshot.data().html_web;
+                                      let pip = cardSnapshot.data().html_preview;
 
                                       let card = filterCard(id, id_card, name, piw, pip);     
                                       
                                       if (card != undefined) {
 
                                         let card_joined = card.replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ');
-                                        let json_card = `{"id":"${id_card}", "name":"${name}","card":"${card_joined}"}`;                            
-                                        jsonCat.campaigns[active_campaign]["designs"].push(JSON.parse(json_card));
+                                        let card_replaced_quotes = card_joined.replaceAll('"', "'");
+                                        let card_removed_slash = card_replaced_quotes.replace(/\\/g, '')
+                                        let json_card = `{"id":"${id_card}", "name":"${name}","card":"${card_removed_slash}"}`;
+                                        let json_card_parsed = JSON.parse(json_card);                             
+                                        jsonCat.campaigns[active_campaign]["designs"].push(json_card_parsed);
 
-                                        //if (countDesigns == (cardSize-1)) {
+                                        if (countDesigns == (cardSize-1)) {
                                           loadCampaignById(active_campaign);
-                                        //}
+                                        }
 
                                         $(`#preview-${id}-${id_card}`).click({param: id_card}, preview_click);                                    
                                         $(`#web-${id}-${id_card}`).click({param: id_card}, web_click);                                                                      
@@ -1034,7 +1040,7 @@
         function getCard(campaign_id, card_id, campaign_name, img_preview, img_web) {
 
           var timestamp = new Date().getTime();     
-          
+                 
           let card = `<div id=\\"card-${card_id}\\" id=\\"card-\\" class=\\"col-md-3\\" style=\\"background-color:#E8F0FE;\\">                              
                 <div class=\\"row col-md-12 mt-3 mb-2\\">                                
                   <div class=\\"col-md-10\\">
@@ -1044,7 +1050,7 @@
                     <button type=\\"button\\" class=\\"float-right btn btn-success\\">X</button>
                   </div>
                 </div>
-                <button id=\\"preview-${campaign_id}-${card_id}\\" class=\\"card border round w-100\\">`;                                        
+                <button onclick="openEditor('241','vaibhavs:3847');" id=\\"preview-${campaign_id}-${card_id}\\" class=\\"card border round w-100\\">`;                                        
                 if (img_preview) {
                   img_preview += "&t=" + timestamp;
                   card += `<img class=\\"w-100\\" src=\\"${img_preview}\\"/>`;

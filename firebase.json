@@ -17,7 +17,11 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "rewrites": [ {
+      "source": "**",
+      "function": "app"  
+    }]
   },
   "storage": {
     "rules": "storage.rules"
@@ -33,7 +37,7 @@
       "port": 8080
     },
     "database": {
-      "port": 9000
+      "port": 9001
     },
     "hosting": {
       "port": 5000

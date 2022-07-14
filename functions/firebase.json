@@ -32,7 +32,7 @@
       "port": 8080
     },
     "database": {
-      "port": 9000
+      "port": 9001
     },
     "hosting": {
       "port": 5000
