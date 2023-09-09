@@ -1,25 +1,23 @@
 <p align="center">
-  <img src="images/noti.png" alt="Noti.ms"/>
+  <img src="images/uitool_first_prototype.png" alt="Noti.ms"/>
 </p>     
 
-Noti.ms
-=======
+UiTool Vanilla
+==============
 
-Proyecto destinado a la interacción con el usuario final de nuestros clientes generando valor agreado a la plataforma y permitiendo homologar buenas practicas con las empresas de telecomunicaciones. 
+Prototipo de UiTool para verificar caso de uso drag and drop, generacion de previews, landings y paginas. Visualización de templates en UiTrade. Pruebas de PWA, generacion dinamica de assets con Google Cloud y Lamda.  
 
 **Tecnologia**
 
 El sistema se basa en la tecnologia de de backend usando Google Cloud Functions con Firebase y para los frontends bootstrap y google screadsheet con google script. Se puede usar como API o navegado. En la web se puede utilizar un composer de campañas para generar links con paginas web diseñadas en linea. 
 
-Assets
+- **Javascript y Node** 
+- **Bootstrap** 
+- **Firestore**
+- **Google Cloud Functions**
 
-- **Campaign Composer** 
-- **Noti Designer** 
-- **Gateway API**
-- **SIM-X-PORT**
-
-Gateway API
-------------
+Setup Firestore
+---------------
 
 La herramienta apunta a controlar y automatizar la utilizacion de los gateways. 
 
@@ -224,56 +222,7 @@ node import.js emulate contents.json
 
 TODO: Fix formats
 
-Steps Gateways API
-==================
-
-To execute the automation trigger these fields on automation class. Notice the gateway field should countain the desired gateway number. 
-
-1. collect_data
-2. send_data
-3. read_data
-4. read_quenue
-5. send_data_again
-
-```
-{
-    "automation": {
-        "I4g5vWpYChvVv9SIj9Qw": {
-            "gateway" :2,
-            "cards":["A","B","C","D"],
-            "current_card":"A",
-            "switch_cards": false,
-            "collect_data": false,
-            "collect_data_once": false,
-            "send_data": false,
-            "read_quenue": false,            
-            "read_data": false,
-            "count_read": 0,   
-            "save_number_queue":false,            
-            "save_number" : false,
-            "count_save_number":0,
-            "reset_state" : false,
-            "reset_state_count":0,
-            "subCollection": {}
-        }
-    }
-}
-```
-
 Push notification to WebApp
 ===========================
 
 https://www.freecodecamp.org/news/how-to-add-push-notifications-to-a-web-app-with-firebase-528a702e13e1/#:~:text=Notifications%20with%20Firebase,any%20device%20using%20HTTP%20requests.
-
-
-Import json
-===========
-
-```sh
-cd noti-ms/functions/functions/import
-node import.js emulate automation.json
-node import.js emulate gateways.json
-```
-
-
-
